@@ -1,0 +1,14 @@
+argc:	equ $c147
+argv:	equ $c148
+cliMonitor:	equ $c28c
+cliStart:	equ $c000
+coldStart:	equ $0000
+echo:	equ $c265
+exit:	equ $c28a
+getc:	equ $0010
+monitor:	equ $0038
+printStr:	equ $c25b
+putc:	equ $0008
+sdRead:	equ $0020
+setInput:	equ $0014
+setOutput:	equ $000c
