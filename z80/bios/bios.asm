@@ -81,10 +81,10 @@ _bootloader:
 	ld hl, (0c000h)
 	ld a, l
 	cp 18h
-	jr nz, invalidMBR
+	jr nz, invalidBootloaderStr
 	ld a, h
 	or a
-	jr nz, invalidMBR
+	jr nz, invalidBootloaderStr
 	ld hl, (0c1feh)
 	ld a, l
 	cp 55h
@@ -94,6 +94,15 @@ _bootloader:
 	jr nz, invalidMBR
 
 	jp 0c000h
+
+invalidBootloaderStr:
+	db "Error: No bootloader detected on card\r\n\0"
+
+invalidBootloader:
+	ld hl, invalidBootloaderStr
+	call printStr
+	call _monitor
+	call coldStart
 
 invalidMBRStr:
 	db "Error: Invalid MBR signature\r\n\0"
