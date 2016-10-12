@@ -58,20 +58,30 @@ initfs:
 	ldir
 
 	;calculate the address of the first fat
-	ld a, (fat_reservedSectors)
 	ld hl, fat_bootStartSector
 	ld de, fat_fat1StartSector
+	ld a, (hl)
+	ld (de), a
+	inc hl
+	inc de
+
+	ld a, (fat_reservedSectors)
+	rla
 	add a, (hl)
 	ld (de), a
 
 	ld a, 0
-	ld b, 3
-.calculateFat1Addr:
 	inc hl
 	inc de
 	adc a, (hl)
 	ld (de), a
-	djnz .calculateFat1Addr
+	ld a, 0
+	inc hl
+	inc de
+	adc a, (hl)
+	ld (de), a
+
+	ret
 
 
 

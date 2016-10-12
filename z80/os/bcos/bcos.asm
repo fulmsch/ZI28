@@ -9,6 +9,7 @@ include "bcosCalls.h"
 sdBuffer: equ 4200h
 
 	org bcosVect
+	jp .bcosStart
 	;TODO check if c is valid
 	ld hl, .bcosVectTable
 	ld b, 0
@@ -22,11 +23,14 @@ sdBuffer: equ 4200h
 	jp (hl)
 
 .bcosVectTable:
+	dw .bcosStart
 
 .bcosStart:
 
 	;TODO setup stack and interrupts
 
 	call initfs
+
+	ret
 
 include "fat.asm"
