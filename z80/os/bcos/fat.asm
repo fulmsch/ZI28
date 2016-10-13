@@ -9,7 +9,7 @@ fat_fatCopies:          ds 1
 fat_maxDirsInRoot:      ds 2
 fat_sectorsShort:       ds 2
 fat_mediaDescriptor:    ds 1
-fat_sectorsPerFAT:      ds 2
+fat_sectorsPerFat:      ds 2
 fat_sectorsPerTrack:    ds 2
 fat_heads:              ds 2
 fat_sectorsBeforeVBR:   ds 4
@@ -35,51 +35,75 @@ initfs:
 	ld hl, sdBuffer
 	rst sdRead
 
-	;calculate partition start
+	;store partition start in memory
+	ld hl, sdBuffer + 1c6h
+	ld de, fat_bootStartSector
+	ld bc, 4
+	ldir
+
+	;load volume boot record
 	ld hl, sdBuffer + 1c6h
 	call sectorToAddr
-	;store partition start in memory
-	ld hl, fat_bootStartSector
-	ld (hl), b
-	inc hl
-	ld (hl), c
-	inc hl
-	ld (hl), d
-	inc hl
-	ld (hl), e
 
 	ld a, 1
 	ld hl, sdBuffer
 	rst sdRead
+
 	;store information about the fs in memory
 	ld hl, sdBuffer + 3
 	ld de, fat_vbr
 	ld bc, 2ah
 	ldir
 
-	;calculate the address of the first fat
+	;TODO check the number of fat copies
+
+	;calculate the sector of the first fat
+	ld a, (fat_reservedSectors)
 	ld hl, fat_bootStartSector
 	ld de, fat_fat1StartSector
-	ld a, (hl)
-	ld (de), a
-	inc hl
-	inc de
 
-	ld a, (fat_reservedSectors)
-	rla
 	add a, (hl)
 	ld (de), a
 
-	ld a, 0
+	ld b, 3
+
+;TODO make this a subroutine
+.calculateFat1Sect:
 	inc hl
 	inc de
+	ld a, 0
 	adc a, (hl)
 	ld (de), a
-	ld a, 0
+	djnz .calculateFat1Sect
+
+	;calculate the sector of the second fat
+	ld hl, fat_fat1StartSector
+	ld de, fat_fat2StartSector
+	ld bc, fat_sectorsPerFat
+
+	ld a, (bc)
+	add a, (hl)
+	ld (de), a
 	inc hl
 	inc de
+	inc bc
+	ld a, (bc)
 	adc a, (hl)
 	ld (de), a
+
+	ld b, 2
+.calculateFat2Sect:
+	inc hl
+	inc de
+	ld a, 0
+	adc a, (hl)
+	ld (de), a
+	djnz .calculateFat2Sect
+
+
+	;calculate the start of the root directory
+
+	;calculate the start of the data region
 
 	ret
 
