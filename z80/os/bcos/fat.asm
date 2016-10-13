@@ -6,7 +6,7 @@ fat_bytesPerSector:     ds 2
 fat_sectorsPerCluster:  ds 1
 fat_reservedSectors:    ds 2
 fat_fatCopies:          ds 1
-fat_maxDirsInRoot:      ds 2
+fat_maxRootDirEntries:  ds 2
 fat_sectorsShort:       ds 2
 fat_mediaDescriptor:    ds 1
 fat_sectorsPerFat:      ds 2
@@ -102,15 +102,71 @@ initfs:
 
 
 	;calculate the start of the root directory
+	ld hl, fat_fat2StartSector
+	ld de, fat_rootDirStartSector
+	ld bc, fat_sectorsPerFat
+
+	ld a, (bc)
+	add a, (hl)
+	ld (de), a
+	inc hl
+	inc de
+	inc bc
+	ld a, (bc)
+	adc a, (hl)
+	ld (de), a
+
+	ld b, 2
+.calculateRootDirSect:
+	inc hl
+	inc de
+	ld a, 0
+	adc a, (hl)
+	ld (de), a
+	djnz .calculateRootDirSect
 
 	;calculate the start of the data region
+	;calculate the size of the root directory
+	ld hl, (fat_maxRootDirEntries)
+	xor a
+	add hl, hl
+	rla
+	add hl, hl
+	rla
+	add hl, hl
+	rla
+	add hl, hl
+	rla
+	ld c, h
+	ld b, a
+
+	ld hl, fat_rootDirStartSector
+	ld de, fat_dataStartSector
+	ld a, (hl)
+	add a, c
+	ld (de), a
+	inc hl
+	inc de
+	ld a, (hl)
+	adc a, b
+	ld (de), a
+
+	ld b, 2
+.calculateDataSect:
+	inc hl
+	inc de
+	ld a, 0
+	adc a, (hl)
+	ld (de), a
+	djnz .calculateDataSect
+
 
 	ret
 
 
 
 ;*****************
-;SectorToAddressg
+;SectorToAddress
 ;Description: converts a sd-card sector to an address
 ;Inputs: sector at hl
 ;Outputs: address in bcde
