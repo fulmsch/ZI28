@@ -66,15 +66,7 @@ initfs:
 	ld (de), a
 
 	ld b, 3
-
-;TODO make this a subroutine
-.calculateFat1Sect:
-	inc hl
-	inc de
-	ld a, 0
-	adc a, (hl)
-	ld (de), a
-	djnz .calculateFat1Sect
+	call .addCarry
 
 	;calculate the sector of the second fat
 	ld hl, fat_fat1StartSector
@@ -92,13 +84,7 @@ initfs:
 	ld (de), a
 
 	ld b, 2
-.calculateFat2Sect:
-	inc hl
-	inc de
-	ld a, 0
-	adc a, (hl)
-	ld (de), a
-	djnz .calculateFat2Sect
+	call .addCarry
 
 
 	;calculate the start of the root directory
@@ -117,15 +103,8 @@ initfs:
 	ld (de), a
 
 	ld b, 2
-.calculateRootDirSect:
-	inc hl
-	inc de
-	ld a, 0
-	adc a, (hl)
-	ld (de), a
-	djnz .calculateRootDirSect
+	call .addCarry
 
-	;calculate the start of the data region
 	;calculate the size of the root directory
 	ld hl, (fat_maxRootDirEntries)
 	xor a
@@ -140,6 +119,7 @@ initfs:
 	ld c, h
 	ld b, a
 
+	;calculate the start of the data region
 	ld hl, fat_rootDirStartSector
 	ld de, fat_dataStartSector
 	ld a, (hl)
@@ -152,13 +132,7 @@ initfs:
 	ld (de), a
 
 	ld b, 2
-.calculateDataSect:
-	inc hl
-	inc de
-	ld a, 0
-	adc a, (hl)
-	ld (de), a
-	djnz .calculateDataSect
+	call .addCarry
 
 
 	ret
@@ -181,4 +155,20 @@ sectorToAddr:
 	sla c
 	rl d
 	rl e
+	ret
+
+
+;*****************
+;Add long numbers
+;Description: add carry and (hl), stores it in (de), b times
+;Inputs: number in (hl), b, carry
+;Outputs: number in (de)
+;Destroyed: a
+.addCarry:
+	inc hl
+	inc de
+	ld a, 0
+	adc a, (hl)
+	ld (de), a
+	djnz .addCarry
 	ret
