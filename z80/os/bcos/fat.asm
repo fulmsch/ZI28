@@ -24,6 +24,7 @@ fat_fat2StartSector:    ds 4
 fat_rootDirStartSector: ds 4
 fat_dataStartSector:    ds 4
 
+; Calculate and store filesystem offsets
 initfs:
 	;load the MBR
 	xor a
@@ -134,8 +135,16 @@ initfs:
 	ld b, 2
 	call .addCarry
 
-
 	ret
+
+
+; Create a new file table
+fatOpenFile:
+	
+
+
+; Destroy a file table
+fatCloseFile:
 
 
 
@@ -160,9 +169,9 @@ sectorToAddr:
 
 ;*****************
 ;Add long numbers
-;Description: add carry and (hl), stores it in (de), b times
-;Inputs: number in (hl), b, carry
-;Outputs: number in (de)
+;Description: add carry and (hl), stores it at (de), b times
+;Inputs: number at (hl), b, carry
+;Outputs: number at (de)
 ;Destroyed: a
 .addCarry:
 	inc hl
@@ -172,3 +181,101 @@ sectorToAddr:
 	ld (de), a
 	djnz .addCarry
 	ret
+
+
+;*****************
+;Find directory entry
+;Description: search for the entry of a named file
+;Inputs: root directory sector at (hl), name string at (de)
+;Outputs: directory entry at (ix)
+;Destroyed: 
+.findDirEntry:
+	
+
+
+;*****************
+;Compare filenames
+;Description: compare a 8.3 filename with a dir entry
+;Inputs: dir entry at (hl), name string at (de)
+;Outputs: z if match
+;Destroyed: 
+.cmpFilename:
+	;test code
+	ld hl, fat_rootDirStartSector
+	call sectorToAddr
+	ld hl, sdBuffer
+	ld a, 1
+	rst sdRead
+	ld hl, sdBuffer + 32
+
+	ld de, .cmpFilenameBuffer
+	call .buildFilenameString
+	ret
+
+.cmpFilenameBuffer:
+	ds 12
+
+
+;*****************
+;Build filename string
+;Description: creates a 8.3 string from a directory entry
+;Inputs: dir entry at (hl)
+;Outputs: 8.3 filename string at (de)
+;Destroyed: a, bc
+.buildFilenameString:
+	push de
+	;copy the first 8 chars of the dir entry
+	ld bc, 8
+	ldir
+	ld a, ' '
+	ld (de), a
+
+	pop de
+.buildFilenameTerminateName:
+	ld a, (de)
+	cp ' '
+	inc de
+	jr nz, .buildFilenameTerminateName
+	dec de
+
+	;de now points to the char after the name, hl to the extension of the entry
+	ld a, (hl)
+	cp ' '
+	jr z, .buildFilenameEnd
+	ld a, '.'
+	ld (de), a
+	inc de
+
+	ld b, 3
+.buildFilenameExtension:
+	ld a, (hl)
+	cp ' '
+	jr z, .buildFilenameEnd
+	ld (de), a
+	inc hl
+	inc de
+	djnz .buildFilenameExtension
+
+.buildFilenameEnd:
+	ld a, 0
+	ld (de), a
+	ret
+
+
+;****************
+;String Compare
+;Description: Compares two strings
+;Inputs: de, hl: String pointers
+;Outputs: z if equal strings
+;Destroyed: a, b
+.strCompare:
+	ld a, (de)
+	ld b, a
+	ld a, (hl)
+	cp b
+	ret nz
+	cp 00h
+	ret z
+	inc de
+	inc hl
+	jr .strCompare

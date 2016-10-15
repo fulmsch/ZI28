@@ -24,6 +24,10 @@ sdBuffer: equ 4200h
 
 .bcosVectTable:
 	dw .bcosStart
+	dw fatOpenFile
+	dw fatCloseFile
+;	dw fatReadFile
+
 
 .bcosStart:
 
