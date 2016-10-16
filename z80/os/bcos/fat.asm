@@ -67,7 +67,7 @@ initfs:
 	ld (de), a
 
 	ld b, 3
-	call .addCarry
+	call addCarry
 
 	;calculate the sector of the second fat
 	ld hl, fat_fat1StartSector
@@ -85,7 +85,7 @@ initfs:
 	ld (de), a
 
 	ld b, 2
-	call .addCarry
+	call addCarry
 
 
 	;calculate the start of the root directory
@@ -104,7 +104,7 @@ initfs:
 	ld (de), a
 
 	ld b, 2
-	call .addCarry
+	call addCarry
 
 	;calculate the size of the root directory
 	ld hl, (fat_maxRootDirEntries)
@@ -133,18 +133,9 @@ initfs:
 	ld (de), a
 
 	ld b, 2
-	call .addCarry
+	call addCarry
 
 	ret
-
-
-; Create a new file table
-fatOpenFile:
-	
-
-
-; Destroy a file table
-fatCloseFile:
 
 
 
@@ -173,13 +164,13 @@ sectorToAddr:
 ;Inputs: number at (hl), b, carry
 ;Outputs: number at (de)
 ;Destroyed: a
-.addCarry:
+addCarry:
 	inc hl
 	inc de
 	ld a, 0
 	adc a, (hl)
 	ld (de), a
-	djnz .addCarry
+	djnz addCarry
 	ret
 
 
@@ -189,7 +180,7 @@ sectorToAddr:
 ;Inputs: directory sector at (hl), name string at (de)
 ;Outputs: directory entry at (ix)
 ;Destroyed: a, bc
-.findDirEntry:
+findDirEntry:
 	;TODO add capability to search sequential sectors
 	push de
 	ld de, .findDirEntrySector
@@ -211,14 +202,14 @@ sectorToAddr:
 	jr z, .findDirEntryEnd;end of directory
 	push hl
 	ld de, .findDirEntryNameBuffer
-	call .buildFilenameString
+	call buildFilenameString
 	pop hl
 	pop de
 	push de
 	push hl
 	push bc
 	ld hl, .findDirEntryNameBuffer
-	call .strCompare
+	call strCompare
 	pop bc
 	jr z, .findDirEntryMatch
 	pop hl
@@ -241,7 +232,7 @@ sectorToAddr:
 .findDirEntrySector:
 	ds 4
 .findDirEntryNameBuffer:
-	ds 12
+	ds 13
 
 
 ;*****************
@@ -250,7 +241,7 @@ sectorToAddr:
 ;Inputs: dir entry at (hl)
 ;Outputs: 8.3 filename string at (de)
 ;Destroyed: a, bc
-.buildFilenameString:
+buildFilenameString:
 	push de
 	;copy the first 8 chars of the dir entry
 	ld bc, 8
@@ -296,7 +287,7 @@ sectorToAddr:
 ;Inputs: de, hl: String pointers
 ;Outputs: z if equal strings
 ;Destroyed: a, b
-.strCompare:
+strCompare:
 	ld a, (de)
 	ld b, a
 	ld a, (hl)
@@ -306,4 +297,4 @@ sectorToAddr:
 	ret z
 	inc de
 	inc hl
-	jr .strCompare
+	jr strCompare
