@@ -186,33 +186,61 @@ sectorToAddr:
 ;*****************
 ;Find directory entry
 ;Description: search for the entry of a named file
-;Inputs: root directory sector at (hl), name string at (de)
+;Inputs: directory sector at (hl), name string at (de)
 ;Outputs: directory entry at (ix)
-;Destroyed: 
+;Destroyed: a, bc
 .findDirEntry:
-	
+	;TODO add capability to search sequential sectors
+	push de
+	ld de, .findDirEntrySector
+	ld bc, 4
+	ldir
 
-
-;*****************
-;Compare filenames
-;Description: compare a 8.3 filename with a dir entry
-;Inputs: dir entry at (hl), name string at (de)
-;Outputs: z if match
-;Destroyed: 
-.cmpFilename:
-	;test code
-	ld hl, fat_rootDirStartSector
+	ld hl, .findDirEntrySector
 	call sectorToAddr
-	ld hl, sdBuffer
 	ld a, 1
+	ld hl, sdBuffer
 	rst sdRead
-	ld hl, sdBuffer + 32
 
-	ld de, .cmpFilenameBuffer
+	ld hl, sdBuffer
+	ld b, 16
+.findDirEntryLoop:
+	;cycle through entries
+	ld a, (hl)
+	cp 0
+	jr z, .findDirEntryEnd;end of directory
+	push hl
+	ld de, .findDirEntryNameBuffer
 	call .buildFilenameString
+	pop hl
+	pop de
+	push de
+	push hl
+	push bc
+	ld hl, .findDirEntryNameBuffer
+	call .strCompare
+	pop bc
+	jr z, .findDirEntryMatch
+	pop hl
+	ld de, 32
+	add hl, de
+	djnz .findDirEntryLoop
+
+
+.findDirEntryEnd:
+	pop de ;clear the stack
+	or 1 ;reset zero flag
 	ret
 
-.cmpFilenameBuffer:
+.findDirEntryMatch:
+	pop ix ;pointer to entry
+	pop de ;clear the stack
+	ret
+
+
+.findDirEntrySector:
+	ds 4
+.findDirEntryNameBuffer:
 	ds 12
 
 
