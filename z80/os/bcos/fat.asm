@@ -35,6 +35,7 @@ initfs:
 	ld a, 1
 	ld hl, sdBuffer
 	rst sdRead
+	;TODO add error
 
 	;store partition start in memory
 	ld hl, sdBuffer + 1c6h
@@ -49,6 +50,7 @@ initfs:
 	ld a, 1
 	ld hl, sdBuffer
 	rst sdRead
+	;TODO add error
 
 	;store information about the fs in memory
 	ld hl, sdBuffer + 3
@@ -162,7 +164,7 @@ sectorToAddr:
 ;Cluster to sector
 ;Description: converts a cluster to a sector
 ;Inputs: cluster in hl, buffer at de
-;Outputs: sector at hl
+;Outputs:
 ;Destroyed: a, bc
 clusterToSector:
 	or a ;clear carry flag
@@ -250,6 +252,7 @@ findDirEntry:
 	ld a, 1
 	ld hl, sdBuffer
 	rst sdRead
+	;TODO add error
 
 	ld hl, sdBuffer
 	ld b, 16

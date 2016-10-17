@@ -152,17 +152,68 @@ _readFile:
 	add iy, bc
 	;(iy)=table entry
 	;TODO check mode
+	;TODO check filesize
 
+	push hl ;count
+	push de ;buffer
+	;calculate starting sector
 	ld l, (iy+fileTableStartCluster)
 	ld h, (iy+fileTableStartCluster+1)
 	ld de, .readSector
 	call clusterToSector
 
+	;TODO count bytes
+	pop hl ;buffer
+	pop de ;count
+	push de
+	
+	;calculate the number of full sectors
+	ld a, d
+	srl a
+	push hl ;buffer
+	jr z, .readLastSector ;less than a sector left
+
+
+	;load full sectors directly
+	ld hl, .readSector
+	call sectorToAddr
+	pop hl ;buffer
+	push af ;amount of full sectors to be read
+	rst sdRead
+	;TODO add error
+
+	pop af ;count of read sectors
+	push hl ;buffer
+
+	ld hl, .readSector
+	add a, (hl)
+	ld (hl), a
+	ld b, 3
+.readAddSectorsLoop:
+	inc hl
+	ld a, 0
+	adc a, (hl)
+	ld (hl), a
+	djnz .readAddSectorsLoop
+
+.readLastSector:
+	;load last sector into sdBuffer
 	ld hl, .readSector
 	call sectorToAddr
 	ld hl, sdBuffer
 	ld a, 1
 	rst sdRead
+	;TODO add error
+
+	;copy the remaining bytes into memory
+	pop de
+	pop bc
+	ld a, b
+	and 1
+	ld b, a
+
+	ld hl, sdBuffer
+	ldir
 
 	ld a, 0
 	ret
