@@ -5,6 +5,9 @@ fileTableMap:
 fileTable:
 	ds .fileTableEntrySize * .fileTableEntries
 
+.tableSpot:
+	db 0
+
 fileTableName:         equ 0
 fileTableAttributes:   equ fileTableName + 13
 fileTableStartCluster: equ fileTableAttributes + 1
@@ -37,8 +40,6 @@ _openFile:
 	ret
 
 .openFileMode:
-	db 0
-.tableSpot:
 	db 0
 
 .tableSpotFound:
@@ -123,6 +124,49 @@ _closeFile:
 ;Description: copy data from a file to memory
 ;Inputs: a = file descriptor, (de) = buffer, hl = count
 ;Outputs: a = errno, de = count
+;Errors: 0=no error
+;        1=invalid file descriptor
 ;Destroyed: none
 _readFile:
+	;check if fd exists
+	ld (.tableSpot), a
+	ld b, a
+	inc b
+	ld a, (fileTableMap)
+.readCheckTableSpot:
+	srl a
+	djnz .readCheckTableSpot
 
+	ld a, 1
+	ret nc
+
+	ld a, (.tableSpot)
+	add a, a
+	add a, a
+	add a, a
+	add a, a
+	add a, a
+	ld b, 0
+	ld c, a
+	ld iy, fileTable
+	add iy, bc
+	;(iy)=table entry
+	;TODO check mode
+
+	ld l, (iy+fileTableStartCluster)
+	ld h, (iy+fileTableStartCluster+1)
+	ld de, .readSector
+	call clusterToSector
+
+	ld hl, .readSector
+	call sectorToAddr
+	ld hl, sdBuffer
+	ld a, 1
+	rst sdRead
+
+	ld a, 0
+	ret
+	
+
+.readSector:
+	ds 4

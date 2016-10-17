@@ -159,6 +159,64 @@ sectorToAddr:
 
 
 ;*****************
+;Cluster to sector
+;Description: converts a cluster to a sector
+;Inputs: cluster in hl, buffer at de
+;Outputs: sector at hl
+;Destroyed: a, bc
+clusterToSector:
+	or a ;clear carry flag
+	ld bc, 2
+	sbc hl, bc ;get real cluster offset
+	;multiply by the number of sectors per cluster
+	push de
+	ex de, hl
+	ld a, (fat_sectorsPerCluster)
+	;multiply de by a, result in ahl
+	;rountine from http://wikiti.brandonw.net/index.php?title=Z80_Routines:Math:Multiplication
+	ld c, 0
+	ld h, c
+	ld l, h
+
+	add a, a ; optimised 1st iteration
+	jr nc, $+4
+	ld h,d
+	ld l,e
+
+	ld b, 7
+.clusterToSectorLoop:
+	add hl, hl
+	rla
+	jr nc, $+4
+	add hl, de
+	adc a, c
+	djnz .clusterToSectorLoop
+
+	;ahl=sector offset
+	pop de
+	push af
+	ld bc, fat_dataStartSector
+	ld a, (bc)
+	add a, l
+	ld (de), a
+	inc bc
+	inc de
+	ld a, (bc)
+	adc a, h
+	ld (de), a
+	inc bc
+	inc de
+	pop hl
+	ld a, (bc)
+	adc a, h
+	ld (de), a
+	ld a, (bc)
+	adc a, 0
+	ld (de), a
+
+	ret
+
+;*****************
 ;Add long numbers
 ;Description: add carry and (hl), stores it at (de), b times
 ;Inputs: number at (hl), b, carry
