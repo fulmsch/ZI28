@@ -76,6 +76,10 @@ _openFile:
 	ld (.tableSpot), a
 
 	;(de)=filename
+	ld h, d
+	ld l, e
+	call convertToUpper
+
 	ld hl, fat_rootDirStartSector ;TODO load the path of the active program here
 	ld a, (de)
 	cp '/'

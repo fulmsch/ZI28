@@ -359,3 +359,25 @@ strCompare:
 	inc de
 	inc hl
 	jr strCompare
+	
+	
+;*****************
+;ConvertToUpper
+;Description: Converts a string to uppercase
+;Inputs: hl: String pointer
+;Outputs:
+;Destroyed: none
+convertToUpper:
+	ld a, (hl)
+	cp 0
+	ret z
+
+	cp 61h
+	jr c, .convertToUpper00
+	cp 7bh
+	jr nc, .convertToUpper00
+	sub 20h
+	ld (hl), a
+.convertToUpper00:
+	inc hl
+	jr convertToUpper
