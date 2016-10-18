@@ -41,6 +41,33 @@ _openFile:
 
 .openFileMode:
 	db 0
+.openFilePathBuffer:
+	ds 13
+.openSector:
+	ds 4
+
+.openResolvePath:
+	ld a, 0
+	ld (bc), a
+	push de
+	;ld d, b
+	;ld e, c
+	ld de, .openFilePathBuffer
+	call findDirEntry
+	pop de
+	ld a, 2
+	ret nz
+	push de
+	;calculate start sector of subdirectory
+	ld l, (ix+1ah)
+	ld h, (ix+1bh)
+	ld de, .openSector
+	call clusterToSector
+
+	pop de
+	inc de
+	ld hl, .openSector
+	jr .openRelativePath
 
 .tableSpotFound:
 	;remember spot for later
@@ -49,7 +76,29 @@ _openFile:
 	ld (.tableSpot), a
 
 	;(de)=filename
-	ld hl, fat_rootDirStartSector ;TODO resolve path so that only the filename is left
+	ld hl, fat_rootDirStartSector ;TODO load the path of the active program here
+	ld a, (de)
+	cp '/'
+	jr nz, .openRelativePath
+	inc de
+	ld hl, fat_rootDirStartSector ;path is relative to the root directory
+
+.openRelativePath: ;TODO rename this label
+	;(de)=relative path, hl=directory sector
+	;copy the next file/directory to a buffer
+	ld bc, .openFilePathBuffer
+.openRelativeLoop:
+	ld a, (de)
+	cp '/'
+	jr z, .openResolvePath ;copied the entire folder name
+	ld (bc), a
+	inc bc
+	inc de
+	cp 0
+	jr nz, .openRelativeLoop
+	
+	;reached the deepest level
+	ld de, .openFilePathBuffer
 	call findDirEntry
 	ld a, 2
 	ret nz ;no file found
