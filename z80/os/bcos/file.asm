@@ -206,8 +206,19 @@ _readFile:
 	;(iy)=table entry
 	;TODO check mode
 	;TODO check filesize
+	ld b, h
+	ld c, l
+	ld l, (iy+fileTableSize)
+	ld h, (iy+fileTableSize+1)
+	or a
+	sbc hl, bc
+	jr nc, .readCluster
 
-	push hl ;count
+	ld c, (iy+fileTableSize)
+	ld b, (iy+fileTableSize+1)
+
+.readCluster:
+	push bc ;count
 	push de ;buffer
 	;calculate starting sector
 	ld l, (iy+fileTableStartCluster)

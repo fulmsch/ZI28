@@ -137,6 +137,10 @@ initfs:
 	ld b, 2
 	call addCarry
 
+	;close all open files
+	ld a, 0
+	ld (fileTableMap), a
+
 	ret
 
 
