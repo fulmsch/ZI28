@@ -16,8 +16,10 @@ partitionSizeOffset: equ 0ch
 	org stage1Addr
 
 	;required for bootloader recognition by bios
-	jr start
-start:
+	jr .start
+.start:
+
+	ld sp, 8000h
 
 	ld hl, .chooseStr
 	call printStr

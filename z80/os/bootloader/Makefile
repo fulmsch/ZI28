@@ -7,5 +7,5 @@ mbr.hex: mbr.asm $(INCLUDEPATH)/*.h
 	srec_cat mbr.obj -binary -o mbr.hex -intel
 
 vbr.hex: vbr.asm $(INCLUDEPATH)/*.h
-	z80asm -v -i vbr.asm -o vbr.obj -I $(INCLUDEPATH)
-	srec_cat vbr.obj -binary -o vbr.hex -lvbr.lst -intel
+	z80asm -v -i vbr.asm -o vbr.obj -lvbr.lst -I $(INCLUDEPATH)
+	srec_cat vbr.obj -binary -o vbr.hex -intel
