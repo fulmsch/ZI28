@@ -117,8 +117,8 @@ bootloaderStart:
 ;Destroyed: none
 	;(ix)=file entry
 	;TODO check filesize
-	ld c, (ix+1eh)
-	ld b, (ix+1fh)
+	ld c, (ix+1ch)
+	ld b, (ix+1dh)
 	;bc=filesize
 
 	push bc ;count
