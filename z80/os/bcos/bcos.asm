@@ -24,17 +24,30 @@ sdBuffer: equ 4200h
 
 .bcosVectTable:
 	dw .bcosStart
-	dw fatOpenFile
-	dw fatCloseFile
+	dw _openFile
+	dw _closeFile
+	dw _readFile
 ;	dw fatReadFile
 
 
 .bcosStart:
 
 	;TODO setup stack and interrupts
+	ld sp, 8000h
 
 	call initfs
+	ld de, .shellPath
+	call _openFile
+	ld a, e
+	ld de, 0c000h
+	ld hl, 0ffffh
+	call _readFile
+	call 0c000h
+	jp 0
+	
+.shellPath:
+	db "/BIN/CLI.BIN\0"
 
-	ret
 
 include "fat.asm"
+include "file.asm"
