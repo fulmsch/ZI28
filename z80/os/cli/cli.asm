@@ -1,8 +1,9 @@
 ;TODO change putc and getc to OS equivalents
 
 include "biosCalls.h"
+include "bcosCalls.h"
 
-cliStart: equ 0c000h
+cliStart: equ 6000h
 
 
 	org cliStart
@@ -178,7 +179,7 @@ cliStart: equ 0c000h
 	inc bc
 	ld a, (de)
 	cp 00h
-	jr z, .noMatch
+	jr z, .extCommand
 	push bc
 	push hl
 	call .strCompare
@@ -198,8 +199,32 @@ cliStart: equ 0c000h
 	jp (hl)
 
 
-.noMatch:
+.extCommand:
 	;TODO check path for programs
+	;try to open file named &argv[0]
+	ld c, openFile
+	ex de, hl
+	call bcosVect
+	cp 0
+	jr nz, .noMatch
+
+	;load file into memory
+	ld c, readFile
+	ld a, e ;file descriptor
+	ld de, 0c000h
+	ld hl, 4000h
+	call bcosVect
+	cp 0
+	jr nz, .noMatch
+	;TODO close file
+
+	;TODO pass argc and argv
+
+	ld de, .prompt
+	push de
+	jp 0c000h
+
+.noMatch:
 	ld hl, .noMatchStr
 	call printStr
 	jp .prompt
@@ -226,7 +251,7 @@ argv:
 ;Command strings
 .echoStr:	db "ECHO\0"
 .exitStr:	db "EXIT\0"
-.monStr:	db "MON\0"
+.monStr:	db "MONITOR\0"
 .nullStr:	db "\0"
 
 .dispatchTable:

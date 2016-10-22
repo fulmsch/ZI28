@@ -3,3 +3,9 @@ z80/programs/basic/
 *.hex
 *.obj
 *.lst
+*.bin
+*.BIN
+*.com
+*.COM
+*.exe
+*.EXE

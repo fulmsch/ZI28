@@ -2,6 +2,7 @@ echo:
 	;print all arguments
 	ld a, (argc)
 	dec a
+	ret z
 	ld b, a
 	ld de, argv
 	inc de
