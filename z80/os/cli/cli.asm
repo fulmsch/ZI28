@@ -10,12 +10,18 @@ cliStart: equ 6000h
 
 
 .prompt:
-	ld hl, .promptPlaceholder
+;	ld hl, .promptPlaceholder
+;	call printStr
+;	ld a, ' '
+;	rst putc
+	ld hl, .promptStr
 	call printStr
-	ld a, ':'
-	call putc
-	ld a, ' '
-	call putc
+;	ld a, '>'
+;	rst putc
+;	ld a, ':'
+;	rst putc
+;	ld a, ' '
+;	rst putc
 	;call exit
 
 
@@ -24,7 +30,7 @@ cliStart: equ 6000h
 .handleChar:
 	;TODO navigation with arrow keys
 	xor a
-	call getc
+	rst getc
 	cp 08h
 	jr z, .backspace
 	cp 0dh
@@ -35,7 +41,7 @@ cliStart: equ 6000h
 	cp 7fh
 	jr nc, .handleChar
 	ld (hl), a
-	call putc
+	rst putc
 	;Check for buffer overflow
 	inc c
 	ld a, c
@@ -49,11 +55,11 @@ cliStart: equ 6000h
 	cp 0
 	jr z, .handleChar
 	ld a, 08h
-	call putc
+	rst putc
 	ld a, 20h
-	call putc
+	rst putc
 	ld a, 08h
-	call putc
+	rst putc
 	dec hl
 	dec c
 	jr .handleChar
@@ -69,9 +75,9 @@ cliStart: equ 6000h
 
 .handleLine:
 	ld a, 0dh
-	call putc
+	rst putc
 	ld a, 0ah
-	call putc
+	rst putc
 	;TODO store history in file
 
 	ld (hl), 00h
@@ -161,9 +167,9 @@ cliStart: equ 6000h
 ;	inc de
 ;	call printStr
 ;	ld a, 0dh
-;	call putc
+;	rst putc
 ;	ld a, 0ah
-;	call putc
+;	rst putc
 ;	djnz .argLoop
 
 	ld bc, .dispatchTable
@@ -240,9 +246,12 @@ argc:
 argv:
 	ds .maxArgc*2
 
-.promptPlaceholder:
-	db "/HOME/DOCUMENTS/EXAMPLE"
-	db 00h
+.promptStr:
+	db " >: \0"
+
+;.promptPlaceholder:
+;	db "/"
+;	db 00h
 
 .inputBufferSize: equ 128
 .inputBuffer:
@@ -312,7 +321,7 @@ printStr:
 	ld a, (hl)
 	cp 00h
 	ret z
-	call putc
+	rst putc
 	inc hl
 	jr printStr
 
