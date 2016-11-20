@@ -3,9 +3,14 @@
  *
  * Created: 06.06.2016 20:39:17
  * Author : Florian Ulmschneider
- */ 
+ */
 
 #define F_CPU 8000000
+
+#include <avr/io.h>
+#include <util/delay.h>
+#include <avr/interrupt.h>
+#include <avr/cpufunc.h>
 
 #define RDWR_PIN PA0
 #define CE_PIN PD3
@@ -15,15 +20,8 @@
 #define KBD_CLK_PIN PD2
 #define KBD_DATA_PIN PD4
 
-
-#include <avr/io.h>
-#include <util/delay.h>
-#include <avr/interrupt.h>
-#include <avr/cpufunc.h>
-
 volatile uint8_t inputRegister;
 volatile uint8_t outputRegister[4] = {0, 0, 0, 0};
-
 
 ISR(INT1_vect) {
 	uint8_t address = PIND & 0b00000011;
@@ -85,4 +83,3 @@ int main(void)
     }
 	return(0);
 }
-
