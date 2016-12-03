@@ -211,12 +211,16 @@ cliStart: equ 6000h
 	;load file into memory
 	ld c, readFile
 	ld a, e ;file descriptor
+	push af
 	ld de, 0c000h
 	ld hl, 4000h
 	call bcosVect
 	cp 0
+	pop af
 	jr nz, .noMatch
-	;TODO close file
+
+	ld c, closeFile
+	call bcosVect
 
 	;TODO pass argc and argv
 
