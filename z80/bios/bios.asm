@@ -4,11 +4,17 @@
 
 ;TODO:
 
+memBase: equ 0000h
 
 include "iomap.h"
 include "bios_memmap.h"
 include "biosCalls.h"
 
+if memBase == 0
+	rst 0
+else
+	jp memBase
+endif
 
 ; Jump Table -------------------------------------------------
 
