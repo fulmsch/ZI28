@@ -172,8 +172,23 @@ cliStart: equ 6000h
 ;	rst putc
 ;	djnz .argLoop
 
+	pop hl ;contains pointer to first string
+	push hl
+
+.checkIfFullpath:
+	;check if there is a / in the filename
+	ld a, (hl)
+	inc hl
+
+	cp '/'
+	jr z, .fullPath
+
+	cp 00h
+	jr nz, .checkIfFullpath
+
 	ld bc, .dispatchTable
 	pop hl ;contains pointer to first string
+
 .dispatchLoop:
 	ld a, (bc)
 	ld e, a
@@ -207,9 +222,11 @@ cliStart: equ 6000h
 
 .extCommand:
 	;TODO check path for programs
+
+.fullPath:
 	;try to open file named &argv[0]
 	ld c, openFile
-	ex de, hl
+	pop de
 	call bcosVect
 	cp 0
 	jr nz, .noMatch
