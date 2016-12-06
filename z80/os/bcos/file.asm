@@ -168,8 +168,41 @@ _openFile:
 ;Description: close a file table entry
 ;Inputs: a = file descriptor
 ;Outputs: a = errno
+;Errors: 0=no error
+;        1=invalid file descriptor
 ;Destroyed: none
 _closeFile:
+	ld c, a
+	;check if fd exists
+	ld (.tableSpot), a
+	ld b, a
+	inc b
+	ld a, (fileTableMap)
+.closeCheckTableSpot:
+	srl a
+	djnz .closeCheckTableSpot
+
+	ld a, 1
+	ret nc
+
+	ld b, c
+	ld c, 1
+	djnz .closeShiftContinue
+
+.closeShiftLoop:
+	sla c
+	djnz .closeShiftLoop
+
+.closeShiftContinue:
+	cpl
+
+	ld a, (.tableSpot)
+	and c
+
+	ld (.tableSpot), a
+
+	ld a, 0
+	ret
 
 
 ;*****************
