@@ -200,7 +200,7 @@ cliStart: equ 6000h
 	inc bc
 	ld a, (de)
 	cp 00h
-	jr z, .extCommand
+	jr z, .programInPath
 	push bc
 	push hl
 	call .strCompare
@@ -220,23 +220,38 @@ cliStart: equ 6000h
 	jp (hl)
 
 
-.extCommand:
-	;TODO check path for programs
+.programInPath:
+	;check path for programs
+	ld de, .programName
+	call .strCopy
+
+	ld de, .programPath
+	ld c, openFile
+	call bcosVect
+	cp 0
+	jr z, .loadProgram
+
+	;TODO check default file extension
+
+
+	jr .noMatch
+
 
 .fullPath:
 	;try to open file named &argv[0]
+	pop de ;contains pointer to first string
 	ld c, openFile
-	pop de
 	call bcosVect
 	cp 0
 	jr nz, .noMatch
 
+.loadProgram:
 	;load file into memory
-	ld c, readFile
 	ld a, e ;file descriptor
 	push af
 	ld de, 0c000h
 	ld hl, 4000h
+	ld c, readFile
 	call bcosVect
 	cp 0
 	pop af
@@ -278,6 +293,14 @@ argv:
 .inputBuffer:
 	ds .inputBufferSize
 
+
+.programPath:
+	db "/BIN/"
+.programName:
+	ds 13
+.programExtension:
+	db ".Z80\0"
+
 ;Command strings
 .echoStr:	db "ECHO\0"
 .exitStr:	db "EXIT\0"
@@ -309,6 +332,21 @@ argv:
 	inc hl
 	jr .strCompare
 
+
+;****************
+;String Copy
+;Description: Copies a string from one location to another
+;Inputs: hl: origin, de: destination
+;Outputs: de, hl: point to the null terminators
+;Destroyed: a
+.strCopy:
+	ld a, (hl)
+	ld (de), a
+	cp 00h
+	ret z
+	inc hl
+	inc de
+	jr .strCopy
 
 ;*****************
 ;ConvertToUpper

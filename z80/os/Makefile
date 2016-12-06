@@ -3,7 +3,7 @@ INCLUDEPATH = ../includes
 all: cli/cli.hex bcos/bcos.hex
 
 cli/cli.hex: cli/cli.asm cli/builtins.asm $(INCLUDEPATH)/*.h
-	cd cli && z80asm -v -i cli.asm -o cli.obj -I ../$(INCLUDEPATH) && \
+	cd cli && z80asm -v -i cli.asm -o cli.obj -lcli.lst -I ../$(INCLUDEPATH) && \
 	cp cli.obj CLI.BIN && \
 	srec_cat cli.obj -binary -o cli.hex -intel
 
