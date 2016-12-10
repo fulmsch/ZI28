@@ -1,9 +1,9 @@
-bcosVect:  equ 5003h
+bcosVect  equ 5003h
 
-bcosStart: equ 0
-openFile:  equ 1
-closeFile: equ 2
-readFile:  equ 3
+bcosStart equ 0
+openFile  equ 1
+closeFile equ 2
+readFile  equ 3
 
 
 ;******************************************************************************

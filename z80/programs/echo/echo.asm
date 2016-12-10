@@ -1,3 +1,4 @@
+.z80
 waitForInput:
 	in a, (01h)
 	bit 1, a

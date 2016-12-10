@@ -1,20 +1,24 @@
 ;TODO change putc and getc to OS equivalents
 
-include "biosCalls.h"
-include "bcosCalls.h"
+.z80
+.include "biosCalls.h"
+.include "bcosCalls.h"
 
-cliStart: equ 6000h
-
-
-	org cliStart
+.define cliStart 6000h
 
 
-.prompt:
-;	ld hl, .promptPlaceholder
+.define inputBufferSize 128
+.define maxArgc 32
+
+
+.org cliStart
+
+prompt:
+;	ld hl, promptPlaceholder
 ;	call printStr
 ;	ld a, ' '
 ;	rst putc
-	ld hl, .promptStr
+	ld hl, promptStr
 	call printStr
 ;	ld a, '>'
 ;	rst putc
@@ -25,35 +29,35 @@ cliStart: equ 6000h
 	;call exit
 
 
-	ld hl, .inputBuffer
+	ld hl, inputBuffer
 	ld c, 0
-.handleChar:
+handleChar:
 	;TODO navigation with arrow keys
 	xor a
 	rst getc
 	cp 08h
-	jr z, .backspace
+	jr z, backspace
 	cp 0dh
-	jr z, .handleLine
+	jr z, handleLine
 	;Check if printable
 	cp 20h
-	jr c, .handleChar
+	jr c, handleChar
 	cp 7fh
-	jr nc, .handleChar
+	jr nc, handleChar
 	ld (hl), a
 	rst putc
 	;Check for buffer overflow
 	inc c
 	ld a, c
-	cp .inputBufferSize
-	jr nc, .inputBufferOverflow
+	cp inputBufferSize
+	jr nc, inputBufferOverflow
 	inc hl
-	jr .handleChar
+	jr handleChar
 
-.backspace:
+backspace:
 	ld a, c
 	cp 0
-	jr z, .handleChar
+	jr z, handleChar
 	ld a, 08h
 	rst putc
 	ld a, 20h
@@ -62,18 +66,18 @@ cliStart: equ 6000h
 	rst putc
 	dec hl
 	dec c
-	jr .handleChar
+	jr handleChar
 
-.inputBufferOverflow:
-	ld hl, .inputBufferOverflowStr
+inputBufferOverflow:
+	ld hl, inputBufferOverflowStr
 	call printStr
 	ret
 
-.inputBufferOverflowStr:
-	db "\r\nThe entered command is too long\r\n"
-	db 00h
+inputBufferOverflowStr:
+	.db "\r\nThe entered command is too long\r\n"
+	.db 00h
 
-.handleLine:
+handleLine:
 	ld a, 0dh
 	rst putc
 	ld a, 0ah
@@ -81,7 +85,7 @@ cliStart: equ 6000h
 	;TODO store history in file
 
 	ld (hl), 00h
-	ld hl, .inputBuffer
+	ld hl, inputBuffer
 	ld de, argv
 	ld a, 00h
 	ld (argc), a
@@ -89,37 +93,37 @@ cliStart: equ 6000h
 	;break the input into individual strings
 	ld a, (hl)
 	cp 00h
-	jr z, .commandDispatch;finished the input string
+	jr z, commandDispatch;finished the input string
 	cp ' '
-	jr z, .nextArgSpace
-	call .addArg
+	jr z, nextArgSpace
+	call addArg
 	inc hl
 
-.nextArg:
+nextArg:
 	ld a, (hl)
 	cp 00h
-	jr z, .commandDispatch;finished the input string
+	jr z, commandDispatch;finished the input string
 	cp ' '
-	jr z, .nextArgSpace
+	jr z, nextArgSpace
 	inc hl
-	jr .nextArg
+	jr nextArg
 
-.nextArgSpace:
+nextArgSpace:
 	ld a, 00h
 	ld (hl), a
 	inc hl
 	ld a, (hl)
 	cp ' '
-	jr z, .nextArgSpace
-	call .addArg
-	jr .nextArg
+	jr z, nextArgSpace
+	call addArg
+	jr nextArg
 
-.addArg:
+addArg:
 	;increment argc
 	ld a, (argc)
 	inc a
-	cp .maxArgc + 1
-	jr nc, .argOverflow;too many arguments
+	cp maxArgc + 1
+	jr nc, argOverflow;too many arguments
 	ld (argc), a
 
 	ld a, l
@@ -130,20 +134,20 @@ cliStart: equ 6000h
 	inc de
 	ret
 
-.argOverflow:
-	ld hl, .argOverflowStr
+argOverflow:
+	ld hl, argOverflowStr
 	call printStr
 	pop hl
-	jp .prompt
+	jp prompt
 
-.argOverflowStr:
-	db "\r\nToo many arguments\r\n"
-	db 00h
+argOverflowStr:
+	.db "\r\nToo many arguments\r\n"
+	.db 00h
 
-.commandDispatch:
+commandDispatch:
 	ld a, (argc)
 	cp 00h
-	jp z, .prompt
+	jp z, prompt
 	ld b, a
 	ld de, argv
 
@@ -154,11 +158,11 @@ cliStart: equ 6000h
 	ld a, (de)
 	ld h, a
 	push hl
-	call .convertToUpper
+	call convertToUpper
 	dec de
 
 	;test: print out all arguments
-;.argLoop:
+;argLoop:
 ;	ld a, (de)
 ;	ld l, a
 ;	inc de
@@ -170,26 +174,26 @@ cliStart: equ 6000h
 ;	rst putc
 ;	ld a, 0ah
 ;	rst putc
-;	djnz .argLoop
+;	djnz argLoop
 
 	pop hl ;contains pointer to first string
 	push hl
 
-.checkIfFullpath:
+checkIfFullpath:
 	;check if there is a / in the filename
 	ld a, (hl)
 	inc hl
 
 	cp '/'
-	jr z, .fullPath
+	jr z, fullPath
 
 	cp 00h
-	jr nz, .checkIfFullpath
+	jr nz, checkIfFullpath
 
-	ld bc, .dispatchTable
+	ld bc, dispatchTable
 	pop hl ;contains pointer to first string
 
-.dispatchLoop:
+dispatchLoop:
 	ld a, (bc)
 	ld e, a
 	inc bc
@@ -200,13 +204,13 @@ cliStart: equ 6000h
 	inc bc
 	ld a, (de)
 	cp 00h
-	jr z, .programInPath
+	jr z, programInPath
 	push bc
 	push hl
-	call .strCompare
+	call strCompare
 	pop hl
 	pop bc
-	jr nz, .dispatchLoop;no match
+	jr nz, dispatchLoop;no match
 
 	;match, jump to builtin function
 	dec bc
@@ -215,37 +219,37 @@ cliStart: equ 6000h
 	dec bc
 	ld a, (bc)
 	ld l, a
-	ld de, .prompt
+	ld de, prompt
 	push de
 	jp (hl)
 
 
-.programInPath:
+programInPath:
 	;check path for programs
-	ld de, .programName
-	call .strCopy
+	ld de, programName
+	call strCopy
 
-	ld de, .programPath
+	ld de, programPath
 	ld c, openFile
 	call bcosVect
 	cp 0
-	jr z, .loadProgram
+	jr z, loadProgram
 
 	;TODO check default file extension
 
 
-	jr .noMatch
+	jr noMatch
 
 
-.fullPath:
+fullPath:
 	;try to open file named &argv[0]
 	pop de ;contains pointer to first string
 	ld c, openFile
 	call bcosVect
 	cp 0
-	jr nz, .noMatch
+	jr nz, noMatch
 
-.loadProgram:
+loadProgram:
 	;load file into memory
 	ld a, e ;file descriptor
 	push af
@@ -255,63 +259,61 @@ cliStart: equ 6000h
 	call bcosVect
 	cp 0
 	pop af
-	jr nz, .noMatch
+	jr nz, noMatch
 
 	ld c, closeFile
 	call bcosVect
 
 	;TODO pass argc and argv
 
-	ld de, .prompt
+	ld de, prompt
 	push de
 	jp 0c000h
 
-.noMatch:
-	ld hl, .noMatchStr
+noMatch:
+	ld hl, noMatchStr
 	call printStr
-	jp .prompt
+	jp prompt
 
-.noMatchStr:
-	db "Command not recognised\r\n"
-	db 00h
+noMatchStr:
+	.db "Command not recognised\r\n"
+	.db 00h
 
 
-.maxArgc: equ 32
 argc:
-	db 0
+	.db 0
 argv:
-	ds .maxArgc*2
+	.resb maxArgc*2
 
-.promptStr:
-	db " >: \0"
+promptStr:
+	.db " >: \0"
 
-;.promptPlaceholder:
-;	db "/"
-;	db 00h
+;promptPlaceholder:
+;	.db "/"
+;	.db 00h
 
-.inputBufferSize: equ 128
-.inputBuffer:
-	ds .inputBufferSize
+inputBuffer:
+	.resb inputBufferSize
 
 
-.programPath:
-	db "/BIN/"
-.programName:
-	ds 13
-.programExtension:
-	db ".Z80\0"
+programPath:
+	.db "/BIN/"
+programName:
+	.resb 13
+programExtension:
+	.db ".Z80\0"
 
 ;Command strings
-.echoStr:	db "ECHO\0"
-.exitStr:	db "EXIT\0"
-.monStr:	db "MONITOR\0"
-.nullStr:	db "\0"
+echoStr:    .db "ECHO\0"
+exitStr:    .db "EXIT\0"
+monStr:     .db "MONITOR\0"
+nullStr:    .db "\0"
 
-.dispatchTable:
-	dw .echoStr, echo
-	dw .exitStr, exit
-	dw .monStr, cliMonitor
-	dw .nullStr
+dispatchTable:
+	.dw echoStr, echo
+	.dw exitStr, exit
+	.dw monStr, cliMonitor
+	.dw nullStr
 
 
 ;****************
@@ -320,7 +322,7 @@ argv:
 ;Inputs: de, hl: String pointers
 ;Outputs: z if equal strings
 ;Destroyed: a, b
-.strCompare:
+strCompare:
 	ld a, (de)
 	ld b, a
 	ld a, (hl)
@@ -330,7 +332,7 @@ argv:
 	ret z
 	inc de
 	inc hl
-	jr .strCompare
+	jr strCompare
 
 
 ;****************
@@ -339,14 +341,14 @@ argv:
 ;Inputs: hl: origin, de: destination
 ;Outputs: de, hl: point to the null terminators
 ;Destroyed: a
-.strCopy:
+strCopy:
 	ld a, (hl)
 	ld (de), a
 	cp 00h
 	ret z
 	inc hl
 	inc de
-	jr .strCopy
+	jr strCopy
 
 ;*****************
 ;ConvertToUpper
@@ -354,20 +356,20 @@ argv:
 ;Inputs: hl: String pointer
 ;Outputs:
 ;Destroyed: none
-.convertToUpper:
+convertToUpper:
 	ld a, (hl)
 	cp 0
 	ret z
 
 	cp 61h
-	jr c, .convertToUpper00
+	jr c, convertToUpper00
 	cp 7bh
-	jr nc, .convertToUpper00
+	jr nc, convertToUpper00
 	sub 20h
 	ld (hl), a
-.convertToUpper00:
+convertToUpper00:
 	inc hl
-	jr .convertToUpper
+	jr convertToUpper
 
 
 ;*****************
@@ -385,4 +387,4 @@ printStr:
 	jr printStr
 
 
-include "builtins.asm"
+.include "builtins.asm"

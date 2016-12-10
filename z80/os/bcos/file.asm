@@ -1,19 +1,19 @@
-.fileTableEntrySize: equ 32
-.fileTableEntries: equ 8
+.define fileTableEntrySize  32
+.define fileTableEntries  8
 fileTableMap:
-	db 00h
+	.db 00h
 fileTable:
-	ds .fileTableEntrySize * .fileTableEntries
+	.resb fileTableEntrySize * fileTableEntries
 
-.tableSpot:
-	db 0
+tableSpot:
+	.db 0
 
-fileTableName:         equ 0
-fileTableAttributes:   equ fileTableName + 13
-fileTableStartCluster: equ fileTableAttributes + 1
-fileTableSize:         equ fileTableStartCluster + 2
-fileTablePointer:      equ fileTableSize + 2
-fileTableMode:         equ fileTablePointer + 2
+.define fileTableName          0
+.define fileTableAttributes    fileTableName + 13
+.define fileTableStartCluster  fileTableAttributes + 1
+.define fileTableSize          fileTableStartCluster + 2
+.define fileTablePointer       fileTableSize + 2
+.define fileTableMode          fileTablePointer + 2
 
 ;*****************
 ;Open file
@@ -26,33 +26,33 @@ fileTableMode:         equ fileTablePointer + 2
 ;        3=file too large
 ;Destroyed: all
 _openFile:
-	ld (.openFileMode), a
+	ld (openFileMode), a
 	;search free table spot
 	ld a, (fileTableMap)
 	ld b, 8
-.tableSearchLoop:
+tableSearchLoop:
 	srl a
-	jr nc, .tableSpotFound
-	djnz .tableSearchLoop
+	jr nc, tableSpotFound
+	djnz tableSearchLoop
 
 	;no free spot found, return error
 	ld a, 1
 	ret
 
-.openFileMode:
-	db 0
-.openFilePathBuffer:
-	ds 13
-.openSector:
-	ds 4
+openFileMode:
+	.db 0
+openFilePathBuffer:
+	.resb 13
+openSector:
+	.resb 4
 
-.openResolvePath:
+openResolvePath:
 	ld a, 0
 	ld (bc), a
 	push de
 	;ld d, b
 	;ld e, c
-	ld de, .openFilePathBuffer
+	ld de, openFilePathBuffer
 	call findDirEntry
 	pop de
 	ld a, 2
@@ -61,19 +61,19 @@ _openFile:
 	;calculate start sector of subdirectory
 	ld l, (ix+1ah)
 	ld h, (ix+1bh)
-	ld de, .openSector
+	ld de, openSector
 	call clusterToSector
 
 	pop de
 	inc de
-	ld hl, .openSector
-	jr .openRelativePath
+	ld hl, openSector
+	jr openRelativePath
 
-.tableSpotFound:
+tableSpotFound:
 	;remember spot for later
 	ld a, 8
 	sub b
-	ld (.tableSpot), a
+	ld (tableSpot), a
 
 	;(de)=filename
 	ld h, d
@@ -83,32 +83,32 @@ _openFile:
 	ld hl, fat_rootDirStartSector ;TODO load the path of the active program here
 	ld a, (de)
 	cp '/'
-	jr nz, .openRelativePath
+	jr nz, openRelativePath
 	inc de
 	ld hl, fat_rootDirStartSector ;path is relative to the root directory
 
-.openRelativePath: ;TODO rename this label
+openRelativePath: ;TODO rename this label
 	;(de)=relative path, hl=directory sector
 	;copy the next file/directory to a buffer
-	ld bc, .openFilePathBuffer
-.openRelativeLoop:
+	ld bc, openFilePathBuffer
+openRelativeLoop:
 	ld a, (de)
 	cp '/'
-	jr z, .openResolvePath ;copied the entire folder name
+	jr z, openResolvePath ;copied the entire folder name
 	ld (bc), a
 	inc bc
 	inc de
 	cp 0
-	jr nz, .openRelativeLoop
+	jr nz, openRelativeLoop
 	
 	;reached the deepest level
-	ld de, .openFilePathBuffer
+	ld de, openFilePathBuffer
 	call findDirEntry
 	ld a, 2
 	ret nz ;no file found
 	;TODO check filesize
 	;(ix)=directory entry
-	ld a, (.tableSpot)
+	ld a, (tableSpot)
 	add a, a
 	add a, a
 	add a, a
@@ -127,7 +127,7 @@ _openFile:
 	pop de
 	pop hl
 	call buildFilenameString
-	ld a, (ix+0bh)
+	ld a, (ix+0x0b)
 	ld (iy+fileTableAttributes), a
 	ld a, (ix+1ah)
 	ld (iy+fileTableStartCluster), a
@@ -141,19 +141,19 @@ _openFile:
 	xor a
 	ld (iy+fileTablePointer), a
 	ld (iy+fileTablePointer+1), a
-	ld a, (.openFileMode)
+	ld a, (openFileMode)
 	ld (iy+fileTableMode), a
 
 	;fill table spot
-	ld a, (.tableSpot)
+	ld a, (tableSpot)
 	ld e, a ;return value
 	ld b, a
 	inc b
 	xor a
 	scf
-.openFillTableSpot:
+openFillTableSpot:
 	rla
-	djnz .openFillTableSpot
+	djnz openFillTableSpot
 
 	ld hl, fileTableMap
 	or (hl)
@@ -174,32 +174,32 @@ _openFile:
 _closeFile:
 	ld c, a
 	;check if fd exists
-	ld (.tableSpot), a
+	ld (tableSpot), a
 	ld b, a
 	inc b
 	ld a, (fileTableMap)
-.closeCheckTableSpot:
+closeCheckTableSpot:
 	srl a
-	djnz .closeCheckTableSpot
+	djnz closeCheckTableSpot
 
 	ld a, 1
 	ret nc
 
 	ld b, c
 	ld c, 1
-	djnz .closeShiftContinue
+	djnz closeShiftContinue
 
-.closeShiftLoop:
+closeShiftLoop:
 	sla c
-	djnz .closeShiftLoop
+	djnz closeShiftLoop
 
-.closeShiftContinue:
+closeShiftContinue:
 	cpl
 
-	ld a, (.tableSpot)
+	ld a, (tableSpot)
 	and c
 
-	ld (.tableSpot), a
+	ld (tableSpot), a
 
 	ld a, 0
 	ret
@@ -215,18 +215,18 @@ _closeFile:
 ;Destroyed: none
 _readFile:
 	;check if fd exists
-	ld (.tableSpot), a
+	ld (tableSpot), a
 	ld b, a
 	inc b
 	ld a, (fileTableMap)
-.readCheckTableSpot:
+readCheckTableSpot:
 	srl a
-	djnz .readCheckTableSpot
+	djnz readCheckTableSpot
 
 	ld a, 1
 	ret nc
 
-	ld a, (.tableSpot)
+	ld a, (tableSpot)
 	add a, a
 	add a, a
 	add a, a
@@ -245,18 +245,18 @@ _readFile:
 	ld h, (iy+fileTableSize+1)
 	or a
 	sbc hl, bc
-	jr nc, .readCluster
+	jr nc, readCluster
 
 	ld c, (iy+fileTableSize)
 	ld b, (iy+fileTableSize+1)
 
-.readCluster:
+readCluster:
 	push bc ;count
 	push de ;buffer
 	;calculate starting sector
 	ld l, (iy+fileTableStartCluster)
 	ld h, (iy+fileTableStartCluster+1)
-	ld de, .readSector
+	ld de, readSector
 	call clusterToSector
 
 	;TODO count bytes
@@ -268,11 +268,11 @@ _readFile:
 	ld a, d
 	srl a
 	push hl ;buffer
-	jr z, .readLastSector ;less than a sector left
+	jr z, readLastSector ;less than a sector left
 
 
 	;load full sectors directly
-	ld hl, .readSector
+	ld hl, readSector
 	call sectorToAddr
 	pop hl ;buffer
 	push af ;amount of full sectors to be read
@@ -282,20 +282,20 @@ _readFile:
 	pop af ;count of read sectors
 	push hl ;buffer
 
-	ld hl, .readSector
+	ld hl, readSector
 	add a, (hl)
 	ld (hl), a
 	ld b, 3
-.readAddSectorsLoop:
+readAddSectorsLoop:
 	inc hl
 	ld a, 0
 	adc a, (hl)
 	ld (hl), a
-	djnz .readAddSectorsLoop
+	djnz readAddSectorsLoop
 
-.readLastSector:
+readLastSector:
 	;load last sector into sdBuffer
-	ld hl, .readSector
+	ld hl, readSector
 	call sectorToAddr
 	ld hl, sdBuffer
 	ld a, 1
@@ -316,5 +316,5 @@ _readFile:
 	ret
 	
 
-.readSector:
-	ds 4
+readSector:
+	.resb 4

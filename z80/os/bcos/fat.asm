@@ -1,28 +1,28 @@
-fat_bootStartSector:    ds 4
+fat_bootStartSector:    .resb 4
 
 fat_vbr:
-fat_oemName:            ds 8
-fat_bytesPerSector:     ds 2
-fat_sectorsPerCluster:  ds 1
-fat_reservedSectors:    ds 2
-fat_fatCopies:          ds 1
-fat_maxRootDirEntries:  ds 2
-fat_sectorsShort:       ds 2
-fat_mediaDescriptor:    ds 1
-fat_sectorsPerFat:      ds 2
-fat_sectorsPerTrack:    ds 2
-fat_heads:              ds 2
-fat_sectorsBeforeVBR:   ds 4
-fat_sectorsLong:        ds 4
-fat_driveNumber:        ds 2
-fat_bootRecordSig:      ds 1
-fat_serialNumber:       ds 4
+fat_oemName:            .resb 8
+fat_bytesPerSector:     .resb 2
+fat_sectorsPerCluster:  .resb 1
+fat_reservedSectors:    .resb 2
+fat_fatCopies:          .resb 1
+fat_maxRootDirEntries:  .resb 2
+fat_sectorsShort:       .resb 2
+fat_mediaDescriptor:    .resb 1
+fat_sectorsPerFat:      .resb 2
+fat_sectorsPerTrack:    .resb 2
+fat_heads:              .resb 2
+fat_sectorsBeforeVBR:   .resb 4
+fat_sectorsLong:        .resb 4
+fat_driveNumber:        .resb 2
+fat_bootRecordSig:      .resb 1
+fat_serialNumber:       .resb 4
 
-fat_fat1StartSector:    ds 4
-fat_fat2StartSector:    ds 4
+fat_fat1StartSector:    .resb 4
+fat_fat2StartSector:    .resb 4
 
-fat_rootDirStartSector: ds 4
-fat_dataStartSector:    ds 4
+fat_rootDirStartSector: .resb 4
+fat_dataStartSector:    .resb 4
 
 ; Calculate and store filesystem offsets
 initfs:
@@ -190,13 +190,13 @@ clusterToSector:
 	ld l,e
 
 	ld b, 7
-.clusterToSectorLoop:
+clusterToSectorLoop:
 	add hl, hl
 	rla
 	jr nc, $+4
 	add hl, de
 	adc a, c
-	djnz .clusterToSectorLoop
+	djnz clusterToSectorLoop
 
 	;ahl=sector offset
 	pop de
@@ -247,11 +247,11 @@ addCarry:
 findDirEntry:
 	;TODO add capability to search sequential sectors
 	push de
-	ld de, .findDirEntrySector
+	ld de, findDirEntrySector
 	ld bc, 4
 	ldir
 
-	ld hl, .findDirEntrySector
+	ld hl, findDirEntrySector
 	call sectorToAddr
 	ld a, 1
 	ld hl, sdBuffer
@@ -260,43 +260,43 @@ findDirEntry:
 
 	ld hl, sdBuffer
 	ld b, 16
-.findDirEntryLoop:
+findDirEntryLoop:
 	;cycle through entries
 	ld a, (hl)
 	cp 0
-	jr z, .findDirEntryEnd;end of directory
+	jr z, findDirEntryEnd;end of directory
 	push hl
-	ld de, .findDirEntryNameBuffer
+	ld de, findDirEntryNameBuffer
 	call buildFilenameString
 	pop hl
 	pop de
 	push de
 	push hl
 	push bc
-	ld hl, .findDirEntryNameBuffer
+	ld hl, findDirEntryNameBuffer
 	call strCompare
 	pop bc
-	jr z, .findDirEntryMatch
+	jr z, findDirEntryMatch
 	pop hl
 	ld de, 32
 	add hl, de
-	djnz .findDirEntryLoop
+	djnz findDirEntryLoop
 
 
-.findDirEntryEnd:
+findDirEntryEnd:
 	pop de ;clear the stack
 	or 1 ;reset zero flag
 	ret
 
-.findDirEntryMatch:
+findDirEntryMatch:
 	pop ix ;pointer to entry
 	pop de ;clear the stack
 	ret
 
 
-.findDirEntrySector:
+findDirEntrySector:
 	ds 4
-.findDirEntryNameBuffer:
+findDirEntryNameBuffer:
 	ds 13
 
 
@@ -315,32 +315,32 @@ buildFilenameString:
 	ld (de), a
 
 	pop de
-.buildFilenameTerminateName:
+buildFilenameTerminateName:
 	ld a, (de)
 	cp ' '
 	inc de
-	jr nz, .buildFilenameTerminateName
+	jr nz, buildFilenameTerminateName
 	dec de
 
 	;de now points to the char after the name, hl to the extension of the entry
 	ld a, (hl)
 	cp ' '
-	jr z, .buildFilenameEnd
+	jr z, buildFilenameEnd
 	ld a, '.'
 	ld (de), a
 	inc de
 
 	ld b, 3
-.buildFilenameExtension:
+buildFilenameExtension:
 	ld a, (hl)
 	cp ' '
-	jr z, .buildFilenameEnd
+	jr z, buildFilenameEnd
 	ld (de), a
 	inc hl
 	inc de
-	djnz .buildFilenameExtension
+	djnz buildFilenameExtension
 
-.buildFilenameEnd:
+buildFilenameEnd:
 	ld a, 0
 	ld (de), a
 	ret
@@ -377,11 +377,11 @@ convertToUpper:
 	ret z
 
 	cp 61h
-	jr c, .convertToUpper00
+	jr c, convertToUpper00
 	cp 7bh
-	jr nc, .convertToUpper00
+	jr nc, convertToUpper00
 	sub 20h
 	ld (hl), a
-.convertToUpper00:
+convertToUpper00:
 	inc hl
 	jr convertToUpper

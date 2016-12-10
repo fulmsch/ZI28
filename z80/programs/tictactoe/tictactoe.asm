@@ -1,6 +1,7 @@
-include "biosCalls.h"
+.z80
+.include "biosCalls.h"
 
-	org 0c000h
+.org 0c000h
 
 
 	ld hl, clearScreenStr
@@ -207,45 +208,45 @@ printStr:
 
 
 boardStr0:
-	db "   "
-	db 00h
+	.db "   "
+	.db 00h
 
 boardStr1:
-	db " | "
-	db 00h
+	.db " | "
+	.db 00h
 
 boardStr2:
-	db "   ---+---+---\r\n"
-	db 00h
+	.db "   ---+---+---\r\n"
+	.db 00h
 
 boardStr3:
-	db "\r\n    a   b   c\r\n"
-	db 00h
+	.db "\r\n    a   b   c\r\n"
+	.db 00h
 
 
 symbolArray:
-	db ' ', 'X', 'O'
+	.db ' ', 'X', 'O'
 
 boardArray:
-	db 0, 0, 0
-	db 0, 0, 0
-	db 0, 0, 0
+	.db 0, 0, 0
+	.db 0, 0, 0
+	.db 0, 0, 0
 
 currentPlayer:
-	db 00h
+	.db 00h
 
 clearScreenStr:
-	db 1bh
-	db "[2J"
-	db 1bh
-	db "[H"
-	db 00h
+	.db 1bh
+	.db "[2J"
+	.db 1bh
+	.db "[H"
+	.db 00h
 
 welcomeStr:
-	db "Tic-Tac-Toe v0.2\r\n"
-	db "(c) F.Ulmschneider 2016\r\n"
-	db 00h
+	.db "Tic-Tac-Toe v0.2\r\n"
+	.db "(c) F.Ulmschneider 2016\r\n"
+	.db 00h
 
 invalidStr:
-	db "Invalid entry\r\n"
-	db 00h
+	.db "Invalid entry\r\n"
+	.db 00h

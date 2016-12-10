@@ -5,48 +5,49 @@
 ;Expected conditions:
 ;VBR-sector loaded at c200h
 
-include "biosCalls.h"
+.z80
+.include "biosCalls.h"
 
-vbrLoadAddress: equ 0c200h
-bootloaderCode: equ vbrLoadAddress+3eh
-sdBuffer: equ 4200h
-loadAddress: equ 5000h
+.define vbrLoadAddress 0c200h
+.define bootloaderCode vbrLoadAddress+3eh
+.define sdBuffer 4200h
+.define loadAddress 5000h
 
-fat_vbr: equ vbrLoadAddress
-fat_oemName: equ fat_vbr+03h
-fat_bytesPerSector: equ fat_vbr+0bh
-fat_sectorsPerCluster: equ fat_vbr+0dh
-fat_reservedSectors: equ fat_vbr+0eh
-fat_fatCopies: equ fat_vbr+10h
-fat_maxRootDirEntries: equ fat_vbr+11h
-fat_sectorsShort: equ fat_vbr+13h
-fat_mediaDescriptor: equ fat_vbr+15h
-fat_sectorsPerFat: equ fat_vbr+16h
-fat_sectorsPerTrack: equ fat_vbr+18h
-fat_heads: equ fat_vbr+1ah
-fat_sectorsBeforeVBR: equ fat_vbr+1ch
-fat_sectorsLong: equ fat_vbr+20h
-fat_driveNumber: equ fat_vbr+24h
+.define fat_vbr               vbrLoadAddress
+.define fat_oemName           fat_vbr+03h
+.define fat_bytesPerSector    fat_vbr+0bh
+.define fat_sectorsPerCluster fat_vbr+0dh
+.define fat_reservedSectors   fat_vbr+0eh
+.define fat_fatCopies         fat_vbr+10h
+.define fat_maxRootDirEntries fat_vbr+11h
+.define fat_sectorsShort      fat_vbr+13h
+.define fat_mediaDescriptor   fat_vbr+15h
+.define fat_sectorsPerFat     fat_vbr+16h
+.define fat_sectorsPerTrack   fat_vbr+18h
+.define fat_heads             fat_vbr+1ah
+.define fat_sectorsBeforeVBR  fat_vbr+1ch
+.define fat_sectorsLong       fat_vbr+20h
+.define fat_driveNumber       fat_vbr+24h
 
-	org vbrLoadAddress
+.org vbrLoadAddress
 	jr bootloaderStart
 	nop
 
-incbin "fat.bin"
-;	ds bootloaderCode-$
+.binfile "fat.bin"
+;	.resb bootloaderCode-$
 
 ;	org bootloaderCode
 
 fat_rootDirStartSector: ds 4
 fat_dataStartSector:    ds 4
 
-.readSector:
-	ds 4
+readSector:
+	.resb 4
 
-.bootDir:
-	db "SYS        \0"
-.bootFile:
-	db "BCOS    BIN\0"
+bootDir:
+	.db "SYS        \0"
+bootFile:
+	.db "BCOS    BIN\0"
 
 bootloaderStart:
 	ld sp, 8000h
@@ -94,17 +95,17 @@ bootloaderStart:
 	ld (fat_dataStartSector+2), hl
 
 	;search the file
-	ld de, .bootDir
+	ld de, bootDir
 	ld hl, fat_rootDirStartSector
 	call findDirEntry
 
 	ld l, (ix+1ah)
 	ld h, (ix+1bh)
-	ld de, .readSector
+	ld de, readSector
 	call clusterToSector
 
-	ld hl, .readSector
-	ld de, .bootFile
+	ld hl, readSector
+	ld de, bootFile
 	call findDirEntry
 
 ;*****************
@@ -125,7 +126,7 @@ bootloaderStart:
 	;calculate starting sector
 	ld l, (ix+1ah)
 	ld h, (ix+1bh)
-	ld de, .readSector
+	ld de, readSector
 	call clusterToSector
 
 	;TODO count bytes
@@ -135,10 +136,10 @@ bootloaderStart:
 	;calculate the number of full sectors
 	ld a, d
 	srl a
-	jr z, .readLastSector ;less than a sector left
+	jr z, readLastSector ;less than a sector left
 
 	;load full sectors directly
-	ld hl, .readSector
+	ld hl, readSector
 	call sectorToAddr
 	ld hl, loadAddress
 	push af ;amount of full sectors to be read
@@ -148,20 +149,20 @@ bootloaderStart:
 	pop af ;count of read sectors
 	push hl ;buffer
 
-	ld hl, .readSector
+	ld hl, readSector
 	add a, (hl)
 	ld (hl), a
 	ld b, 3
-.readAddSectorsLoop:
+readAddSectorsLoop:
 	inc hl
 	ld a, 0
 	adc a, (hl)
 	ld (hl), a
-	djnz .readAddSectorsLoop
+	djnz readAddSectorsLoop
 
-.readLastSector:
+readLastSector:
 	;load last sector into sdBuffer
-	ld hl, .readSector
+	ld hl, readSector
 	call sectorToAddr
 	ld hl, sdBuffer
 	ld a, 1
@@ -191,11 +192,11 @@ bootloaderStart:
 findDirEntry:
 	;TODO add capability to search sequential sectors
 	push de ;name
-	ld de, .findDirEntrySector
+	ld de, findDirEntrySector
 	ld bc, 4
 	ldir
 
-	ld hl, .findDirEntrySector
+	ld hl, findDirEntrySector
 	call sectorToAddr
 	ld a, 1
 	ld hl, sdBuffer
@@ -204,37 +205,37 @@ findDirEntry:
 
 	ld hl, sdBuffer
 	ld b, 16
-.findDirEntryLoop:
+findDirEntryLoop:
 	;cycle through entries
 	ld a, (hl)
 	cp 0
-	jr z, .findDirEntryEnd;end of directory
+	jr z, findDirEntryEnd;end of directory
 	pop de ;name
 	push de ;name
 	push hl ;start of entry
 	push bc ;counter
 	call strCompare
 	pop bc ;counter
-	jr z, .findDirEntryMatch
+	jr z, findDirEntryMatch
 	pop hl ;start of entry
 	ld de, 32
 	add hl, de
-	djnz .findDirEntryLoop
+	djnz findDirEntryLoop
 
 
-.findDirEntryEnd:
+findDirEntryEnd:
 	pop de ;clear the stack
 	or 1 ;reset zero flag
 	ret
 
-.findDirEntryMatch:
+findDirEntryMatch:
 	pop ix ;pointer to entry
 	pop de ;clear the stack
 	ret
 
 
-.findDirEntrySector:
-	ds 4
+findDirEntrySector:
+	.resb 4
 
 
 ;****************
@@ -303,13 +304,13 @@ clusterToSector:
 	ld l,e
 
 	ld b, 7
-.clusterToSectorLoop:
+clusterToSectorLoop:
 	add hl, hl
 	rla
 	jr nc, $+4
 	add hl, de
 	adc a, c
-	djnz .clusterToSectorLoop
+	djnz clusterToSectorLoop
 
 	;ahl=sector offset
 	pop de

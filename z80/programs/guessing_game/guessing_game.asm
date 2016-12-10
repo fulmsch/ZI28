@@ -1,6 +1,7 @@
-include "biosCalls.h"
+.z80
+.include "biosCalls.h"
 
-	org 0c000h
+.org 0c000h
 
 restart:
 	ld e, 0
@@ -139,28 +140,28 @@ print:
 
 
 numberPromt:
-	db "Guess a number from 0 to 7:\r\n"
-	db 0
+	.db "Guess a number from 0 to 7:\r\n"
+	.db 0
 
 newGamePromt:
-	db "New Game? y/n\r\n"
-	db 0
+	.db "New Game? y/n\r\n"
+	.db 0
 
 correct:
-	db "Correct! "
-	db 0
+	.db "Correct! "
+	.db 0
 
 tooHigh:
-	db "Too high! "
-	db 0
+	.db "Too high! "
+	.db 0
 
 tooLow:
-	db "Too low! "
-	db 0
+	.db "Too low! "
+	.db 0
 
 attempts:
-	db "Attempts: "
-	db 0
+	.db "Attempts: "
+	.db 0
 
 invalid: db "Invalid Entry!\r\n"
-	db 0
+	.db 0

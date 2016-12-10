@@ -5,7 +5,7 @@
 
 _monitor:
 
-prgm:	equ	0c000h
+prgm	equ	0c000h
 
 	ld (stackSave), sp
 
@@ -288,7 +288,7 @@ loadAbort:
 	jr loadEnd
 	
 loadAbortStr:
-	db "\r\nLoading aborted\r\n", 00h 
+	.db "\r\nLoading aborted\r\n", 00h 
 
 
 execPrgm:
@@ -455,8 +455,8 @@ num:
 	
 	
 hexDumpHeader:
-	db "\r\n      00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\r\n\r\n"
-	db 00h
+	.db "\r\n      00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\r\n\r\n"
+	.db 00h
 
 write:
 	ld a, b
@@ -578,11 +578,11 @@ writeEnd:
 	
 writeErrorStr:
 	db " Error\r\n"
-	db 00
+	.db 00
 	
 writeOkStr:
-	db " Ok"
-	db 00
+	.db " Ok"
+	.db 00
 
 ioIn:
 	ld a, b
@@ -702,7 +702,7 @@ showRegisterLoop:
 	jp prompt
 
 registerStr:
-	db "\r\nAF    BC    DE    HL    IX    IY\r\n\0"
+	.db "\r\nAF    BC    DE    HL    IX    IY\r\n\0"
 
 
 invalid:
@@ -842,49 +842,49 @@ nextArgLoop:
 	ret
 
 ;clearScreenStr:
-;	db 1bh
-;	db "[2J"
-;	db 1bh
-;	db "[H"
-;	db 00h
+;	.db 1bh
+;	.db "[2J"
+;	.db 1bh
+;	.db "[H"
+;	.db 00h
 
 welcomeStr:
-	db "\r\nExecution paused at "
-	db 00h
+	.db "\r\nExecution paused at "
+	.db 00h
 
 readyStr:
-	db "\r\nMonitor ready\r\n"
-	db "Type '?' for help\r\n"
-	db 00h
+	.db "\r\nMonitor ready\r\n"
+	.db "Type '?' for help\r\n"
+	.db 00h
 
 helpStr:
-	db "\r\n"
-	db "C\t\tContinue execution of the program\r\n"
-	db "L [ADDR]\tLoad an Intel-HEX file from USB\r\n"
-	db "E [ADDR]\tExecute a program\r\n"
-	db "J ADDR\t\tJump to a specific address\r\n"
-	db "D ADDR\t\tDump 256 bytes of memory in hex format\r\n"
-	db "W ADDR\t\tWrite to single bytes in memory\r\n"
-	db "I PORT\t\tRead value from port\r\n"
-	db "O PORT VAL\tWrite value to port\r\n"
-	db "B BANK\t\tSelect memory bank 00-05\r\n"
-	db "R\t\tShow and modify register contents\r\n"
-	db 00h
+	.db "\r\n"
+	.db "C\t\tContinue execution of the program\r\n"
+	.db "L [ADDR]\tLoad an Intel-HEX file from USB\r\n"
+	.db "E [ADDR]\tExecute a program\r\n"
+	.db "J ADDR\t\tJump to a specific address\r\n"
+	.db "D ADDR\t\tDump 256 bytes of memory in hex format\r\n"
+	.db "W ADDR\t\tWrite to single bytes in memory\r\n"
+	.db "I PORT\t\tRead value from port\r\n"
+	.db "O PORT VAL\tWrite value to port\r\n"
+	.db "B BANK\t\tSelect memory bank 00-05\r\n"
+	.db "R\t\tShow and modify register contents\r\n"
+	.db 00h
 
 
 invalidStr:
-	db "\r\nInvalid command\r\n"
-	db "Type '?' for help\r\n"
-	db 00h
+	.db "\r\nInvalid command\r\n"
+	.db "Type '?' for help\r\n"
+	.db 00h
 
 doneStr:
-	db "\r\nDone\r\n"
-	db 00h
+	.db "\r\nDone\r\n"
+	.db 00h
 
 loadStr:
-	db "\r\nLoading program\r\n"
-	db 00h
+	.db "\r\nLoading program\r\n"
+	.db 00h
 
 loadFinishedStr:
-	db "h bytes transferred\r\n"
-	db 00h
+	.db "h bytes transferred\r\n"
+	.db 00h

@@ -8,7 +8,7 @@ echo:
 	inc de
 	inc de
 
-.echoLoop:
+echoLoop:
 	ld a, (de)
 	ld l, a
 	inc de
@@ -18,7 +18,7 @@ echo:
 	call printStr
 	ld a, ' '
 	call putc
-	djnz .echoLoop
+	djnz echoLoop
 
 	ld a, 0dh
 	call putc

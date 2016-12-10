@@ -6,10 +6,10 @@ _putc:
 	push af
 	ld a, (outputDev)
 
-.putcUSB:
+putcUSB:
 	in a, (TERMCR)
 	bit 0, a
-	jr nz, .putcUSB
+	jr nz, putcUSB
 	pop af
 	out (TERMDR), a
 	ret
@@ -31,17 +31,17 @@ _getc:
 	push af
 	ld a, (inputDev)
 
-.getcUSB:
+getcUSB:
 	pop af
 	or 0
-	jr z, .getcUSBBlocking
+	jr z, getcUSBBlocking
 	in a, (TERMCR)
 	bit 1, a
 	ret
-.getcUSBBlocking:
+getcUSBBlocking:
 	in a, (TERMCR)
 	bit 1, a
-	jr nz, .getcUSBBlocking
+	jr nz, getcUSBBlocking
 	in a, (TERMDR)
 	ret
 

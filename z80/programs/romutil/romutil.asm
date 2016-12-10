@@ -1,11 +1,14 @@
-include "iomap.h"
+.z80
+
+.define TERMDR 00h
+.define TERMCR 01h
 
 ;TODO:
 ;Change destination address
 ;Enable data protecion
 
 
-	org 0c000h
+.org 0c000h
 
 	ld hl, clearScreenStr
 	call printStr
@@ -123,16 +126,16 @@ loadAbort:
 	jr loadEnd
 
 loadStr:
-	db "\r\nLoading\r\n"
-	db 00h
+	.db "\r\nLoading\r\n"
+	.db 00h
 
 loadFinishedStr:
-	db "Finished loading\r\n"
-	db 00h
+	.db "Finished loading\r\n"
+	.db 00h
 
 loadAbortStr:
-	db "Loading aborted\r\n"
-	db 00h
+	.db "Loading aborted\r\n"
+	.db 00h
 
 
 
@@ -163,12 +166,12 @@ clearLoop:
 	jp prompt
 
 clearConfirmationStr:
-	db "\r\nClear the entire buffer? [Y/N]\r\n"
-	db 00h
+	.db "\r\nClear the entire buffer? [Y/N]\r\n"
+	.db 00h
 
 clearCompleteStr:
-	db "\r\nThe buffer has been cleared\r\n"
-	db 00h
+	.db "\r\nThe buffer has been cleared\r\n"
+	.db 00h
 
 
 
@@ -229,17 +232,17 @@ verifyCheckCancel:
 	jp prompt
 
 verifySelectStr:
-	db "\r\nSelect source:\r\n"
-	db "[B]uffer    [R]OM    [C]ancel\r\n"
-	db 00h
+	.db "\r\nSelect source:\r\n"
+	.db "[B]uffer    [R]OM    [C]ancel\r\n"
+	.db 00h
 
 verifyStartStr:
-	db "\r\nWaiting for start signal\r\n"
-	db 00h
+	.db "\r\nWaiting for start signal\r\n"
+	.db 00h
 
 verifyCancelStr:
-	db "Transfer canceled\r\n"
-	db 00h
+	.db "Transfer canceled\r\n"
+	.db 00h
 
 
 
@@ -301,8 +304,8 @@ burnWait:
 	jp prompt
 
 burnConfirmationStr:
-	db "\r\nBurn the contents of the buffer to the ROM? [Y/N]\r\n"
-	db 00h
+	.db "\r\nBurn the contents of the buffer to the ROM? [Y/N]\r\n"
+	.db 00h
 
 
 
@@ -322,25 +325,25 @@ reset00:
 	jp 0000h
 
 resetConfirmationStr:
-	db "\r\nReset the system? [Y/N]\r\n"
-	db 00h
+	.db "\r\nReset the system? [Y/N]\r\n"
+	.db 00h
 
 
 clearScreenStr:
-	db 1bh
-	db "[2J"
-	db 1bh
-	db "[H"
-	db 00h
+	.db 1bh
+	.db "[2J"
+	.db 1bh
+	.db "[H"
+	.db 00h
 
 welcomeStr:
-	db "RomUtil - Program to write to and verify the EEPROM\r\n"
-	db "F. Ulmschneider 2016\r\n"
-	db 00h
+	.db "RomUtil - Program to write to and verify the EEPROM\r\n"
+	.db "F. Ulmschneider 2016\r\n"
+	.db 00h
 
 promptStr:
-	db "\r\n[L]oad    [C]lear    [V]erify    [B]urn    [R]eset\r\n"
-	db 00h
+	.db "\r\n[L]oad    [C]lear    [V]erify    [B]urn    [R]eset\r\n"
+	.db 00h
 
 
 ;*****************

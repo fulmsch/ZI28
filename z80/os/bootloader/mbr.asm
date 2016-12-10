@@ -2,40 +2,42 @@
 ;SD-Card bootloader
 ;Florian Ulmschneider 2016
 
-include "biosCalls.h"
 
-stage1Addr: equ 0c000h
-stage2Addr: equ stage1Addr + 200h
+.z80
+.include "biosCalls.h"
 
-partitionTableStart: equ stage1Addr + 1beh
-partitionEntrySize: equ 10h
-partitionTypeOffset: equ 04h
-partitionStartSectorOffset: equ 08h
-partitionSizeOffset: equ 0ch
+.define stage1Addr 0c000h
+.define stage2Addr stage1Addr + 200h
 
-	org stage1Addr
+.define partitionTableStart stage1Addr + 1beh
+.define partitionEntrySize 10h
+.define partitionTypeOffset 04h
+.define partitionStartSectorOffset 08h
+.define partitionSizeOffset 0ch
+
+.org stage1Addr
 
 	;required for bootloader recognition by bios
-	jr .start
-.start:
+	jr start
+start:
 
 	ld sp, 8000h
 
-	ld hl, .chooseStr
+	ld hl, chooseStr
 	call printStr
 
 	;check 1beh if bootable
 	ld c, 0
 	ld b, 4
-	ld de, .partitionSectorTable
+	ld de, partitionSectorTable
 	ld ix, partitionTableStart
-.checkBootableLoop:
+checkBootableLoop:
 	ld a, (ix+0)
 	cp 80h
 	call z, bootableEntry
 	ld de, partitionEntrySize
 	add ix, de
-	djnz .checkBootableLoop
+	djnz checkBootableLoop
 
 
 	ld a, 0dh
@@ -45,18 +47,18 @@ partitionSizeOffset: equ 0ch
 
 	ld a, c
 	or 30h
-	add 1
+	add a, 1
 	ld c, a
 
 
-.inputLoop:
+inputLoop:
 	xor a
 	call getc
 	cp 30h
 	jp z, monitor
-	jr c, .inputLoop
+	jr c, inputLoop
 	cp c
-	jr nc, .inputLoop
+	jr nc, inputLoop
 
 	and 0fh
 	dec a
@@ -64,7 +66,7 @@ partitionSizeOffset: equ 0ch
 	add a, a
 	ld h, 0
 	ld l, a
-	ld de, .partitionSectorTable
+	ld de, partitionSectorTable
 	add hl, de
 
 	ld b, 0
@@ -87,22 +89,22 @@ partitionSizeOffset: equ 0ch
 
 bootableEntry:
 	inc c
-	ld hl, .entryStr
+	ld hl, entryStr
 	call printStr
 	ld a, c
 	or 30h
 	call putc
-	ld hl, .entryStr2
+	ld hl, entryStr2
 	call printStr
 
 	;print partition type
 	ld a, (ix+partitionTypeOffset)
-	ld hl, .fat16Str
+	ld hl, fat16Str
 	cp 06h
-	jr z, .printPartitionType
-	ld hl, .unknownPartitionTypeStr
+	jr z, printPartitionType
+	ld hl, unknownPartitionTypeStr
 
-.printPartitionType:
+printPartitionType:
 	call printStr
 	;print partition size
 
@@ -123,22 +125,22 @@ bootableEntry:
 	ret
 
 
-.partitionSectorTable:
-	ds 16
+partitionSectorTable:
+	.resb 16
 
-.chooseStr:
-	db "\r\nChoose boot option:"
-	db "\r\n[0]: Monitor\0"
+chooseStr:
+	.db "\r\nChoose boot option:"
+	.db "\r\n[0]: Monitor\0"
 
-.entryStr:
-	db "\r\n[\0"
-.entryStr2:
-	db "]: \0"
+entryStr:
+	.db "\r\n[\0"
+entryStr2:
+	.db "]: \0"
 
-.unknownPartitionTypeStr:
-	db "Unknown partition type\0"
-.fat16Str:
-	db "FAT16\0"
+unknownPartitionTypeStr:
+	.db "Unknown partition type\0"
+fat16Str:
+	.db "FAT16\0"
 
 
 ;*****************

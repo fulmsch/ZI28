@@ -1,10 +1,6 @@
-SD_ENABLE: macro
-	out (82h), a
-	endm
+.define SD_ENABLE out (82h), a
 
-SD_DISABLE: macro
-	out (83h), a
-	endm
+.define SD_DISABLE out (83h), a
 
 delay100:
 	;Wait for approx. 100ms
@@ -39,9 +35,9 @@ sdInit:
 
 	;Send 80 clock pulses
 	ld b, 10
-.sdInit00:
+sdInit00:
 	out (81h), a
-	djnz .sdInit00
+	djnz sdInit00
 
 	SD_ENABLE
 
@@ -62,15 +58,15 @@ sdInit:
 	out (81h), a
 
 	ld b, 8
-.sdInit01:
+sdInit01:
 	;Look for a 01h response
 	out (81h), a
 	nop
 	nop
 	in a, (80h)
 	cp 01h
-	jr z, .sdInit02
-	djnz .sdInit01
+	jr z, sdInit02
+	djnz sdInit01
 
 	SD_DISABLE
 
@@ -80,12 +76,12 @@ sdInit:
 	jp printStr
 
 
-.sdInit02:
+sdInit02:
 	out (81h), a
 	nop
 	nop
 	in a, (80h)
-	djnz .sdInit02
+	djnz sdInit02
 
 	SD_DISABLE
 
@@ -99,12 +95,12 @@ sdCmd41:
 	call sdSendCmd
 
 	ld b, 8
-.sdInit03:
+sdInit03:
 	out (81h), a
 	nop
 	nop
 	in a, (80h)
-	djnz .sdInit03
+	djnz sdInit03
 
 	SD_DISABLE
 
@@ -118,15 +114,15 @@ sdCmd41:
 	call sdSendCmd
 
 
-.sdInit04:
+sdInit04:
 	;Look for a 00h response
 	out (81h), a
 	nop
 	nop
 	in a, (80h)
 	cp 00h
-	jr z, .sdInit05
-	djnz .sdInit04
+	jr z, sdInit05
+	djnz sdInit04
 
 	SD_DISABLE
 
@@ -136,12 +132,12 @@ sdCmd41:
 	jp printStr
 
 
-.sdInit05:
+sdInit05:
 	out (81h), a
 	nop
 	nop
 	in a, (80h)
-	djnz .sdInit05
+	djnz sdInit05
 
 	SD_DISABLE
 
@@ -155,12 +151,12 @@ sdCmd50:
 	call sdSendCmd
 
 	ld b, 8
-.sdInit06:
+sdInit06:
 	out (81h), a
 	nop
 	nop
 	in a, (80h)
-	djnz .sdInit06
+	djnz sdInit06
 
 	SD_DISABLE
 
@@ -187,14 +183,14 @@ _sdRead:
 
 ;Wait for cmd response
 	ld b, 10
-.sdWaitCmd:
+sdWaitCmd:
 	out (81h), a
 	nop
 	nop
 	in a, (80h)
 	cp 00h
-	jr z, .sdWaitDataToken
-	djnz .sdWaitCmd
+	jr z, sdWaitDataToken
+	djnz sdWaitCmd
 
 	SD_DISABLE
 	pop af
@@ -205,16 +201,16 @@ _sdRead:
 
 sdReadSector:
 ;Wait for data packet start
-.sdWaitDataToken:
+sdWaitDataToken:
 	ld b, 100
-.sdRead02:
+sdRead02:
 	out (81h), a
 	nop
 	nop
 	in a, (80h)
 	cp 0feh
-	jr z, .sdReadDataBlock
-	djnz .sdRead02
+	jr z, sdReadDataBlock
+	djnz sdRead02
 
 	SD_DISABLE
 	pop af
@@ -222,33 +218,33 @@ sdReadSector:
 	call putc
 	ret
 
-.sdReadDataBlock:
+sdReadDataBlock:
 	ld b, 0
-.sdRead04:
+sdRead04:
 	out (81h), a
 	nop
 	nop
 	in a, (80h)
 	ld (hl), a
 	inc hl
-	djnz .sdRead04
-.sdRead05:
+	djnz sdRead04
+sdRead05:
 	out (81h), a
 	nop
 	nop
 	in a, (80h)
 	ld (hl), a
 	inc hl
-	djnz .sdRead05
+	djnz sdRead05
 
 ;Receive the crc and discard it
 	ld b, 2
-.sdGetCrc:
+sdGetCrc:
 	out (81h), a
 	nop
 	nop
 	in a, (80h)
-	djnz .sdGetCrc
+	djnz sdGetCrc
 
 	pop af
 	dec a
@@ -265,16 +261,16 @@ sdReadSector:
 
 
 	ld b, 100
-.sdRead06:
+sdRead06:
 	out (81h), a
 	nop
 	nop
 	in a, (80h)
 	cp 0ffh
-	jr z, .sdRead07
-	djnz .sdRead06
+	jr z, sdRead07
+	djnz sdRead06
 
-.sdRead07:
+sdRead07:
 	SD_DISABLE
 
 	ret
