@@ -51,7 +51,7 @@ _bcosStart:
 	jp 0
 	
 shellPath:
-	.db "/SYS/CLI.BIN\0"
+	.asciiz "/SYS/CLI.BIN"
 
 
 .include "fat.asm"

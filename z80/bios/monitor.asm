@@ -702,7 +702,7 @@ showRegisterLoop:
 	jp prompt
 
 registerStr:
-	.db "\r\nAF    BC    DE    HL    IX    IY\r\n\0"
+	.asciiz "\r\nAF    BC    DE    HL    IX    IY\r\n"
 
 
 invalid:

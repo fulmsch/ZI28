@@ -18,13 +18,13 @@ delay100Loop:
 
 
 sdInitStr:
-	db "Initialising SD-Card\r\n\0"
+	.asciiz "Initialising SD-Card\r\n"
 
 noCardStr:
-	db "Error: no card detected\r\n\0"
+	.asciiz "Error: no card detected\r\n"
 
 sdSuccessStr:
-	db "Success\r\n\0"
+	.asciiz "Success\r\n"
 
 
 sdInit:

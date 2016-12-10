@@ -130,17 +130,17 @@ partitionSectorTable:
 
 chooseStr:
 	.db "\r\nChoose boot option:"
-	.db "\r\n[0]: Monitor\0"
+	.asciiz "\r\n[0]: Monitor"
 
 entryStr:
-	.db "\r\n[\0"
+	.asciiz "\r\n["
 entryStr2:
-	.db "]: \0"
+	.asciiz "]: "
 
 unknownPartitionTypeStr:
-	.db "Unknown partition type\0"
+	.asciiz "Unknown partition type"
 fat16Str:
-	.db "FAT16\0"
+	.asciiz "FAT16"
 
 
 ;*****************

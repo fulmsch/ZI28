@@ -3,9 +3,9 @@ INCLUDEPATH = ../../includes
 all: mbr.hex vbr.hex
 
 mbr.hex: mbr.asm $(INCLUDEPATH)/*.h
-	naken_asm mbr.asm -o mbr.hex -l -I $(INCLUDEPATH)
-	srec_cat mbr.hex -intel -o mbr.obj -binary
+	naken_asm -b mbr.asm -o mbr.obj -l -I $(INCLUDEPATH)
+	srec_cat mbr.obj -binary -o mbr.hex -intel
 
 vbr.hex: vbr.asm $(INCLUDEPATH)/*.h
-	naken_asm vbr.asm -o vbr.hex -l -I $(INCLUDEPATH)
-	srec_cat vbr.hex -intel -o vbr.obj -binary
+	naken_asm -b vbr.asm -o vbr.obj -l -I $(INCLUDEPATH)
+	srec_cat vbr.obj -binary -o vbr.hex -intel

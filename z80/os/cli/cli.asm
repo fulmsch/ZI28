@@ -286,7 +286,8 @@ argv:
 	.resb maxArgc*2
 
 promptStr:
-	.db " >: \0"
+	.db " >: "
+	.db 00h
 
 ;promptPlaceholder:
 ;	.db "/"
@@ -301,13 +302,14 @@ programPath:
 programName:
 	.resb 13
 programExtension:
-	.db ".Z80\0"
+	.db ".Z80"
+	.db 00h
 
 ;Command strings
-echoStr:    .db "ECHO\0"
-exitStr:    .db "EXIT\0"
-monStr:     .db "MONITOR\0"
-nullStr:    .db "\0"
+echoStr:    .asciiz "ECHO"
+exitStr:    .asciiz "EXIT"
+monStr:     .asciiz "MONITOR"
+nullStr:    .db 00h
 
 dispatchTable:
 	.dw echoStr, echo

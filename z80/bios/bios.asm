@@ -97,7 +97,7 @@ _bootloader:
 	jp 0c000h
 
 invalidMBRStr:
-	.db "Error: Invalid MBR signature\r\n\0"
+	.asciiz "Error: Invalid MBR signature\r\n"
 
 invalidMBR:
 	ld hl, invalidMBRStr

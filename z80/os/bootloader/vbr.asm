@@ -45,9 +45,9 @@ readSector:
 	.resb 4
 
 bootDir:
-	.db "SYS        \0"
+	.asciiz "SYS        "
 bootFile:
-	.db "BCOS    BIN\0"
+	.asciiz "BCOS    BIN"
 
 bootloaderStart:
 	ld sp, 8000h
