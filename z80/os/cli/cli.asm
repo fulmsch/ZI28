@@ -308,12 +308,14 @@ programExtension:
 ;Command strings
 echoStr:    .asciiz "ECHO"
 exitStr:    .asciiz "EXIT"
+helpStr:    .asciiz "HELP"
 monStr:     .asciiz "MONITOR"
 nullStr:    .db 00h
 
 dispatchTable:
 	.dw echoStr, echo
 	.dw exitStr, exit
+	.dw helpStr, help
 	.dw monStr, cliMonitor
 	.dw nullStr
 

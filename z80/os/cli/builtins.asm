@@ -1,4 +1,4 @@
-echo:
+.func echo:
 	;print all arguments
 	ld a, (argc)
 	dec a
@@ -8,7 +8,7 @@ echo:
 	inc de
 	inc de
 
-echoLoop:
+loop:
 	ld a, (de)
 	ld l, a
 	inc de
@@ -18,20 +18,71 @@ echoLoop:
 	call printStr
 	ld a, ' '
 	call putc
-	djnz echoLoop
+	djnz loop
 
 	ld a, 0dh
 	call putc
 	ld a, 0ah
 	call putc
 	ret
+.endf
 
 
-exit:
+.func help:
+	ld hl, helpMsg
+	call printStr
+	;print commands from dispatch table
+	ld bc, dispatchTable
+tableLoop:
+	ld a, (bc)
+	ld l, a
+	inc bc
+	ld a, (bc)
+	ld h, a
+	inc bc
+	inc bc
+	inc bc
+	ld a, (hl)
+	cp 00h
+	jr z, path
+	ld a, ' '
+	call putc
+	call printStr
+	ld a, 0dh
+	call putc
+	ld a, 0ah
+	call putc
+	jr tableLoop
+
+path:
+	ld hl, pathMsg
+	call printStr
+	;print the path
+	xor a
+	ld (programName), a
+	ld hl, programPath
+	call printStr
+
+	ld a, 0dh
+	call putc
+	ld a, 0ah
+	call putc
+
+	ret
+
+helpMsg:
+	.asciiz: "The following commands are available:\r\n"
+pathMsg:
+	.asciiz: "\r\nAdditional programs will be searched in:\r\n "
+.endf
+
+.func exit:
 	pop hl
 	ret
+.endf
 
 
-cliMonitor:
+.func cliMonitor:
 	rst 38h
 	ret
+.endf
