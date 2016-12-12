@@ -266,9 +266,20 @@ loadProgram:
 
 	;TODO pass argc and argv
 
-	ld de, prompt
+	ld c, setProcTable
+	ld de, 0c000h
+	call bcosVect
+
+	ld de, reentry
 	push de
 	jp 0c000h
+
+reentry:
+	ld c, setProcTable
+	ld de, 6000h
+	call bcosVect
+
+	jp prompt
 
 noMatch:
 	ld hl, noMatchStr

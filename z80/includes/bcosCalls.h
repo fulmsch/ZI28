@@ -1,9 +1,10 @@
-bcosVect  equ 5003h
+#define bcosVect     5003h
 
-bcosStart equ 0
-openFile  equ 1
-closeFile equ 2
-readFile  equ 3
+#define bcosStart    0
+#define openFile     1
+#define closeFile    2
+#define readFile     3
+#define setProcTable 4
 
 
 ;******************************************************************************

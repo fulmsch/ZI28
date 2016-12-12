@@ -32,7 +32,7 @@ bcosVectTable:
 	.dw _openFile
 	.dw _closeFile
 	.dw _readFile
-;	.dw fatReadFile
+	.dw _setProcTable
 
 
 _bcosStart:
@@ -47,6 +47,9 @@ _bcosStart:
 	ld de, 6000h
 	ld hl, 0ffffh
 	call _readFile
+
+	ld de, 6000h
+	call _setProcTable
 	call 6000h
 	jp 0
 	
@@ -56,3 +59,4 @@ shellPath:
 
 .include "fat.asm"
 .include "file.asm"
+.include "process.asm"

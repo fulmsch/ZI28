@@ -18,7 +18,7 @@ tableSpot:
 ;*****************
 ;Open file
 ;Description: creates a new file table entry
-;Inputs: (de) = pathname , a = mode
+;Inputs: (de) = pathname, a = mode
 ;Outputs: e = file descriptor, a = errno
 ;Errors: 0=no error
 ;        1=maximum allowed files already open
