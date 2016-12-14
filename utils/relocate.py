@@ -19,22 +19,33 @@ outfile = open(outfile_name, 'w')
 
 
 # Search for all relocation markers
-n_rel_addr = 0
+n_rel_markers = 0
 
 for line in infile:
 	if line[0] == '&':
 		# Relocation marker found
-		n_rel_addr += 1
+		n_rel_markers += 1
 
+if n_rel_markers > 254:
+	print('Error: too many relocation markers')
+	sys.exit(-1)
 
 # Build the relocatable assembly file
 infile.seek(0)
 n = 0
 
-outfile.write('.z80\nheader:\n\t.dw end - data\n\nheader_table:\n')
+outfile.write('.z80\nheader:\n')
+# Data region size
+outfile.write('\t.dw end - data\n')
+# Number of relocation markers
+outfile.write('\t.db ' + str(n_rel_markers) + '\n')
+# Padding
+outfile.write('\t.db 00h\n')
+
+outfile.write('header_table:\n')
 
 # Insert relocation table
-for i in range(0, n_rel_addr):
+for i in range(0, n_rel_markers):
 	outfile.write('\t.dw rel' + str(i) + ' + 2\n')
 
 outfile.write('\n.org 0100h\ndata:\n')
