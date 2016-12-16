@@ -32,6 +32,9 @@ bcosVectTable:
 	.dw _openFile
 	.dw _closeFile
 	.dw _readFile
+	.dw _writeFile
+	.dw _chdir
+	.dw _setDrive
 	.dw _setProcTable
 
 
@@ -56,7 +59,7 @@ _bcosStart:
 shellPath:
 	.asciiz "/SYS/CLI.BIN"
 
-
+.include "drivers.asm"
 .include "fat.asm"
 .include "file.asm"
 .include "process.asm"

@@ -1,3 +1,5 @@
+activeDrive:
+	.db 00h
 .define fileTableEntrySize  32
 .define fileTableEntries  8
 fileTableMap:
@@ -6,7 +8,7 @@ fileTable:
 	.resb fileTableEntrySize * fileTableEntries
 
 tableSpot:
-	.db 0
+	.db 00h
 
 .define fileTableName          0
 .define fileTableAttributes    fileTableName + 13

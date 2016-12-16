@@ -54,7 +54,7 @@ outfile.write('\n.org 0100h\ndata:\n')
 # Replace relocation markers
 for line in infile:
 	if line[0] == '&':
-		outfile.write(line.replace('&rel', 'rel'+str(n), 1))
+		outfile.write(line.replace('&rel', 'rel'+str(n)+':', 1))
 		n += 1
 
 	else:
