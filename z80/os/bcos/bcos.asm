@@ -32,9 +32,9 @@ bcosVectTable:
 	.dw _openFile
 	.dw _closeFile
 	.dw _readFile
-	.dw _writeFile
-	.dw _chdir
-	.dw _setDrive
+;	.dw _writeFile
+;	.dw _chdir
+;	.dw _setDrive
 	.dw _setProcTable
 
 

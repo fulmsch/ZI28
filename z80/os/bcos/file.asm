@@ -1,7 +1,22 @@
 activeDrive:
 	.db 00h
+
+.define driveTableEntrySize  3
+.define driveTableEntries    8
+
+driveTableMap:
+	.db 00h
+driveTable:
+	.resb driveTableEntrySize * driveTableEntries
+
+
+
+
+
+
+
 .define fileTableEntrySize  32
-.define fileTableEntries  8
+.define fileTableEntries    8
 fileTableMap:
 	.db 00h
 fileTable:
@@ -16,6 +31,7 @@ tableSpot:
 .define fileTableSize          fileTableStartCluster + 2
 .define fileTablePointer       fileTableSize + 2
 .define fileTableMode          fileTablePointer + 2
+.define fileTableDrive         fileTableMode + 1
 
 ;*****************
 ;Open file
@@ -26,8 +42,9 @@ tableSpot:
 ;        1=maximum allowed files already open
 ;        2=no matching file found
 ;        3=file too large
+;        4=invalid drive number
 ;Destroyed: all
-_openFile:
+.func _openFile:
 	ld (openFileMode), a
 	;search free table spot
 	ld a, (fileTableMap)
@@ -47,6 +64,8 @@ openFilePathBuffer:
 	.resb 13
 openSector:
 	.resb 4
+driveNumber:
+	.db 0
 
 openResolvePath:
 	ld a, 0
@@ -82,6 +101,33 @@ tableSpotFound:
 	ld l, e
 	call convertToUpper
 
+	;check if drive number is specified
+	inc de
+	ld a, (de)
+	dec de
+	cp ':'
+	jr z, readDriveNumber
+
+	;TODO get drive number from PCB
+	ld a, 1
+	ld (driveNumber), a
+	jr checkRootDir
+
+
+readDriveNumber:
+;check if valid drive number
+	ld a, (de)
+	cp '0'
+	jp c, invalidDrive
+	cp '9'+1
+	jp nc, invalidDrive
+
+	sub 30h
+;TODO check if drive exists
+	ld (driveNumber), a
+	jr checkRootDir
+
+checkRootDir:
 	ld hl, fat_rootDirStartSector ;TODO load the path of the active program here
 	ld a, (de)
 	cp '/'
@@ -146,6 +192,9 @@ openRelativeLoop:
 	ld a, (openFileMode)
 	ld (iy+fileTableMode), a
 
+	ld a, (driveNumber)
+	ld (iy+fileTableDrive), a
+
 	;fill table spot
 	ld a, (tableSpot)
 	ld e, a ;return value
@@ -164,6 +213,11 @@ openFillTableSpot:
 	;operation succesful
 	xor a
 	ret
+
+invalidDrive:
+	ld a, 4
+	ret
+.endf
 
 ;*****************
 ;Close file
