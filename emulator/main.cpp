@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <ncurses.h>
 
-#include <z80.h>
+extern "C" {
+	#include <z80.h>
+}
 
 #include "main.h"
 
