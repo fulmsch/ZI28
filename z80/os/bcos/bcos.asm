@@ -43,7 +43,8 @@ _bcosStart:
 	;TODO setup stack and interrupts
 	ld sp, 8000h
 
-	call initfs
+	call vfs_init
+	call fat_init
 	ld de, shellPath
 	call _openFile
 	ld a, e
@@ -60,6 +61,7 @@ shellPath:
 	.asciiz "/SYS/CLI.BIN"
 
 .include "drivers.asm"
+.include "vfs.asm"
 .include "fat.asm"
 .include "file.asm"
 .include "process.asm"

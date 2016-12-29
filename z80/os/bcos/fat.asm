@@ -25,7 +25,7 @@ fat_rootDirStartSector: .resb 4
 fat_dataStartSector:    .resb 4
 
 ; Calculate and store filesystem offsets
-initfs:
+.func fat_init:
 	;load the MBR
 	xor a
 	ld b, a
@@ -142,8 +142,22 @@ initfs:
 	ld (fileTableMap), a
 
 	ret
+.endf
 
 
+.func fat_open:
+
+.endf
+
+
+.func fat_read:
+
+.endf
+
+
+.func fat_write:
+
+.endf
 
 ;*****************
 ;SectorToAddress
