@@ -13,11 +13,10 @@ extern "C" {
 
 
 FILE *memFile;
-FILE *sdFile;
 //static byte memory[0x10000] = {0xDB, 0x01, 0xCB, 0x4F, 0x20, 0xFA, 0xDB, 0x00, 0xD3, 0x00, 0x18, 0xF4};
 byte memory[0x10000];
 static Z80Context context;
-SdCard sd(sdFile);
+SdCard sd("/home/florian/sd.img");
 
 Module* modules[8] = {
 	new SdModule(sd),
@@ -104,7 +103,6 @@ int main(int argc, char **argv) {
 	memFile = fopen(argv[1], "rb");
 	fread(memory, 1, 0x10000, memFile);
 	fclose(memFile);
-	sdFile = fopen("/home/florian/sd2.img", "rb");
 
 	//Start curses
 	initscr();

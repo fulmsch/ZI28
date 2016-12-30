@@ -1,11 +1,12 @@
 #include "sd.h"
 
-SdCard::SdCard(FILE* file) {
-	imgFile = file;
+SdCard::SdCard(char* fileName) {
+	imgFile = fopen(fileName, "rb");
 	status = IDLE;
 }
 
 SdCard::~SdCard() {
+	fclose(imgFile);
 
 }
 
@@ -29,7 +30,32 @@ unsigned char SdCard::transfer(unsigned char in) {
 				out = response;
 				status = IDLE;
 				break;
+			case READ_RESPONSE:
+				out = response;
+				status = READ;
+				count = 0;
+				break;
 			case READ:
+				if ((in & 0xc0) == 0x40) {
+					status = COMMAND;
+					count = 0;
+				} else {
+					if (count == 0) {
+						// Data token
+						out = 0xfe;
+						count++;
+					} else if (count > blockLen + 2) {
+						count = 0;
+						out = 0xff;
+					} else if (count > blockLen) {
+						// CRC, not calculated
+						out = 0xff;
+						count++;
+					} else {
+						out = fgetc(imgFile);
+						count++;
+					}
+				}
 				break;
 			case WRITE:
 				break;
@@ -66,6 +92,8 @@ void SdCard::parseCommand() {
 			status = RESPONSE;
 			break;
 		case STOP_TRANSMISSION:
+			response = 0x00;
+			status = RESPONSE;
 			break;
 		case SET_BLOCKLEN:
 			blockLen = argument;
@@ -73,6 +101,9 @@ void SdCard::parseCommand() {
 			status = RESPONSE;
 			break;
 		case READ_MULTIPLE_BLOCK:
+			fseek(imgFile, argument, SEEK_SET);
+			response = 0x00;
+			status = READ_RESPONSE;
 			break;
 		default:
 			break;

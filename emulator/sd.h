@@ -6,7 +6,7 @@
 
 class SdCard {
 	public:
-		SdCard(FILE*);
+		SdCard(char*);
 		~SdCard(void);
 		unsigned char transfer(unsigned char);
 		void setCS(bool);
@@ -22,6 +22,7 @@ class SdCard {
 			IDLE,
 			COMMAND,
 			RESPONSE,
+			READ_RESPONSE,
 			READ,
 			WRITE
 		} status;
