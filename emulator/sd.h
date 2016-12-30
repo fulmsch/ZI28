@@ -9,8 +9,29 @@ class SdCard {
 		SdCard(FILE*);
 		~SdCard(void);
 		unsigned char transfer(unsigned char);
+		void setCS(bool);
 	private:
+		void parseCommand(void);
 		FILE* imgFile;
+		bool enable = false;
+		unsigned char commandFrame[6];
+		unsigned char response;
+		int blockLen;
+		int count;
+		enum status_t {
+			IDLE,
+			COMMAND,
+			RESPONSE,
+			READ,
+			WRITE
+		} status;
+		enum command_t {
+			GO_IDLE_STATE = 0,
+			SEND_OP_COND = 1,
+			STOP_TRANSMISSION = 12,
+			SET_BLOCKLEN = 16,
+			READ_MULTIPLE_BLOCK = 18
+		};
 };
 
 class SdModule: public Module {
@@ -26,7 +47,6 @@ class SdModule: public Module {
 		unsigned char read(unsigned short addr);
 	private:
 		SdCard* card;
-		bool enable = false;
 		unsigned char writeReg, readReg;
 };
 
