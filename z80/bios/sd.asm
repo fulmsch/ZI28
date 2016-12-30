@@ -150,7 +150,7 @@ sdCmd50:
 	SD_ENABLE
 
 	ld a, 50h
-	ld bc, 0020h
+	ld bc, 0002h
 	ld de, 0000h
 	call sdSendCmd
 
