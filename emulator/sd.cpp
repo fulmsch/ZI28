@@ -2,8 +2,7 @@
 
 SdCard::SdCard(FILE* file) {
 	imgFile = file;
-	status = COMMAND;
-	count = 0;
+	status = IDLE;
 }
 
 SdCard::~SdCard() {
@@ -15,7 +14,10 @@ unsigned char SdCard::transfer(unsigned char in) {
 	if (enable) {
 		switch (status) {
 			case IDLE:
-				break;
+				if ((in & 0xc0) != 0x40)
+					break;
+				status = COMMAND;
+				count = 0;
 			case COMMAND:
 				commandFrame[count] = in;
 				count++;
@@ -40,7 +42,7 @@ unsigned char SdCard::transfer(unsigned char in) {
 
 void SdCard::setCS(bool state) {
 	if (!enable && state) {
-		status = COMMAND;
+		status = IDLE;
 	}
 	enable = state;
 }
@@ -53,8 +55,6 @@ void SdCard::parseCommand() {
 	argument += commandFrame[3] << 8;
 	argument += commandFrame[2] << 16;
 	argument += commandFrame[1] << 24;
-
-	count = 0;
 
 	switch (command) {
 		case GO_IDLE_STATE:
