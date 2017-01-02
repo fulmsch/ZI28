@@ -1,7 +1,12 @@
 //#include <stdio.h>
-#include <iostream>
-#include <vector>
+//#include <iostream>
+//#include <vector>
 #include <ncurses.h>
+#include <poll.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <string.h>
 
 extern "C" {
 	#include <z80.h>
@@ -11,9 +16,10 @@ extern "C" {
 #include "module.h"
 #include "sd.h"
 
+extern int errno;
+
 
 FILE *memFile;
-//static byte memory[0x10000] = {0xDB, 0x01, 0xCB, 0x4F, 0x20, 0xFA, 0xDB, 0x00, 0xD3, 0x00, 0x18, 0xF4};
 byte memory[0x10000];
 static Z80Context context;
 SdCard sd("/home/florian/sd.img");
@@ -29,9 +35,88 @@ Module* modules[8] = {
 	new Module
 };
 
-char inputChar;
-int inputAvailable;
-int crFlag;
+struct pollfd pty[1];
+
+int main(int argc, char **argv) {
+	int hflag = 0;
+	int tflag = 0;
+	int rflag = 0;
+	char *terminalFile;
+	char *romFile;
+	int c;
+	while ((c = getopt(argc, argv, "ht:r:")) != -1) {
+		switch (c) {
+			case 'h':
+				hflag = 1;
+				break;
+			case 't':
+				tflag = 1;
+				terminalFile = optarg;
+				break;
+			case 'r':
+				rflag = 1;
+				romFile = optarg;
+				break;
+			case '?':
+				fprintf(stderr, "Invalid invocation\nUse '-h' for help\n");
+				return 1;
+			default:
+				return 1;
+		}
+	}
+
+	if (hflag) {
+		printf("Usage: zi28sim [options] -t terminal -r rom image\n");
+		return 0;
+	}
+
+	if (!tflag || !rflag) {
+		fprintf(stderr, "Missing argument(s)\nUse '-h' for help\n");
+		return 1;
+	}
+
+	memFile = fopen(romFile, "rb");
+	fread(memory, 1, 0x10000, memFile);
+	fclose(memFile);
+
+	int ptyfd = open(terminalFile, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
+	if (ptyfd < 0){
+		printf("error");
+		fprintf(stderr, "Value of errno: %d\n", errno);
+		fprintf(stderr, "Error opening file: %s\n", strerror(errno));
+		return 2;}
+	pty[0].fd = ptyfd;
+	pty[0].events = POLLIN;
+
+
+
+	//Start curses
+	initscr();
+	scrollok(stdscr, true);
+	raw();
+	noecho();
+	nodelay(stdscr, true);
+
+	//Start z80lib
+	init_emulator();
+
+	while (1) {
+		char c = getch();
+		switch (c) {
+			case 0x01:
+				endwin();
+				return 0;
+			case 0x12:
+				Z80RESET(&context);
+				break;
+			default:
+				break;
+		}
+		Z80Execute(&context);
+
+	}
+	return 1;
+}
 
 static byte context_mem_read_callback(int param, ushort address) {
 	return memory[address];
@@ -43,6 +128,7 @@ static void context_mem_write_callback(int param, ushort address, byte data) {
 
 static byte context_io_read_callback(int param, ushort address) {
 	int data=0xff;
+	int ret;
 	address = address & 0xff;
 
 	if (address >= 0x80) {
@@ -53,12 +139,12 @@ static byte context_io_read_callback(int param, ushort address) {
 	} else {
 		switch (address) {
 			case 0x00:
-				data = inputChar;
-				inputAvailable = 0;
+				read(pty[0].fd, &data, 1);
 				break;
 			case 0x01:
 				data = 0x02;
-				if (inputAvailable) {
+				ret = poll(pty, 1, 0);
+				if ((ret > 0) && (pty[0].revents & POLLIN)) {
 					data = 0x00;
 				}
 				break;
@@ -80,7 +166,7 @@ static void context_io_write_callback(int param, ushort address, byte data) {
 	} else {
 		switch (address) {
 			case 0x00:
-				if (data != 0x0D) addch(data);
+				if (data != 0x0D) write(pty[0].fd, &data, 1);
 				break;
 			default:
 				break;
@@ -93,55 +179,4 @@ void init_emulator() {
 	context.memWrite = context_mem_write_callback;
 	context.ioRead = context_io_read_callback;
 	context.ioWrite = context_io_write_callback;
-}
-
-int main(int argc, char **argv) {
-	if (argc != 2) {
-		std::cout<<"Error: no memory image specified";
-		return -1;
-	}
-	memFile = fopen(argv[1], "rb");
-	fread(memory, 1, 0x10000, memFile);
-	fclose(memFile);
-
-	//Start curses
-	initscr();
-	scrollok(stdscr, true);
-	raw();
-	noecho();
-	nodelay(stdscr, true);
-
-	//Start z80lib
-	init_emulator();
-
-	while (1) {
-		char c = getch();
-		if (c == 1) {
-			endwin();
-			return 0;
-		}
-		else if (c != ERR) {
-			//read input
-			if (!inputAvailable) {
-				if (c == 0x0a) {
-					if (!crFlag) {
-						ungetch(c);
-						c = 0x0d;
-						crFlag = 1;
-					}else {
-						crFlag = 0;
-					}
-				}
-				inputChar = c;
-				inputAvailable = 1;
-			}
-			else {
-				ungetch(c);
-			}
-		}
-
-		Z80Execute(&context);
-
-	}
-	return 1;
 }
