@@ -1,12 +1,15 @@
-//#include <stdio.h>
+#include <stdio.h>
 //#include <iostream>
 //#include <vector>
+#include <stdlib.h>
 #include <ncurses.h>
 #include <poll.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
+#include <termios.h>
+#include <pty.h>
 
 #include <z80.h>
 
@@ -17,6 +20,7 @@
 
 extern int errno;
 
+struct termios ptyTermios;
 
 FILE *memFile;
 byte memory[0x10000];
@@ -80,14 +84,25 @@ int main(int argc, char **argv) {
 	memFile = fopen(romFile, "rb");
 	fread(memory, 1, 0x10000, memFile);
 	fclose(memFile);
+	int ptm, pts;
+	char *ptsName;
+	ptsName = (char*) malloc(50);
+	int error = openpty(&ptm, &pts, ptsName, NULL, NULL);
+	tcgetattr(ptm, &ptyTermios);
+	cfmakeraw(&ptyTermios);
+	tcsetattr(ptm, TCSANOW, &ptyTermios);
 
-	int ptyfd = open(terminalFile, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK);
-	if (ptyfd < 0){
+
+	symlink(ptsName, "/tmp/zi28sim");
+	free(ptsName);
+
+
+	if (ptm < 0){
 		printf("error");
 		fprintf(stderr, "Value of errno: %d\n", errno);
 		fprintf(stderr, "Error opening file: %s\n", strerror(errno));
 		return 2;}
-	pty[0].fd = ptyfd;
+	pty[0].fd = ptm;
 	pty[0].events = POLLIN;
 
 	sd.imgFile = fopen("/home/florian/sd.img", "rb");
@@ -110,6 +125,7 @@ int main(int argc, char **argv) {
 		switch (c) {
 			case 0x01:
 				fclose(sd.imgFile);
+				unlink("/tmp/zi28sim");
 				endwin();
 				return 0;
 			case 0x12:
