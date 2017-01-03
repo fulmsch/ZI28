@@ -8,12 +8,11 @@
 #include <errno.h>
 #include <string.h>
 
-extern "C" {
-	#include <z80.h>
-}
+#include <z80.h>
+
 
 #include "main.h"
-#include "module.h"
+//#include "module.h"
 #include "sd.h"
 
 extern int errno;
@@ -22,8 +21,10 @@ extern int errno;
 FILE *memFile;
 byte memory[0x10000];
 static Z80Context context;
-SdCard sd("/home/florian/sd.img");
+struct SdCard sd;
+struct SdModule sdModule;
 
+/*
 Module* modules[8] = {
 	new SdModule(sd),
 	new Module,
@@ -34,6 +35,7 @@ Module* modules[8] = {
 	new Module,
 	new Module
 };
+*/
 
 struct pollfd pty[1];
 
@@ -88,6 +90,9 @@ int main(int argc, char **argv) {
 	pty[0].fd = ptyfd;
 	pty[0].events = POLLIN;
 
+	sd.imgFile = fopen("/home/florian/sd.img", "rb");
+	sd.status = IDLE;
+	sdModule.card = &sd;
 
 
 	//Start curses
@@ -104,6 +109,7 @@ int main(int argc, char **argv) {
 		char c = getch();
 		switch (c) {
 			case 0x01:
+				fclose(sd.imgFile);
 				endwin();
 				return 0;
 			case 0x12:
@@ -134,7 +140,7 @@ static byte context_io_read_callback(int param, ushort address) {
 	if (address >= 0x80) {
 		int base = (address - 0x80) / 0x10;
 		ushort offs = (address - 0x80) % 0x10;
-		data = modules[base] -> read(offs);
+		data = SdModule_read(&sdModule, offs);
 
 	} else {
 		switch (address) {
@@ -161,7 +167,7 @@ static void context_io_write_callback(int param, ushort address, byte data) {
 	if (address >= 0x80) {
 		int base = (address - 0x80) / 0x10;
 		ushort offs = (address - 0x80) % 0x10;
-		modules[base] -> write(offs, data);
+		SdModule_write(&sdModule, offs, data);
 
 	} else {
 		switch (address) {

@@ -1,9 +1,46 @@
 #ifndef SD_H
 #define SD_H
 
-#include "module.h"
+//#include "module.h"
 #include <stdio.h>
 
+enum command_t {
+	GO_IDLE_STATE = 0,
+	SEND_OP_COND = 1,
+	STOP_TRANSMISSION = 12,
+	SET_BLOCKLEN = 16,
+	READ_MULTIPLE_BLOCK = 18
+};
+
+struct SdCard {
+	FILE* imgFile;
+	int enable;
+	unsigned char commandFrame[6];
+	unsigned char response;
+	int blockLen;
+	int count;
+	enum {
+		IDLE,
+		COMMAND,
+		RESPONSE,
+		READ_RESPONSE,
+		READ,
+		WRITE
+	} status;
+};
+
+struct SdModule {
+	struct SdCard* card;
+	unsigned char writeReg, readReg;
+};
+
+void SdModule_write(struct SdModule*, unsigned short addr, unsigned char data);
+unsigned char SdModule_read(struct SdModule*, unsigned short addr);
+unsigned char SdCard_transfer(struct SdCard*, unsigned char);
+void SdCard_setCS(struct SdCard*, int);
+void SdCard_parseCommand(struct SdCard*);
+
+/*
 class SdCard {
 	public:
 		SdCard(char*);
@@ -35,13 +72,14 @@ class SdCard {
 		};
 };
 
+
 class SdModule: public Module {
-/* Addr:  Read:   Write:
-   0      read    write
-   1              transfer
-   2              enable
-   3              disable
-*/
+// Addr:  Read:   Write:
+// 0      read    write
+// 1              transfer
+// 2              enable
+// 3              disable
+
 	public:
 		SdModule(SdCard&);
 		void write(unsigned short addr, unsigned char data);
@@ -50,5 +88,6 @@ class SdModule: public Module {
 		SdCard* card;
 		unsigned char writeReg, readReg;
 };
+*/
 
 #endif
