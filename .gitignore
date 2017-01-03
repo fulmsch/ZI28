@@ -12,3 +12,4 @@ z80/programs/basic/
 *.elf
 *.map
 *.o
+*~*

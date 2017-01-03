@@ -13,7 +13,7 @@ void emulator_init() {
 	int ptm, pts;
 	char *ptsName;
 	ptsName = (char*) malloc(50);
-	int error = openpty(&ptm, &pts, ptsName, NULL, NULL);
+	openpty(&ptm, &pts, ptsName, NULL, NULL);
 	tcgetattr(ptm, &ptyTermios);
 	cfmakeraw(&ptyTermios);
 	tcsetattr(ptm, TCSANOW, &ptyTermios);
