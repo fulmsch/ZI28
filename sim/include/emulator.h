@@ -11,6 +11,8 @@ struct termios ptyTermios;
 
 void emulator_init(void);
 void emulator_loadRom(char *romFile);
+void emulator_reset(void);
+void emulator_runCycles(int n);
 
 byte context_mem_read_callback(int param, ushort address);
 void context_mem_write_callback(int param, ushort address, byte data);

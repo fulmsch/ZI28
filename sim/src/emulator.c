@@ -41,6 +41,16 @@ void emulator_loadRom(char *romFile) {
 	fclose(memFile);
 }
 
+void emulator_reset() {
+	Z80RESET(&context);
+}
+
+void emulator_runCycles(int n) {
+	for (int i = 0; i < n; i++) {
+		Z80Execute(&context);
+	}
+}
+
 
 byte context_mem_read_callback(int param, ushort address) {
 	return memory[address];
