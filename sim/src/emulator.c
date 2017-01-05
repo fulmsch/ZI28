@@ -45,10 +45,14 @@ void emulator_reset() {
 	Z80RESET(&context);
 }
 
-void emulator_runCycles(int n) {
+int emulator_runCycles(int n) {
 	for (int i = 0; i < n; i++) {
 		Z80Execute(&context);
+		if (breakpoints[context.PC]) {
+			return 1;
+		}
 	}
+	return 0;
 }
 
 

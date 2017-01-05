@@ -3,6 +3,7 @@
 
 FILE *memFile;
 byte memory[0x10000];
+int breakpoints[0x10000];
 Z80Context context;
 struct SdCard sd;
 struct SdModule sdModule;
@@ -12,7 +13,7 @@ struct termios ptyTermios;
 void emulator_init(void);
 void emulator_loadRom(char *romFile);
 void emulator_reset(void);
-void emulator_runCycles(int n);
+int emulator_runCycles(int n);
 
 byte context_mem_read_callback(int param, ushort address);
 void context_mem_write_callback(int param, ushort address, byte data);

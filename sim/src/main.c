@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/time.h>
+#include <string.h>
 //#include <time.h>
 #include <z80.h>
 
@@ -17,9 +18,12 @@
 
 int quit_req = 0;
 GtkTextView *g_view_console;
+GtkEntry *g_field_instruction;
 GtkEntry *g_field_main[7];
 GtkEntry *g_field_reg_ix, *g_field_reg_iy;
 GtkEntry *g_field_reg_sp, *g_field_reg_pc;
+GtkEntry *g_field_break;
+//GtkButton *g_button_break_add, *g_button_break_rem_all;
 GtkTextBuffer *g_txt_console;
 
 enum {
@@ -43,13 +47,12 @@ void console(const char* format, ...) {
 
 void updateRegisters() {
 	unsigned char *pReg = &context.R1.br.A;
-	char str[3];
+	char str[10];
 	for (int i = 0; i < 7; i++) {
 		sprintf(str, "%02X", *pReg);
 		gtk_entry_set_text(g_field_main[i], str);
 		pReg++;
 	}
-
 
 	sprintf(str, "%04X", context.R1.wr.IX);
 	gtk_entry_set_text(g_field_reg_ix, str);
@@ -62,6 +65,19 @@ void updateRegisters() {
 
 	sprintf(str, "%04X", context.PC);
 	gtk_entry_set_text(g_field_reg_pc, str);
+
+	Z80Debug(&context, NULL, str);
+	gtk_entry_set_text(g_field_instruction, str);
+}
+
+void clearRegisters() {
+	for (int i = 0; i < 7; i++) {
+		gtk_entry_set_text(g_field_main[i], "");
+	}
+	gtk_entry_set_text(g_field_reg_ix, "");
+	gtk_entry_set_text(g_field_reg_iy, "");
+	gtk_entry_set_text(g_field_reg_sp, "");
+	gtk_entry_set_text(g_field_reg_pc, "");
 }
 
 int main(int argc, char **argv) {
@@ -113,6 +129,9 @@ int main(int argc, char **argv) {
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "window_main"));
 	gtk_builder_connect_signals(builder, NULL);
 
+	g_field_instruction = GTK_ENTRY(gtk_builder_get_object(builder, "field_instruction"));
+	gtk_entry_set_alignment(g_field_instruction, 0.5);
+
 	g_field_main[0] = GTK_ENTRY(gtk_builder_get_object(builder, "field_reg_a"));
 	g_field_main[1] = GTK_ENTRY(gtk_builder_get_object(builder, "field_reg_c"));
 	g_field_main[2] = GTK_ENTRY(gtk_builder_get_object(builder, "field_reg_b"));
@@ -125,6 +144,10 @@ int main(int argc, char **argv) {
 	g_field_reg_iy = GTK_ENTRY(gtk_builder_get_object(builder, "field_reg_iy"));
 	g_field_reg_sp = GTK_ENTRY(gtk_builder_get_object(builder, "field_reg_sp"));
 	g_field_reg_pc = GTK_ENTRY(gtk_builder_get_object(builder, "field_reg_pc"));
+
+	g_field_break = GTK_ENTRY(gtk_builder_get_object(builder, "field_break"));
+//	g_button_break_add = GTK_BUTTON(gtk_builder_get_object(builder, "break_add"));
+//	g_button_break_rem_all = GTK_BUTTON(gtk_builder_get_object(builder, "break_rem_all"));
 
 	g_view_console = GTK_TEXT_VIEW(gtk_builder_get_object(builder, "view_console"));
 	gtk_text_view_set_monospace(g_view_console, TRUE);
@@ -141,7 +164,10 @@ int main(int argc, char **argv) {
 	while (!quit_req) {
 		//gettimeofday(&tv1, NULL);
 		if(status == RUN || status == CONT) {
-			emulator_runCycles(8000);
+			if (emulator_runCycles(8000)) {
+				console("Break at 0x%04X\n", context.PC);
+				status = PAUSE;
+			}
 			gtk_main_iteration_do(FALSE);
 		} else {
 			updateRegisters();
@@ -168,11 +194,13 @@ void quit_application() {
 }
 
 void on_Run_clicked() {
+	clearRegisters();
 	console("Running...\n");
 	status = RUN;
 }
 
 void on_Continue_clicked() {
+	clearRegisters();
 	console("Running...\n");
 	status = CONT;
 }
@@ -190,4 +218,23 @@ void on_Step_clicked() {
 void on_Reset_clicked() {
 	console("Reset\n");
 	emulator_reset();
+}
+
+void on_break_add_clicked() {
+	unsigned int val;
+	const char *str = gtk_entry_get_text(g_field_break);
+	if (1 == sscanf(str, "%x", &val)) {
+		if (!breakpoints[val]) {
+			breakpoints[val] = 1;
+			console("Added breakpoint at address 0x%04X\n", val);
+		} else {
+			console("There's already a breakpoint at address 0x%04X\n", val);
+		}
+	} else {
+		console("Invalid address\n");
+	}
+}
+
+void on_break_rem_all_clicked() {
+	memset(&breakpoints[0], 0, sizeof(breakpoints));
 }
