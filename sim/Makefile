@@ -20,7 +20,7 @@ GTKLIB=`pkg-config --cflags --libs gtk+-3.0`
 # linker
 LD=gcc
 LDFLAGS=$(PTHREAD) $(GTKLIB) -export-dynamic
-LIBS=-lz80 -lncurses -lutil
+LIBS=-lz80 -lutil
 
 OBJS=main.o emulator.o sd.o
 

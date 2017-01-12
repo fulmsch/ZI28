@@ -83,9 +83,10 @@ void clearRegisters() {
 int main(int argc, char **argv) {
 	int hflag = 0;
 	int rflag = 0;
+	int bflag = 0;
 	char *romFile;
 	int c;
-	while ((c = getopt(argc, argv, "hr:")) != -1) {
+	while ((c = getopt(argc, argv, "hr:b")) != -1) {
 		switch (c) {
 			case 'h':
 				hflag = 1;
@@ -93,6 +94,9 @@ int main(int argc, char **argv) {
 			case 'r':
 				rflag = 1;
 				romFile = optarg;
+				break;
+			case 'b':
+				bflag = 1;
 				break;
 			case '?':
 				fprintf(stderr, "Invalid invocation\nUse '-h' for help\n");
@@ -116,6 +120,15 @@ int main(int argc, char **argv) {
 	//Start z80lib
 	emulator_init();
 	emulator_loadRom(romFile);
+
+	if (bflag) {
+		while (1) {
+			Z80Execute(&context);
+		}
+		fclose(sd.imgFile);
+		remove("/tmp/zi28sim");
+		return 0;
+	}
 
 
 	GtkBuilder   *builder; 
