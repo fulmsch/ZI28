@@ -1,37 +1,43 @@
-activeDrive:
-	.db 00h
-
-.define driveTableEntrySize  3
-.define driveTableEntries    8
-
-driveTableMap:
-	.db 00h
-driveTable:
-	.resb driveTableEntrySize * driveTableEntries
-
-
-
-
-
-
-
+.list
+;*********** File Table ********************
 .define fileTableEntrySize  32
-.define fileTableEntries    8
-fileTableMap:
-	.db 00h
+.define fileTableEntries    32
+
 fileTable:
 	.resb fileTableEntrySize * fileTableEntries
 
 tableSpot:
 	.db 00h
 
-.define fileTableName          0
-.define fileTableAttributes    fileTableName + 13
-.define fileTableStartCluster  fileTableAttributes + 1
-.define fileTableSize          fileTableStartCluster + 2
-.define fileTablePointer       fileTableSize + 2
-.define fileTableMode          fileTablePointer + 2
-.define fileTableDrive         fileTableMode + 1
+.define fileTableStatus     0
+.define fileTableDriver     fileTableStatus + 1
+.define fileTableAttributes fileTableDriver + 2
+.define fileTableOffset     fileTableAttributes + 1
+.define fileTableMode       fileTableOffset + 4
+.define fileTableData       fileTableMode + 1
+
+;.define fileTableDrive         fileTableMode + 1
+;.define fileTableStartCluster  fileTableAttributes + 1
+;.define fileTableSize          fileTableStartCluster + 2
+
+.define file_read  0
+.define file_write 2
+.define file_seek  4
+.define file_fctl   6
+
+.func getFileAddr:
+;Inputs: a = index
+;Outputs: hl = table entry address
+;Errors: c = out of bounds
+;        nc = no error
+
+	ld hl, fileTable
+	ld de, fileTableEntrySize
+	ld b, fileTableEntries
+	jp getTableAddr
+.endf ;getFileAddr
+
+
 
 ;*****************
 ;Open file
@@ -40,184 +46,134 @@ tableSpot:
 ;Outputs: e = file descriptor, a = errno
 ;Errors: 0=no error
 ;        1=maximum allowed files already open
-;        2=no matching file found
-;        3=file too large
-;        4=invalid drive number
+;        2=invalid drive number
+;        3=invalid path
+;        4=no matching file found
+;        5=file too large
 ;Destroyed: all
-.func _openFile:
-	ld (openFileMode), a
+.func k_open:
+;TODO convert path to uppercase
+	ld (mode), a
+	ld (path), de
+
 	;search free table spot
-	ld a, (fileTableMap)
-	ld b, 8
+	ld ix, fileTable
+	ld b, fileTableEntries
+	ld c, 0
+	ld de, fileTableEntrySize
+
 tableSearchLoop:
-	srl a
-	jr nc, tableSpotFound
+	ld a, (ix + 0)
+	cp 00h
+	jr z, tableSpotFound
+	add ix, de
+	inc c
 	djnz tableSearchLoop
 
 	;no free spot found, return error
 	ld a, 1
 	ret
 
-openFileMode:
-	.db 0
-openFilePathBuffer:
-	.resb 13
-openSector:
-	.resb 4
-driveNumber:
-	.db 0
-
-openResolvePath:
-	ld a, 0
-	ld (bc), a
-	push de
-	;ld d, b
-	;ld e, c
-	ld de, openFilePathBuffer
-	call findDirEntry
-	pop de
-	ld a, 2
-	ret nz
-	push de
-	;calculate start sector of subdirectory
-	ld l, (ix+1ah)
-	ld h, (ix+1bh)
-	ld de, openSector
-	call clusterToSector
-
-	pop de
-	inc de
-	ld hl, openSector
-	jr openRelativePath
-
 tableSpotFound:
-	;remember spot for later
-	ld a, 8
-	sub b
-	ld (tableSpot), a
-
-	;(de)=filename
-	ld h, d
-	ld l, e
-	call convertToUpper
-
-	;check if drive number is specified
-	inc de
-	ld a, (de)
-	dec de
+	;TODO check if valid path
+	;path should begin with "n:", where 0 <= n <= 9
+	ld hl, (path)
+	inc hl
+	ld a, (hl)
+	dec hl
 	cp ':'
-	jr z, readDriveNumber
+	jr nz, invalidPath
+	ld a, (hl)
+	sub '0'
+	jp c, invalidPath
+	cp 10
+	jp nc, invalidPath
+	ld (drive), a
+	inc hl
+	inc hl
+	ld (path), hl
 
-	;TODO get drive number from PCB
-	ld a, 1
-	ld (driveNumber), a
-	jr checkRootDir
 
 
-readDriveNumber:
-;check if valid drive number
-	ld a, (de)
-	cp '0'
-	jp c, invalidDrive
-	cp '9'+1
-	jp nc, invalidDrive
+	;ix points to free table entry
+	;c = fd
+;	ld de, fileTableMode
+;	add hl, de
 
-	sub 30h
-;TODO check if drive exists
-	ld (driveNumber), a
-	jr checkRootDir
+	;search drive entry
+	ld a, (drive)
+	call getDriveAddr
+	jr c, invalidDrive
 
-checkRootDir:
-	ld hl, fat_rootDirStartSector ;TODO load the path of the active program here
-	ld a, (de)
-	cp '/'
-	jr nz, openRelativePath
-	inc de
-	ld hl, fat_rootDirStartSector ;path is relative to the root directory
+	ld de, driveTableFsdriver
+	add hl, de
+	ld e, (hl)
+	inc hl
+	ld d, (hl)
+	ex de, hl ;(hl) = Fsdriver
+;	push hl
+;	pop ix
 
-openRelativePath: ;TODO rename this label
-	;(de)=relative path, hl=directory sector
-	;copy the next file/directory to a buffer
-	ld bc, openFilePathBuffer
-openRelativeLoop:
-	ld a, (de)
-	cp '/'
-	jr z, openResolvePath ;copied the entire folder name
-	ld (bc), a
-	inc bc
-	inc de
+
+;driveFound:
+;	ld l, (ix + driveTableFsdriver)
+;	ld h, (ix + driveTableFsdriver + 1)
+	and a
+	ld de, 0
+	sbc hl, de
+	jr z, invalidDrive;NULL pointer
+	ld de, fs_open
+	add hl, de
+	ld e, (hl)
+	inc hl
+	ld d, (hl)
+	ex de, hl
+;	pop bc ;filetable entry addr
+
+	ld a, (mode)
+	ld (ix + fileTableMode), a
+
+	ld de, return
+	push de
+	ld de, (path)
+
+	;FIX jumps to pointer
+	jp (hl)
+
+return:
+	;TODO check for succesful call
 	cp 0
-	jr nz, openRelativeLoop
-	
-	;reached the deepest level
-	ld de, openFilePathBuffer
-	call findDirEntry
-	ld a, 2
-	ret nz ;no file found
-	;TODO check filesize
-	;(ix)=directory entry
-	ld a, (tableSpot)
-	add a, a
-	add a, a
-	add a, a
-	add a, a
-	add a, a
-	ld b, 0
-	ld c, a
-	ld iy, fileTable
-	add iy, bc
-	;(iy)=table entry
-	;TODO check mode
+	ret nz
+	ld (ix + 0), 1
 
-	;populate table entry
-	push ix
-	push iy
-	pop de
-	pop hl
-	call buildFilenameString
-	ld a, (ix+0x0b)
-	ld (iy+fileTableAttributes), a
-	ld a, (ix+1ah)
-	ld (iy+fileTableStartCluster), a
-	ld a, (ix+1bh)
-	ld (iy+fileTableStartCluster+1), a
-	ld a, (ix+1ch)
-	ld (iy+fileTableSize), a
-	ld a, (ix+1dh)
-	ld (iy+fileTableSize+1), a
-	;TODO depending on mode
-	xor a
-	ld (iy+fileTablePointer), a
-	ld (iy+fileTablePointer+1), a
-	ld a, (openFileMode)
-	ld (iy+fileTableMode), a
 
-	ld a, (driveNumber)
-	ld (iy+fileTableDrive), a
-
-	;fill table spot
-	ld a, (tableSpot)
-	ld e, a ;return value
-	ld b, a
-	inc b
-	xor a
-	scf
-openFillTableSpot:
-	rla
-	djnz openFillTableSpot
-
-	ld hl, fileTableMap
-	or (hl)
-	ld (hl), a
-
-	;operation succesful
-	xor a
+	ld a, (fd)
+	ld e, a
+	ld a, 0
 	ret
+
 
 invalidDrive:
-	ld a, 4
+	ld a, 2
 	ret
-.endf
+invalidPath:
+	ld a, 3
+	ret
+
+mode:
+	.db 0
+fd:
+	.db 0
+path:
+	.dw 0
+;pathBuffer:
+;	.resb 13
+;sector:
+;	.resb 4
+drive:
+	.db 0
+
+.endf ;k_open
 
 ;*****************
 ;Close file
@@ -227,38 +183,28 @@ invalidDrive:
 ;Errors: 0=no error
 ;        1=invalid file descriptor
 ;Destroyed: none
-_closeFile:
-	ld c, a
-	;check if fd exists
-	ld (tableSpot), a
-	ld b, a
-	inc b
-	ld a, (fileTableMap)
-closeCheckTableSpot:
-	srl a
-	djnz closeCheckTableSpot
+.func k_close:
+	cp fileTableEntries
+	jr nc, invalidFd
 
-	ld a, 1
-	ret nc
+	call getFileAddr
+	jr c, invalidFd
 
-	ld b, c
-	ld c, 1
-	djnz closeShiftContinue
 
-closeShiftLoop:
-	sla c
-	djnz closeShiftLoop
-
-closeShiftContinue:
-	cpl
-
-	ld a, (tableSpot)
-	and c
-
-	ld (tableSpot), a
+entryFound:
+	ld a, 0
+clearEntry:
+	ld (hl), a
+	inc hl
+	djnz clearEntry
 
 	ld a, 0
 	ret
+
+invalidFd:
+	ld a, 1
+	ret
+.endf ;k_close
 
 
 ;*****************
@@ -268,109 +214,69 @@ closeShiftContinue:
 ;Outputs: a = errno, de = count
 ;Errors: 0=no error
 ;        1=invalid file descriptor
+;        2=invalid file driver
 ;Destroyed: none
-_readFile:
-	;check if fd exists
-	ld (tableSpot), a
-	ld b, a
-	inc b
-	ld a, (fileTableMap)
-readCheckTableSpot:
-	srl a
-	djnz readCheckTableSpot
-
-	ld a, 1
-	ret nc
-
-	ld a, (tableSpot)
-	add a, a
-	add a, a
-	add a, a
-	add a, a
-	add a, a
-	ld b, 0
-	ld c, a
-	ld iy, fileTable
-	add iy, bc
-	;(iy)=table entry
-	;TODO check mode
-	;TODO check filesize
-	ld b, h
-	ld c, l
-	ld l, (iy+fileTableSize)
-	ld h, (iy+fileTableSize+1)
-	or a
-	sbc hl, bc
-	jr nc, readCluster
-
-	ld c, (iy+fileTableSize)
-	ld b, (iy+fileTableSize+1)
-
-readCluster:
-	push bc ;count
+.func k_read:
 	push de ;buffer
-	;calculate starting sector
-	ld l, (iy+fileTableStartCluster)
-	ld h, (iy+fileTableStartCluster+1)
-	ld de, readSector
-	call clusterToSector
+	push hl ;count
+;	ld (buffer), de
+;	ld (count), hl
 
-	;TODO count bytes
-	pop hl ;buffer
-	pop de ;count
-	push de
-	
-	;calculate the number of full sectors
-	ld a, d
-	srl a
-	push hl ;buffer
-	jr z, readLastSector ;less than a sector left
+	;check if fd exists
+	call getFileAddr
+	jr c, invalidFd
+	ld a, (hl)
+	cp 00h
+	jr z, invalidFd
 
+	push hl
+	pop ix
+;	ld de, fileTableFiledriver
+;	add ix, de
 
-	;load full sectors directly
-	ld hl, readSector
-	call sectorToAddr
-	pop hl ;buffer
-	push af ;amount of full sectors to be read
-	rst sdRead
-	;TODO add error
-
-	pop af ;count of read sectors
-	push hl ;buffer
-
-	ld hl, readSector
-	add a, (hl)
-	ld (hl), a
-	ld b, 3
-readAddSectorsLoop:
+	;check for valid file driver
+	ld l, (ix + fileTableDriver)
+	ld h, (ix + fileTableDriver + 1)
+	and a
+	ld de, 0
+	sbc hl, de
+	jr z, invalidDriver;NULL pointer
+	ld de, file_read
+	add hl, de
+	ld e, (hl)
 	inc hl
-	ld a, 0
-	adc a, (hl)
-	ld (hl), a
-	djnz readAddSectorsLoop
+	ld d, (hl)
+	ex de, hl
 
-readLastSector:
-	;load last sector into sdBuffer
-	ld hl, readSector
-	call sectorToAddr
-	ld hl, sdBuffer
+	;call file driver
+	pop bc ;count
+	pop de ;buffer
+;	ld bc, (count)
+;	ld de, (buffer)
+	jp (hl)
+
+invalidFd:
+	pop hl
+	pop hl
 	ld a, 1
-	rst sdRead
-	;TODO add error
-
-	;copy the remaining bytes into memory
-	pop de
-	pop bc
-	ld a, b
-	and 1
-	ld b, a
-
-	ld hl, sdBuffer
-	ldir
-
-	ld a, 0
 	ret
-	
+invalidDriver:
+	pop hl
+	pop hl
+	ld a, 2
+	ret
+;buffer:
+;	.dw 0
+;count:
+;	.dw 0
+.endf ;k_read
 
-readSector:
-	.resb 4
+
+.func k_write:
+
+.endf ;k_write
+
+
+.func k_seek:
+
+.endf

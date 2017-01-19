@@ -29,13 +29,13 @@
 
 bcosVectTable:
 	.dw _bcosStart
-	.dw _openFile
-	.dw _closeFile
-	.dw _readFile
-;	.dw _writeFile
-;	.dw _chdir
-;	.dw _setDrive
-	.dw _setProcTable
+	.dw k_open
+	.dw k_close
+	.dw k_read
+;	.dw k_write
+;	.dw k_chdir
+;	.dw k_setDrive
+;	.dw _setProcTable
 
 
 _bcosStart:
@@ -43,25 +43,33 @@ _bcosStart:
 	;TODO setup stack and interrupts
 	ld sp, 8000h
 
-	call vfs_init
+;	call vfs_init
 	call fat_init
 	ld de, shellPath
-	call _openFile
+	call k_open
 	ld a, e
 	ld de, 6000h
 	ld hl, 0ffffh
-	call _readFile
+	call k_read
 
-	ld de, 6000h
-	call _setProcTable
+;	ld de, 6000h
+;	call _setProcTable
 	call 6000h
 	jp 0
 	
 shellPath:
-	.asciiz "/SYS/CLI.BIN"
+	.asciiz "0:SYS/CLI.BIN"
 
-.include "drivers.asm"
-.include "vfs.asm"
-.include "fat.asm"
+;.include "drivers.asm"
+;.include "vfs.asm"
+;.include "process.asm"
+.include "drive.asm"
 .include "file.asm"
-.include "process.asm"
+
+; Filesystems
+.include "fat.asm"
+.include "devfs.asm"
+
+; Device drivers
+.include "sd.asm"
+.include "ramdisk.asm"

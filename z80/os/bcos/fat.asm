@@ -1,3 +1,19 @@
+.list
+fat_fsDriver:
+	.dw fat_init
+	.dw fat_open
+	.dw 0000h     ;close
+
+fat_fileDriver:
+	.dw fat_read
+	.dw fat_write
+	.dw fat_seek
+	.dw fat_fctl
+
+.define fat_fileTableStartCluster fileTableData
+.define fat_fileTableSize         fat_fileTableStartCluster + 2
+
+
 fat_bootStartSector:    .resb 4
 
 fat_vbr:
@@ -138,26 +154,236 @@ fat_dataStartSector:    .resb 4
 	call addCarry
 
 	;close all open files
-	ld a, 0
-	ld (fileTableMap), a
+;	ld a, 0
+	;ld (fileTableMap), a
 
 	ret
-.endf
+.endf ;fat_init
 
 
+;*****************
+;Open file
+;Description: creates a new file table entry
+;Old Inputs: (de) = pathname, a = mode
+;Inputs: ix = table entry, (de) = absolute path, a = mode
+;Outputs: a = errno
+;Errors: 0=no error
+;        4=no matching file found
+;        5=file too large
+;Destroyed: all
 .func fat_open:
+;	ld (tableEntry), hl
+	ld (mode), a
 
-.endf
+	ld hl, fat_rootDirStartSector ;path is relative to the root directory
+	jr nextLevel
+
+resolvePath:
+	ld a, 0
+	ld (bc), a
+	push de
+	;ld d, b
+	;ld e, c
+	ld de, pathBuffer
+	call findDirEntry
+	pop de
+	ld a, 4
+	ret nz
+	push de
+	;calculate start sector of subdirectory
+	ld l, (iy+1ah)
+	ld h, (iy+1bh)
+	ld de, sector
+	call clusterToSector
+
+	pop de
+	inc de
+	ld hl, sector
 
 
+nextLevel:
+	;(de)=relative path, hl=directory sector
+	;copy the next file/directory to a buffer
+	ld bc, pathBuffer
+pathLoop:
+	ld a, (de)
+	cp '/'
+	jr z, resolvePath ;copied the entire folder name
+	ld (bc), a
+	inc bc
+	inc de
+	cp 0
+	jr nz, pathLoop
+	
+	;reached the deepest level
+	ld de, pathBuffer
+	call findDirEntry
+	ld a, 4
+	ret nz ;no file found
+	;TODO check filesize
+	;(iy)=directory entry
+
+;	ld ix, (tableEntry)
+	;TODO check mode
+
+	;populate table entry
+;	push ix
+;	push iy
+;	pop de
+;	pop hl
+;	call buildFilenameString
+	ld a, (iy + 0x0b)
+	ld (ix + fileTableAttributes), a
+	ld a, (iy + 1ah)
+	ld (ix + fat_fileTableStartCluster), a
+	ld a, (iy + 1bh)
+	ld (ix + fat_fileTableStartCluster + 1), a
+	ld a, (iy + 1ch)
+	ld (ix + fat_fileTableSize), a
+	ld a, (iy + 1dh)
+	ld (ix + fat_fileTableSize + 1), a
+;	;TODO depending on mode
+;	xor a
+;	ld (iy+fileTablePointer), a
+;	ld (iy+fileTablePointer+1), a
+	;TODO move to k_open
+	ld a, (mode)
+	ld (ix + fileTableMode), a
+
+	ld hl, fat_fileDriver
+	ld (ix + fileTableDriver), l
+	ld (ix + fileTableDriver + 1), h
+
+;	ld a, (driveNumber)
+;	ld (iy + fileTableDrive), a
+
+	;fill table spot
+	ld (ix + 0), 01h
+
+	;operation succesful
+	xor a
+	ret
+
+;tableEntry:
+;	.dw 0
+mode:
+	.db 0
+pathBuffer:
+	.resb 13
+sector:
+	.resb 4
+
+.endf ;fat_open
+
+;*****************
+;Read from file
+;Description: copy data from a file to memory
+;Old Inputs: a = file descriptor, (de) = buffer, hl = count
+;Inputs: ix = file entry addr, (de) = buffer, bc = count
+;Outputs: a = errno, de = count
+;Errors: 0=no error
+;        1=invalid file descriptor
+;Destroyed: none
 .func fat_read:
+	;(ix)=table entry
+	;TODO check mode
+	;TODO check filesize
+	ld l, (ix+fat_fileTableSize)
+	ld h, (ix+fat_fileTableSize+1)
+	or a
+	sbc hl, bc
+	jr nc, readCluster
 
-.endf
+	ld c, (ix+fat_fileTableSize)
+	ld b, (ix+fat_fileTableSize+1)
 
+readCluster:
+	push bc ;count
+	push de ;buffer
+	;calculate starting sector
+	ld l, (ix+fat_fileTableStartCluster)
+	ld h, (ix+fat_fileTableStartCluster+1)
+	ld de, readSector
+	call clusterToSector
+
+	;TODO count bytes
+	pop hl ;buffer
+	pop de ;count
+	push de
+	
+	;calculate the number of full sectors
+	ld a, d
+	srl a
+	push hl ;buffer
+	jr z, readLastSector ;less than a sector left
+
+
+	;load full sectors directly
+	ld hl, readSector
+	call sectorToAddr
+	pop hl ;buffer
+	push af ;amount of full sectors to be read
+	rst sdRead
+	;TODO add error
+
+	pop af ;count of read sectors
+	push hl ;buffer
+
+	ld hl, readSector
+	add a, (hl)
+	ld (hl), a
+	ld b, 3
+readAddSectorsLoop:
+	inc hl
+	ld a, 0
+	adc a, (hl)
+	ld (hl), a
+	djnz readAddSectorsLoop
+
+readLastSector:
+	;load last sector into sdBuffer
+	ld hl, readSector
+	call sectorToAddr
+	ld hl, sdBuffer
+	ld a, 1
+	rst sdRead
+	;TODO add error
+
+	;copy the remaining bytes into memory
+	pop de
+	pop bc
+	ld a, b
+	and 1
+	ld b, a
+
+	ld hl, sdBuffer
+	ldir
+
+	ld a, 0
+	ret
+
+tableEntry:
+	.dw 0
+;buffer:
+;	.dw 0
+count:
+	.dw 0
+readSector:
+	.resb 4
+
+.endf ;fat_read
 
 .func fat_write:
 
-.endf
+.endf ;fat_write
+
+.func fat_seek:
+
+.endf ;fat_seek
+
+.func fat_fctl:
+
+.endf ;fat_fctl
 
 ;*****************
 ;SectorToAddress
@@ -256,16 +482,16 @@ addCarry:
 ;Find directory entry
 ;Description: search for the entry of a named file
 ;Inputs: directory sector at (hl), name string at (de)
-;Outputs: directory entry at (ix)
+;Outputs: directory entry at (iy)
 ;Destroyed: a, bc
-findDirEntry:
+.func findDirEntry:
 	;TODO add capability to search sequential sectors
 	push de
-	ld de, findDirEntrySector
+	ld de, entrySector
 	ld bc, 4
 	ldir
 
-	ld hl, findDirEntrySector
+	ld hl, entrySector
 	call sectorToAddr
 	ld a, 1
 	ld hl, sdBuffer
@@ -274,44 +500,45 @@ findDirEntry:
 
 	ld hl, sdBuffer
 	ld b, 16
-findDirEntryLoop:
+entryLoop:
 	;cycle through entries
 	ld a, (hl)
 	cp 0
-	jr z, findDirEntryEnd;end of directory
+	jr z, entryEnd;end of directory
 	push hl
-	ld de, findDirEntryNameBuffer
+	ld de, entryNameBuffer
 	call buildFilenameString
 	pop hl
 	pop de
 	push de
 	push hl
 	push bc
-	ld hl, findDirEntryNameBuffer
+	ld hl, entryNameBuffer
 	call strCompare
 	pop bc
-	jr z, findDirEntryMatch
+	jr z, entryMatch
 	pop hl
 	ld de, 32
 	add hl, de
-	djnz findDirEntryLoop
+	djnz entryLoop
 
 
-findDirEntryEnd:
+entryEnd:
 	pop de ;clear the stack
 	or 1 ;reset zero flag
 	ret
 
-findDirEntryMatch:
-	pop ix ;pointer to entry
+entryMatch:
+	pop iy ;pointer to entry
 	pop de ;clear the stack
 	ret
 
 
-findDirEntrySector:
-	ds 4
-findDirEntryNameBuffer:
-	ds 13
+entrySector:
+	.ds 4
+entryNameBuffer:
+	.ds 13
+.endf ;findDirEntry
 
 
 ;*****************
@@ -399,3 +626,6 @@ convertToUpper:
 convertToUpper00:
 	inc hl
 	jr convertToUpper
+
+
+
