@@ -1,3 +1,12 @@
+/* TODO
+* limit frequency (based on tstates)
+* count cycles
+* log to file
+* protect rom
+* finish register & breakpoint gui
+* memory view / edit
+* load file to memory
+*/
 #include <stdio.h>
 #include <stdarg.h>
 #include <gtk/gtk.h>
