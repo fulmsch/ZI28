@@ -180,12 +180,47 @@ int main(int argc, char **argv) {
 	gtk_widget_show(window);
 
 
-//	struct timeval tv1, tv2;
-//	struct timespec sleeptime, remtime;
+	struct timeval tv1, tv2;
 
 	while (!quit_req) {
 		//gettimeofday(&tv1, NULL);
-		if(status == RUN || status == CONT) {
+		switch (status) {
+			case RUN:
+				gettimeofday(&tv1, NULL);
+				context.tstates = 0;
+				for (int i = 0; i < 10000; i++) {
+					Z80Execute(&context);
+				}
+				gtk_main_iteration_do(FALSE);
+				gettimeofday(&tv2, NULL);
+				long int dtime = tv2.tv_usec - tv1.tv_usec;
+				//printf("%d tstates in %ld usec = %ld Hz\n", context.tstates, dtime, context.tstates*1000000L/dtime);
+				if (dtime > 0) {
+					unsigned long targetTime = context.tstates / 8;
+				//	printf("%ld\n", targetTime);
+					struct timespec sleeptime, remtime;
+					sleeptime.tv_sec = 0;
+					sleeptime.tv_nsec = (targetTime - dtime) * 1000L;
+					nanosleep(&sleeptime, &remtime);
+					gettimeofday(&tv2, NULL);
+					dtime = tv2.tv_usec - tv1.tv_usec;
+					printf("%d tstates in %ld usec = %ld Hz\n", context.tstates, dtime, context.tstates*1000000L/dtime);
+
+				}
+				break;
+			case CONT:
+				if (emulator_runCycles(1000)) {
+					console("Break at 0x%04X\n", context.PC);
+					status = PAUSE;
+				}
+				gtk_main_iteration_do(FALSE);
+				break;
+			default:
+				updateRegisters();
+				gtk_main_iteration_do(TRUE);
+				break;
+		}
+		if (status == RUN || status == CONT) {
 			if (emulator_runCycles(8000)) {
 				console("Break at 0x%04X\n", context.PC);
 				status = PAUSE;
