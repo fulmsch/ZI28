@@ -3,7 +3,7 @@
 ;Only allow printable chars as input
 
 
-_monitor:
+.func _monitor:
 
 prgm	equ	0c000h
 
@@ -34,7 +34,7 @@ prgm	equ	0c000h
 	call printStr
 
 prompt:
-	ld hl, inputBuffer
+	ld hl, monInputBuffer
 	ld c, 0
 
 	ld a, '>'
@@ -56,7 +56,7 @@ handleChar:
 ;fix this hack when reworking the buffer system
 	ld b, a
 	ld a, l
-	cp inputBufferSize - 1
+	cp monInputBufferSize - 1
 	jp nc, invalid
 	ld a, b
 	ld (hl), a
@@ -87,7 +87,7 @@ handleStr:
 	ld a, 0ah
 	call putc
 
-	ld hl, inputBuffer
+	ld hl, monInputBuffer
 	ld a, (hl)
 	cp 0dh
 	jp z, prompt ;no char entered
@@ -124,7 +124,7 @@ handleStr02:
 	;or 30h
 	;call putc
 
-	ld a, (inputBuffer)
+	ld a, (monInputBuffer)
 	call convertToUpper
 	cp '?'
 	jp z, help
@@ -194,7 +194,7 @@ loadPrgm:
 	cp 01h
 	jp nz, invalid
 	
-	ld hl, inputBuffer
+	ld hl, monInputBuffer
 	call nextArg
 
 	call hexToNum16
@@ -299,7 +299,7 @@ execPrgm:
 	cp 01h
 	jp nz, invalid
 	
-	ld hl, inputBuffer
+	ld hl, monInputBuffer
 	call nextArg
 
 	call hexToNum16
@@ -327,7 +327,7 @@ jump:
 	cp 01h
 	jp nz, invalid
 	
-	ld hl, inputBuffer
+	ld hl, monInputBuffer
 	call nextArg
 
 	call hexToNum16
@@ -343,7 +343,7 @@ hexDump:
 	cp 01h
 	jp nz, invalid
 	
-	ld hl, inputBuffer
+	ld hl, monInputBuffer
 	call nextArg
 
 	call hexToNum16
@@ -463,17 +463,17 @@ write:
 	cp 01h
 	jp nz, invalid
 	
-	ld hl, inputBuffer
+	ld hl, monInputBuffer
 	call nextArg
 
 	call hexToNum16
 	jp nz, invalid
 	
-	ld (inputBuffer + 2), de
+	ld (monInputBuffer + 2), de
 
 
 writePrompt:
-	ld de, (inputBuffer + 2)
+	ld de, (monInputBuffer + 2)
 	ld a, d
 	call printbyte
 	ld a, e
@@ -485,7 +485,7 @@ writePrompt:
 	ld a, 20h
 	call putc
 	
-	ld de, inputBuffer
+	ld de, monInputBuffer
 	ld c, 0
 
 
@@ -529,11 +529,11 @@ writeHandleStr:
 	or c
 	jp z, writeNext ;no char entered
 
-	ld hl, inputBuffer
+	ld hl, monInputBuffer
 	call hexToNum8
 	jp nz, writeInvalid
 	
-	ld hl, (inputBuffer + 2)
+	ld hl, (monInputBuffer + 2)
 
 	ld (hl), a
 
@@ -551,15 +551,15 @@ writeInvalid:
 	jp writePrompt
 
 write00:	
-	ld (inputBuffer + 2), hl
+	ld (monInputBuffer + 2), hl
 	
 	ld hl, writeOkStr
 	call printStr
 	
 writeNext:	
-	ld hl, (inputBuffer + 2)
+	ld hl, (monInputBuffer + 2)
 	inc hl
-	ld (inputBuffer + 2), hl
+	ld (monInputBuffer + 2), hl
 	
 	ld a, 0dh
 	call putc
@@ -589,7 +589,7 @@ ioIn:
 	cp 01h
 	jp nz, invalid
 	
-	ld hl, inputBuffer
+	ld hl, monInputBuffer
 	call nextArg
 	call hexToNum8
 	jp nz, invalid
@@ -611,7 +611,7 @@ ioOut:
 	cp 02h
 	jp nz, invalid
 	
-	ld hl, inputBuffer
+	ld hl, monInputBuffer
 	call nextArg
 	call hexToNum8
 	jp nz, invalid
@@ -638,7 +638,7 @@ bankSel:
 	cp 01h
 	jp nz, invalid
 	
-	ld hl, inputBuffer
+	ld hl, monInputBuffer
 	call nextArg
 	call hexToNum8
 	jp nz, invalid
@@ -663,7 +663,7 @@ register:
 ;	cp 03h
 	jp nz, invalid
 	
-;	ld hl, inputBuffer
+;	ld hl, monInputBuffer
 ;	call nextArg
 ;	inc hl
 ;	ld a, (hl)
@@ -888,3 +888,4 @@ loadStr:
 loadFinishedStr:
 	.db "h bytes transferred\r\n"
 	.db 00h
+.endf ;_monitor

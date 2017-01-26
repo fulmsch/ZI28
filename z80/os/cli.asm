@@ -1,17 +1,12 @@
 ;TODO change putc and getc to OS equivalents
 
 .z80
-.include "biosCalls.h"
-.include "bcosCalls.h"
-
-.define cliStart 6000h
-
 
 .define inputBufferSize 128
 .define maxArgc 32
 
 
-.org cliStart
+.func cli:
 
 prompt:
 ;	ld hl, promptPlaceholder
@@ -230,8 +225,7 @@ programInPath:
 	call strCopy
 
 	ld de, programPath
-	ld c, openFile
-	call bcosVect
+	call k_open
 	cp 0
 	jr z, loadProgram
 
@@ -244,8 +238,7 @@ programInPath:
 fullPath:
 	;try to open file named &argv[0]
 	pop de ;contains pointer to first string
-	ld c, openFile
-	call bcosVect
+	call k_open
 	cp 0
 	jr nz, noMatch
 
@@ -255,30 +248,20 @@ loadProgram:
 	push af
 	ld de, 0c000h
 	ld hl, 4000h
-	ld c, readFile
-	call bcosVect
+	call k_read
 	cp 0
 	pop af
 	jr nz, noMatch
 
-	ld c, closeFile
-	call bcosVect
+	call k_close
 
 	;TODO pass argc and argv
-
-	ld c, setProcTable
-	ld de, 0c000h
-	call bcosVect
 
 	ld de, reentry
 	push de
 	jp 0c000h
 
 reentry:
-	ld c, setProcTable
-	ld de, 6000h
-	call bcosVect
-
 	jp prompt
 
 noMatch:
@@ -290,12 +273,6 @@ noMatchStr:
 	.db "Command not recognised\r\n"
 	.db 00h
 
-
-argc:
-	.db 0
-argv:
-	.resb maxArgc*2
-
 promptStr:
 	.db " >: "
 	.db 00h
@@ -306,6 +283,14 @@ promptStr:
 
 inputBuffer:
 	.resb inputBufferSize
+
+.endf ;cli
+
+
+argc:
+	.db 0
+argv:
+	.resb maxArgc*2
 
 
 programPath:
@@ -329,77 +314,5 @@ dispatchTable:
 	.dw helpStr, help
 	.dw monStr, cliMonitor
 	.dw nullStr
-
-
-;****************
-;String Compare
-;Description: Compares two strings
-;Inputs: de, hl: String pointers
-;Outputs: z if equal strings
-;Destroyed: a, b
-strCompare:
-	ld a, (de)
-	ld b, a
-	ld a, (hl)
-	cp b
-	ret nz
-	cp 00h
-	ret z
-	inc de
-	inc hl
-	jr strCompare
-
-
-;****************
-;String Copy
-;Description: Copies a string from one location to another
-;Inputs: hl: origin, de: destination
-;Outputs: de, hl: point to the null terminators
-;Destroyed: a
-strCopy:
-	ld a, (hl)
-	ld (de), a
-	cp 00h
-	ret z
-	inc hl
-	inc de
-	jr strCopy
-
-;*****************
-;ConvertToUpper
-;Description: Converts a string to uppercase
-;Inputs: hl: String pointer
-;Outputs:
-;Destroyed: none
-convertToUpper:
-	ld a, (hl)
-	cp 0
-	ret z
-
-	cp 61h
-	jr c, convertToUpper00
-	cp 7bh
-	jr nc, convertToUpper00
-	sub 20h
-	ld (hl), a
-convertToUpper00:
-	inc hl
-	jr convertToUpper
-
-
-;*****************
-;PrintString
-;Description: Prints a zero-terminated string starting at hl to the terminal
-;Inputs: String starting at (hl)
-;Outputs: String at terminal
-;Destroyed: hl, a
-printStr:
-	ld a, (hl)
-	cp 00h
-	ret z
-	rst putc
-	inc hl
-	jr printStr
-
 
 .include "builtins.asm"

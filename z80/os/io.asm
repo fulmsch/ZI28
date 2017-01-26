@@ -54,22 +54,3 @@ _setInput:
 	ld (inputDev), a
 	ret
 
-
-;*****************
-;PrintString
-;
-;Description: Prints a zero-terminated string starting at hl to the terminal
-;
-;Inputs: String starting at (hl)
-;
-;Outputs: String at terminal
-;
-;Destroyed: hl, a
-printStr:
-	ld a, (hl)
-	cp 00h
-	ret z
-	call putc
-	inc hl
-	jr printStr
-
