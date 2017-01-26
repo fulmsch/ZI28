@@ -4,7 +4,7 @@ monStack		equ		4200h
 sdBuffer		equ		4200h
 
 ;BIOS memory map
-memBase		equ		0000h	;change to 0000h
+;memBase:		equ		0000h	;change to 0000h
 
 nmiEntry		equ		memBase + 66h
 
