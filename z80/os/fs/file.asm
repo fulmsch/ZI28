@@ -1,13 +1,11 @@
 .list
 ;*********** File Table ********************
-.define fileTableEntrySize  32
-.define fileTableEntries    32
+;.define fileTableEntrySize  32
+;.define fileTableEntries    32
 
-fileTable:
-	.resb fileTableEntrySize * fileTableEntries
+;fileTable:
+;	.resb fileTableEntrySize * fileTableEntries
 
-tableSpot:
-	.db 00h
 
 .define fileTableStatus     0
 .define fileTableDriver     fileTableStatus + 1
@@ -75,6 +73,8 @@ tableSearchLoop:
 	ret
 
 tableSpotFound:
+	ld a, c
+	ld (fd), a
 	;TODO check if valid path
 	;path should begin with "n:", where 0 <= n <= 9
 	ld hl, (path)
@@ -96,7 +96,6 @@ tableSpotFound:
 
 
 	;ix points to free table entry
-	;c = fd
 ;	ld de, fileTableMode
 ;	add hl, de
 

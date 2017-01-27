@@ -1,15 +1,15 @@
 .list
 ;*********** Drive Table ********************
-.define driveTableEntrySize  32
-.define driveTableEntries    9
+;.define driveTableEntrySize  32
+;.define driveTableEntries    9
 
-driveTable:
-	.db 1
-	.db 0
-	.dw fat_fsDriver
-	.resb 28
+;driveTable:
+;	.db 1
+;	.db 0
+;	.dw fat_fsDriver
+;	.resb 28
 
-	.resb driveTableEntrySize * driveTableEntries
+;	.resb driveTableEntrySize * driveTableEntries
 
 .define driveTableStatus   0
 .define driveTableDevfd    driveTableStatus + 1

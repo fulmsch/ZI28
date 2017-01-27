@@ -74,6 +74,7 @@ _coldStart:
 	xor a
 	call setOutput
 	call setInput
+	rst monitor
 
 	call cli
 

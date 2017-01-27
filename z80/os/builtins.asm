@@ -59,7 +59,7 @@ path:
 	call printStr
 	;print the path
 	xor a
-	ld (programName), a
+	ld (cliProgramName), a
 	ld hl, programPath
 	call printStr
 

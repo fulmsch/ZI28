@@ -1,9 +1,9 @@
 ;TODO change putc and getc to OS equivalents
 
-.z80
 
-.define inputBufferSize 128
-.define maxArgc 32
+.list
+;.define inputBufferSize 128
+;.define maxArgc 32
 
 
 .func cli:
@@ -221,7 +221,7 @@ dispatchLoop:
 
 programInPath:
 	;check path for programs
-	ld de, programName
+	ld de, cliProgramName
 	call strCopy
 
 	ld de, programPath
@@ -281,22 +281,23 @@ promptStr:
 ;	.db "/"
 ;	.db 00h
 
-inputBuffer:
-	.resb inputBufferSize
+;inputBuffer:
+;	.resb inputBufferSize
 
 .endf ;cli
 
 
-argc:
-	.db 0
-argv:
-	.resb maxArgc*2
+;argc:
+;	.db 0
+;argv:
+;	.resb maxArgc*2
 
 
 programPath:
 	.db "/BIN/"
-programName:
-	.resb 13
+	;TODO fix this, broken because of rom
+;programName:
+;	.resb 13
 programExtension:
 	.db ".Z80"
 	.db 00h

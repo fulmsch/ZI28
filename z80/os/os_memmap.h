@@ -10,9 +10,9 @@
 
 
 ;Monitor workspace
-#define monWorkspace               4000h
-#define monInputBuffer             monWorkspace + 0
-#define monInputBufferSize         40h
+#define monWorkspace            5000h
+#define monInputBuffer          monWorkspace + 0
+#define monInputBufferSize      40h
 #define lineCounter             monInputBuffer + monInputBufferSize
 
 #define xmodemRecvPacketNumber  lineCounter + 1
@@ -29,4 +29,44 @@
 #define stackSave               inputDev + 1
 #define registerStackBot        stackSave + 2
 #define registerStack           stackSave +14
+
+;OS workspace
+#define osWorkspace             registerStack
+
+;Drive Table
+#define driveTableEntrySize     32
+#define driveTableEntries       9
+
+#define driveTable              osWorkspace
+#define driveTableEnd           driveTable + driveTableEntrySize * driveTableEntries
+
+;File Table
+#define fileTableEntrySize      32
+#define fileTableEntries        32
+
+#define fileTable               driveTableEnd
+#define fileTableEnd            fileTable + fileTableEntrySize * fileTableEntries
+
+;k_open
+#define k_open_mode             fileTableEnd
+#define k_open_fd               k_open_mode + 1
+#define k_open_path             k_open_fd + 1
+#define k_open_drive            k_open_path + 2
+#define k_open_end              k_open_drive + 1
+
+;cli
+#define cliWorkspace            k_open_end
+
+#define inputBufferSize         128
+#define maxArgc                 32
+
+#define inputBuffer             cliWorkspace
+#define inputBufferEnd          inputBuffer + inputBufferSize
+
+#define argc                    inputBufferEnd
+#define argv                    argc + 1
+#define argvEnd                 argv + maxArgc * 2
+
+#define cliProgramName          argvEnd
+#define cliProgramNameEnd       cliProgramName + 13
 
