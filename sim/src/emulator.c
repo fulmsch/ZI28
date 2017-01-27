@@ -61,7 +61,9 @@ byte context_mem_read_callback(int param, ushort address) {
 }
 
 void context_mem_write_callback(int param, ushort address, byte data) {
-	memory[address] = data;
+	if (address > 0x1FFF) {
+		memory[address] = data;
+	}
 }
 
 byte context_io_read_callback(int param, ushort address) {
