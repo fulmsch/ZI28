@@ -1,13 +1,87 @@
 .list
+;; strings.asm
+;; Contains string manipulation routines similar to those in the C library "string.h"
+;;
+;; Calling conventions:
+;;  de = destination / str1
+;;  hl = source / str2
+;;  a  = char / len
 
 
-;****************
-;String Compare
-;Description: Compares two strings
-;Inputs: de, hl: String pointers
-;Outputs: z if equal strings
-;Destroyed: a, b
-.func strCompare:
+.func memcmp:
+;; Description: Compares b bytes of hl and de
+;; Input: de, hl: Pointers
+;; Output: z if equal
+;; Destroyed: a, bc, de, hl
+
+	ld a, (de)
+	ld c, a
+	ld a, (hl)
+	cp c
+	ret nz
+	inc de
+	inc hl
+	djnz memcmp
+	ret
+.endf ;memcmp
+
+
+.func memset:
+;; Description: Fills b bytes with a, starting at hl
+;; Input: a: value; hl: Pointer; b: count
+;; Output: none
+;; Destroyed:
+
+	ld (hl), a
+	inc hl
+	djnz memset
+	ret
+.endf ;memset
+
+
+.func strcat:
+;; Description: Appends hl to the end of de
+;; Input: de, hl: String pointers
+;; Output: none
+;; Destroyed: a, de, hl
+
+	;Find the end of (de)
+srcloop:
+	ld a, (de)
+	cp 0
+	inc de
+	jr nz, srcloop
+	dec de
+
+	;Copy hl to de
+	jp strcpy
+.endf ;strcat
+
+
+.func strncat:
+;; Description: Appends up to b characters from hl to the end of de
+;; Input: de, hl: String pointers
+;; Output: none
+;; Destroyed: a, b, de, hl
+
+	;Find the end of (de)
+srcloop:
+	ld a, (de)
+	cp 0
+	inc de
+	jr nz, srcloop
+	dec de
+
+	jp strncpy
+.endf ;strncat
+
+
+.func strcmp:
+;; Description: Compares hl and de
+;; Input: de, hl: String pointers
+;; Output: z if equal strings
+;; Destroyed: a, b, de, hl
+
 	ld a, (de)
 	ld b, a
 	ld a, (hl)
@@ -17,48 +91,113 @@
 	ret z
 	inc de
 	inc hl
-	jr strCompare
-.endf ;strCompare
+	jr strcmp
+.endf ;strcmp
 
 
-;****************
-;String Copy
-;Description: Copies a string from one location to another
-;Inputs: hl: origin, de: destination
-;Outputs: de, hl: point to the null terminators
-;Destroyed: a
-.func strCopy:
+.func strncmp:
+;; Description: Compares at most the first b characters of hl and de
+;; Input: de, hl: String pointers; b: length
+;; Output: none
+;; Destroyed: a, bc, de, hl
+
+	ld a, (de)
+	ld c, a
+	ld a, (hl)
+	cp c
+	ret nz
+	cp 0
+	ret z
+	inc de
+	inc hl
+	djnz strncmp
+	ret
+.endf ;strncmp
+
+
+.func strcpy:
+;; Description: Copy hl to de
+;; Input: de, hl: String pointers
+;; Output: none
+;; Destroyed: a, de, hl
+
 	ld a, (hl)
 	ld (de), a
 	cp 00h
 	ret z
 	inc hl
 	inc de
-	jr strCopy
-.endf ;strCopy
+	jr strcpy
+.endf ;strcpy
 
 
-;*****************
-;ConvertToUpper
-;Description: Converts a string to uppercase
-;Inputs: hl: String pointer
-;Outputs:
-;Destroyed: none
-.func convertToUpper:
+.func strncpy:
+;; Description: Copy up to b characters from hl to de
+;; Input: de, hl: String pointers; b: length
+;; Output: none
+;; Destroyed: a, b, de, hl
+
+	ld a, (hl)
+	ld (de), a
+	cp 0
+	ret z
+	inc hl
+	inc de
+	djnz strncpy
+	ret
+.endf ;strncpy
+
+
+.func strlen:
+;; Description: Returns the lenght of the string pointed to by hl
+;;              not including the null terminator
+;; Input: hl: String pointer
+;; Output: a
+;; Destroyed: b, hl
+	ld b, 0
+loop:
+	ld a, (hl)
+	cp 0
+	jr z, exit
+	inc b
+	inc hl
+	jr loop
+exit:
+	ld a, b
+	ret
+.endf ;strlen
+
+
+.func toupper:
+;; Description: Converts a to uppercase
+;; Input: a: char
+;; Output: a
+;; Destroyed: 
+
+	cp 61h
+	ret c
+	cp 7bh
+	ret nc
+	sub 20h
+	ret
+.endf ;toupper
+
+
+.func strtup:
+;; Description: Converts hl to uppercase
+;; Input: hl: String pointer
+;; Output: none
+;; Destroyed:
+
 	ld a, (hl)
 	cp 0
 	ret z
 
-	cp 61h
-	jr c, convertToUpper00
-	cp 7bh
-	jr nc, convertToUpper00
-	sub 20h
+	call toupper
 	ld (hl), a
-convertToUpper00:
 	inc hl
-	jr convertToUpper
-.endf ;convertToUpper
+	jr strtup
+.endf ;strtup
 
 
 ;*****************

@@ -514,7 +514,7 @@ entryLoop:
 	push hl
 	push bc
 	ld hl, entryNameBuffer
-	call strCompare
+	call strcmp
 	pop bc
 	jr z, entryMatch
 	pop hl

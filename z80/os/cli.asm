@@ -153,7 +153,7 @@ commandDispatch:
 	ld a, (de)
 	ld h, a
 	push hl
-	call convertToUpper
+	call strtup
 	dec de
 
 	;test: print out all arguments
@@ -202,7 +202,7 @@ dispatchLoop:
 	jr z, programInPath
 	push bc
 	push hl
-	call strCompare
+	call strcmp
 	pop hl
 	pop bc
 	jr nz, dispatchLoop;no match
@@ -222,7 +222,7 @@ dispatchLoop:
 programInPath:
 	;check path for programs
 	ld de, cliProgramName
-	call strCopy
+	call strcpy
 
 	ld de, programPath
 	call k_open
