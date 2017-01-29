@@ -62,6 +62,7 @@
 .include "io.asm"
 .include "interrupt.asm"
 .include "sd.asm"
+.include "drivers/ft240.asm"
 .include "string.asm"
 
 

@@ -75,7 +75,7 @@ tableSearchLoop:
 tableSpotFound:
 	ld a, c
 	ld (fd), a
-	;TODO check if valid path
+
 	;path should begin with "n:", where 0 <= n <= 9
 	ld hl, (path)
 	inc hl

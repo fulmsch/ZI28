@@ -40,8 +40,9 @@ fat_fat2StartSector:    .resb 4
 fat_rootDirStartSector: .resb 4
 fat_dataStartSector:    .resb 4
 
-; Calculate and store filesystem offsets
 .func fat_init:
+;; Calculate and store filesystem offsets
+
 	;load the MBR
 	xor a
 	ld b, a
@@ -161,17 +162,16 @@ fat_dataStartSector:    .resb 4
 .endf ;fat_init
 
 
-;*****************
-;Open file
-;Description: creates a new file table entry
-;Old Inputs: (de) = pathname, a = mode
-;Inputs: ix = table entry, (de) = absolute path, a = mode
-;Outputs: a = errno
-;Errors: 0=no error
-;        4=no matching file found
-;        5=file too large
-;Destroyed: all
 .func fat_open:
+;; Description: creates a new file table entry
+;; Old Inputs: (de) = pathname, a = mode
+;; Inputs: ix = table entry, (de) = absolute path, a = mode
+;; Outputs: a = errno
+;; Errors: 0=no error
+;;         4=no matching file found
+;;         5=file too large
+;; Destroyed: all
+
 ;	ld (tableEntry), hl
 	ld (mode), a
 
@@ -275,16 +275,15 @@ sector:
 
 .endf ;fat_open
 
-;*****************
-;Read from file
-;Description: copy data from a file to memory
-;Old Inputs: a = file descriptor, (de) = buffer, hl = count
-;Inputs: ix = file entry addr, (de) = buffer, bc = count
-;Outputs: a = errno, de = count
-;Errors: 0=no error
-;        1=invalid file descriptor
-;Destroyed: none
 .func fat_read:
+;; Description: copy data from a file to memory
+;; Old Inputs: a = file descriptor, (de) = buffer, hl = count
+;; Inputs: ix = file entry addr, (de) = buffer, bc = count
+;; Outputs: a = errno, de = count
+;; Errors: 0=no error
+;;         1=invalid file descriptor
+;; Destroyed: none
+
 	;(ix)=table entry
 	;TODO check mode
 	;TODO check filesize

@@ -33,11 +33,18 @@
 ;OS workspace
 #define osWorkspace             registerStack
 
+;Device Fs
+#define devfsEntrySize          16
+#define devfsEntries            32
+
+#define devfsRoot               osWorkspace
+#define devfsRootEnd            devfsRoot + devfsEntrySize * devfsEntries
+
 ;Drive Table
 #define driveTableEntrySize     32
 #define driveTableEntries       9
 
-#define driveTable              osWorkspace
+#define driveTable              devfsRootEnd
 #define driveTableEnd           driveTable + driveTableEntrySize * driveTableEntries
 
 ;File Table
