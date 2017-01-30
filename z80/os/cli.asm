@@ -304,16 +304,20 @@ programExtension:
 
 ;Command strings
 echoStr:    .asciiz "ECHO"
-exitStr:    .asciiz "EXIT"
 helpStr:    .asciiz "HELP"
+lsStr:      .asciiz "LS"
 monStr:     .asciiz "MONITOR"
+mountStr:   .asciiz "MOUNT"
 nullStr:    .db 00h
 
 dispatchTable:
-	.dw echoStr, echo
-	.dw exitStr, exit
-	.dw helpStr, help
-	.dw monStr, cliMonitor
+	.dw echoStr,  b_echo
+	.dw helpStr,  b_help
+	.dw lsStr,    b_ls
+	.dw monStr,   b_monitor
+	.dw mountStr, b_mount
 	.dw nullStr
 
-.include "builtins.asm"
+.include "builtins/echo.asm"
+.include "builtins/help.asm"
+.include "builtins/monitor.asm"
