@@ -38,7 +38,8 @@
 #define devfsEntries            32
 
 #define devfsRoot               osWorkspace
-#define devfsRootEnd            devfsRoot + devfsEntrySize * devfsEntries
+#define devfsRootTerminator     devfsRoot + devfsEntrySize * devfsEntries
+#define devfsRootEnd            devfsRootTerminator + 1
 
 ;Drive Table
 #define driveTableEntrySize     32

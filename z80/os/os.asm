@@ -80,8 +80,22 @@ _coldStart:
 	ld a, 0
 	call k_mount
 
+	ld de, ttyName
+	call k_open
+
+	ld a, e
+	ld de, 0c000h
+	ld hl, 1
+	call k_read
+
+	ld a, (0c000h)
+	call putc
+
 
 	call cli
+
+ttyName:
+	.asciiz "0:TTY0"
 
 
 

@@ -1,4 +1,11 @@
 .list
+
+.define devfs_name         0
+.define devfs_entryDriver  8
+.define devfs_number      10
+.define devfs_attributes  11
+
+
 devfs_fsDriver:
 	.dw devfs_init
 	.dw devfs_open
@@ -32,8 +39,13 @@ devfs_fsDriver:
 	inc de
 	inc de
 	inc de
+
 	;end of devfs
-	ld (de), a
+	ld hl, devfsRootTerminator
+	ld (hl), 0
+
+
+	xor a
 	ret
 
 
@@ -43,7 +55,51 @@ tty0name:
 
 
 .func devfs_open:
+;; Inputs: ix = table entry, (de) = absolute path, a = mode
+;; Outputs: a = errno
+;; Errors: 0=no error
+;;         4=no matching file found
 
+	ld hl, devfsRoot
+	push de ;path
+	push hl ;file entry
+	ld b, 8
+	call strncmp
+	jr z, fileFound
+
+fileSearchLoop:
+	ld de, devfsEntrySize
+	pop hl ;file entry
+	add hl, de
+	pop de ;path
+	ld a, (hl)
+	cp 0
+	jr z, invalidFile
+	push de ;path
+	push hl ;file entry
+	ld b, 8
+	call strncmp
+	jr nz, fileSearchLoop
+
+fileFound:
+	pop iy ;pointer to devfs file entry
+	pop de ;path, not needed anymore
+
+	;copy file information
+	ld a, (iy + devfs_entryDriver)
+	ld (ix + fileTableDriver), a
+	ld a, (iy + devfs_entryDriver + 1)
+	ld (ix + fileTableDriver + 1), a
+
+	;fill table spot
+	ld (ix + 0), 1
+
+	;operation succesful
+	xor a
+	ret
+
+invalidFile:
+	ld a, 4
 	ret
 .endf ;devfs_open
 

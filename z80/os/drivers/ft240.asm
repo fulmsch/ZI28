@@ -1,3 +1,5 @@
+.list
+
 ; FT240x driver
 ; TODO allow more than 256 bytes read/write
 
@@ -8,10 +10,11 @@ ft240_fileDriver:
 
 
 .func ft240_read:
-;; Inputs: ix = file entry addr, (de) = buffer, b = count
+;; Inputs: ix = file entry addr, (de) = buffer, c = count
 ;; a = errno, de = count
 ;; Errors: 0=no error
 
+	ld b, c
 	ld hl, 0
 
 poll:
@@ -29,10 +32,11 @@ poll:
 
 
 .func ft240_write:
-;; Inputs: ix = file entry addr, (de) = buffer, b = count
+;; Inputs: ix = file entry addr, (de) = buffer, c = count
 ;; a = errno, de = count
 ;; Errors: 0=no error
 
+	ld b, c
 	ld hl, 0
 
 poll:

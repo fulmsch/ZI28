@@ -98,7 +98,7 @@ srcloop:
 .func strncmp:
 ;; Description: Compares at most the first b characters of hl and de
 ;; Input: de, hl: String pointers; b: length
-;; Output: none
+;; Output: z if equal strings
 ;; Destroyed: a, bc, de, hl
 
 	ld a, (de)

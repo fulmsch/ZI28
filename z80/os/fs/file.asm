@@ -51,6 +51,7 @@
 ;Destroyed: all
 .func k_open:
 ;TODO convert path to uppercase
+;TODO set offset to 0
 	ld (mode), a
 	ld (path), de
 

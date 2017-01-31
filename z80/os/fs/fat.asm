@@ -1,4 +1,6 @@
 .list
+;TODO move all variables to ram
+
 fat_fsDriver:
 	.dw fat_init
 	.dw fat_open
