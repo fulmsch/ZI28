@@ -32,7 +32,56 @@
 	jp getTableAddr
 .endf ;getDriverAddr
 
-k_mount:
+
+.func k_mount:
+;; Description: Create a new entry in the drive table
+;;              and initialise the filesystem
+;; Inputs: de = fs driver, h = devfd, a = drive number
+;; Outputs: a = errno
+;; Errors: 0=no error
+;;         2=invalid drive number
+
+	push de
+	push hl
+	call getDriveAddr
+	jr c, invalidDrive
+	ld a, (hl)
+	cp 0
+	jr nz, invalidDrive
+	push hl
+	pop ix
+	;ix points to valid drive entry
+	pop hl
+	pop de
+	ld (ix + driveTableDevfd), h
+	ld (ix + driveTableFsdriver), e
+	ld (ix + driveTableFsdriver + 1), d
+
+	ld hl, fs_init
+	add hl, de
+	ld e, (hl)
+	inc hl
+	ld d, (hl)
+	ex de, hl
+
+	ld de, return
+	push de
+	jp (hl)
+
+return:
+	ld a, 1
+	ld (ix + 0), a
+	ret
+
+
+invalidDrive:
+	pop de
+	pop hl
+	ld a, 2
+	ret
+.endf ;k_mount
+
+
 k_umount:
 
 

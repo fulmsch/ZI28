@@ -75,7 +75,11 @@ _coldStart:
 	xor a
 	call setOutput
 	call setInput
-	rst monitor
+
+	ld de, devfs_fsDriver
+	ld a, 0
+	call k_mount
+
 
 	call cli
 

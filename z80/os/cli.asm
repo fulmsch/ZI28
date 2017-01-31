@@ -175,15 +175,15 @@ commandDispatch:
 	push hl
 
 checkIfFullpath:
-	;check if there is a / in the filename
-	ld a, (hl)
-	inc hl
-
-	cp '/'
-	jr z, fullPath
-
-	cp 00h
-	jr nz, checkIfFullpath
+;	;check if there is a / in the filename
+;	ld a, (hl)
+;	inc hl
+;
+;	cp '/'
+;	jr z, fullPath
+;
+;	cp 00h
+;	jr nz, checkIfFullpath
 
 	ld bc, dispatchTable
 	pop hl ;contains pointer to first string
@@ -220,11 +220,12 @@ dispatchLoop:
 
 
 programInPath:
-	;check path for programs
-	ld de, cliProgramName
-	call strcpy
+;	;check path for programs
+;	ld de, cliProgramName
+;	call strcpy
 
-	ld de, programPath
+;	ld de, programPath
+	ex de, hl
 	call k_open
 	cp 0
 	jr z, loadProgram

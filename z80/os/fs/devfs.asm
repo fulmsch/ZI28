@@ -34,18 +34,21 @@ devfs_fsDriver:
 	inc de
 	;end of devfs
 	ld (de), a
+	ret
 
 
 tty0name:
-	.asciiz "TTY0\0"
+	.asciiz "TTY0"
 .endf ;devfs_init
 
 
 .func devfs_open:
 
+	ret
 .endf ;devfs_open
 
 
 .func devfs_close:
 
+	ret
 .endf ;devfs_close
