@@ -1,6 +1,6 @@
 .list
 
-.func u_echo:
+.func b_echo:
 	;print all arguments
 	ld a, (argc)
 	dec a

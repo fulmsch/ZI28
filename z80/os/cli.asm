@@ -320,4 +320,6 @@ dispatchTable:
 
 .include "builtins/echo.asm"
 .include "builtins/help.asm"
+.include "builtins/ls.asm"
 .include "builtins/monitor.asm"
+.include "builtins/mount.asm"

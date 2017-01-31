@@ -1,5 +1,5 @@
 .list
 
-.func u_mount:
+.func b_mount:
 
-.endf ;u_mount
+.endf ;b_mount

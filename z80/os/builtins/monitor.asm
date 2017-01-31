@@ -1,6 +1,6 @@
 .list
 
-.func u_monitor:
+.func b_monitor:
 	rst 38h
 	ret
-.endf
+.endf ;b_monitor
