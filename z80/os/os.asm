@@ -84,12 +84,17 @@ _coldStart:
 	call k_open
 
 	ld a, e
+	ld (terminalFd), a
 	ld de, 0c000h
 	ld hl, 1
 	call k_read
 
-	ld a, (0c000h)
-	call putc
+	ld a, (terminalFd)
+	ld de, 0c000h
+	ld hl, 1
+	call k_write
+;	ld a, (0c000h)
+;	call putc
 
 
 	call cli

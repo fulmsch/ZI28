@@ -32,12 +32,13 @@
 
 ;OS workspace
 #define osWorkspace             registerStack
+#define terminalFd              osWorkspace
 
 ;Device Fs
 #define devfsEntrySize          16
 #define devfsEntries            32
 
-#define devfsRoot               osWorkspace
+#define devfsRoot               terminalFd + 1
 #define devfsRootTerminator     devfsRoot + devfsEntrySize * devfsEntries
 #define devfsRootEnd            devfsRootTerminator + 1
 

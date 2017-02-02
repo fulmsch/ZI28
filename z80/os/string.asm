@@ -149,22 +149,19 @@ srcloop:
 
 
 .func strlen:
-;; Description: Returns the lenght of the string pointed to by hl
+;; Description: Returns the length of the string pointed to by hl
 ;;              not including the null terminator
 ;; Input: hl: String pointer
-;; Output: a
-;; Destroyed: b, hl
-	ld b, 0
+;; Output: bc
+;; Destroyed: hl
+	ld bc, 0
 loop:
 	ld a, (hl)
 	cp 0
-	jr z, exit
-	inc b
+	ret z
+	inc bc
 	inc hl
 	jr loop
-exit:
-	ld a, b
-	ret
 .endf ;strlen
 
 
@@ -207,10 +204,17 @@ exit:
 ;Outputs: String at terminal
 ;Destroyed: hl, a
 .func printStr:
-	ld a, (hl)
-	cp 00h
-	ret z
-	rst putc
-	inc hl
-	jr printStr
+	push hl
+	call strlen
+	ld h, b
+	ld l, c
+	pop de
+	ld a, (terminalFd)
+	jp k_write
+;	ld a, (hl)
+;	cp 00h
+;	ret z
+;	rst putc
+;	inc hl
+;	jr printStr
 .endf ;printStr

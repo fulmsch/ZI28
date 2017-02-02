@@ -17,7 +17,9 @@ loop:
 	ld a, (de)
 	ld h, a
 	inc de
+	push de
 	call printStr
+	pop de
 	ld a, ' '
 	call putc
 	djnz loop

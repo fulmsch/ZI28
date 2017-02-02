@@ -202,7 +202,9 @@ loadPrgm:
 
 load:
 	ld hl, loadStr
+	push de
 	call printStr
+	pop de
 	ld hl, 00h
 
 waitForRecord:

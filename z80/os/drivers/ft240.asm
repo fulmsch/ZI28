@@ -10,11 +10,16 @@ ft240_fileDriver:
 
 
 .func ft240_read:
-;; Inputs: ix = file entry addr, (de) = buffer, c = count
+;; Inputs: ix = file entry addr, (de) = buffer, bc = count
 ;; a = errno, de = count
 ;; Errors: 0=no error
 
-	ld b, c
+	;calculate loop value in bc
+	ld a, c
+	dec bc
+	inc b
+	ld c, b
+	ld b, a
 	ld hl, 0
 
 poll:
@@ -26,28 +31,38 @@ poll:
 	inc de
 	inc hl
 	djnz poll
+	dec c
+	jr nz, poll
 	ex de, hl
 	ret
 .endf ;ft240_read
 
 
 .func ft240_write:
-;; Inputs: ix = file entry addr, (de) = buffer, c = count
+;; Inputs: ix = file entry addr, (de) = buffer, bc = count
 ;; a = errno, de = count
 ;; Errors: 0=no error
 
-	ld b, c
+	;calculate loop value in bc
+	ld a, c
+	dec bc
+	inc b
+	ld c, b
+	ld b, a
+
 	ld hl, 0
 
 poll:
 	in a, (TERMCR)
 	bit 0, a
-	jp nz, poll
+	jr nz, poll
 	ld a, (de)
 	out (TERMDR), a
 	inc de
 	inc hl
 	djnz poll
+	dec c
+	jr nz, poll
 	ex de, hl
 	ret
 .endf ;ft240_write

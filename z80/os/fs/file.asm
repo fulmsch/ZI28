@@ -251,8 +251,6 @@ invalidFd:
 	;call file driver
 	pop bc ;count
 	pop de ;buffer
-;	ld bc, (count)
-;	ld de, (buffer)
 	jp (hl)
 
 invalidFd:
@@ -273,7 +271,55 @@ invalidDriver:
 
 
 .func k_write:
+;; Description: find the write routine associated with a file and call it
+;; Inputs: a = file descriptor, (de) = buffer, hl = count
+;; Outputs: a = errno, de = count
+;; Errors: 0=no error
+;;         1=invalid file descriptor
+;;         2=invalid file driver
 
+	push de ;buffer
+	push hl ;count
+
+	;check if fd exists
+	call getFileAddr
+	jr c, invalidFd
+	ld a, (hl)
+	cp 00h
+	jr z, invalidFd
+
+	push hl
+	pop ix
+
+	;check for valid file driver
+	ld l, (ix + fileTableDriver)
+	ld h, (ix + fileTableDriver + 1)
+	and a
+	ld de, 0
+	sbc hl, de
+	jr z, invalidDriver;NULL pointer
+	ld de, file_write
+	add hl, de
+	ld e, (hl)
+	inc hl
+	ld d, (hl)
+	ex de, hl
+
+	;call file driver
+	pop bc ;count
+	pop de ;buffer
+	jp (hl)
+
+invalidFd:
+	pop hl
+	pop hl
+	ld a, 1
+	ret
+invalidDriver:
+	pop hl
+	pop hl
+	ld a, 2
+	ret
 .endf ;k_write
 
 

@@ -19,7 +19,9 @@ tableLoop:
 	jr z, path
 	ld a, ' '
 	call putc
+	push bc
 	call printStr
+	pop bc
 	ld a, 0dh
 	call putc
 	ld a, 0ah
@@ -27,18 +29,18 @@ tableLoop:
 	jr tableLoop
 
 path:
-	ld hl, pathMsg
-	call printStr
-	;print the path
-	xor a
-	ld (cliProgramName), a
-	ld hl, programPath
-	call printStr
+;	ld hl, pathMsg
+;	call printStr
+;	;print the path
+;	xor a
+;	ld (cliProgramName), a
+;	ld hl, programPath
+;	call printStr
 
-	ld a, 0dh
-	call putc
-	ld a, 0ah
-	call putc
+;	ld a, 0dh
+;	call putc
+;	ld a, 0ah
+;	call putc
 
 	ret
 

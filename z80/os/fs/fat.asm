@@ -289,6 +289,7 @@ sector:
 	;(ix)=table entry
 	;TODO check mode
 	;TODO check filesize
+
 	ld l, (ix+fat_fileTableSize)
 	ld h, (ix+fat_fileTableSize+1)
 	or a
