@@ -18,7 +18,9 @@ loop:
 	ld h, a
 	inc de
 	push de
+	push bc
 	call printStr
+	pop bc
 	pop de
 	ld a, ' '
 	call putc

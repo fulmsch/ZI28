@@ -132,6 +132,11 @@ tableSpotFound:
 
 	ld a, (mode)
 	ld (ix + fileTableMode), a
+	ld a, 0
+	ld (ix + fileTableOffset + 0), a
+	ld (ix + fileTableOffset + 1), a
+	ld (ix + fileTableOffset + 2), a
+	ld (ix + fileTableOffset + 3), a
 
 	ld de, return
 	push de

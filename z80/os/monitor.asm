@@ -352,7 +352,9 @@ hexDump:
 	jp nz, invalid
 	
 	ld hl, hexDumpHeader
+	push de
 	call printStr
+	pop de
 
 hexDump00:
 	ld a, 16
