@@ -52,8 +52,8 @@
 .func k_open:
 ;TODO convert path to uppercase
 ;TODO set offset to 0
-	ld (mode), a
-	ld (path), de
+	ld (k_open_mode), a
+	ld (k_open_path), de
 
 	;search free table spot
 	ld ix, fileTable
@@ -75,10 +75,10 @@ tableSearchLoop:
 
 tableSpotFound:
 	ld a, c
-	ld (fd), a
+	ld (k_open_fd), a
 
 	;path should begin with "n:", where 0 <= n <= 9
-	ld hl, (path)
+	ld hl, (k_open_path)
 	inc hl
 	ld a, (hl)
 	dec hl
@@ -89,10 +89,10 @@ tableSpotFound:
 	jp c, invalidPath
 	cp 10
 	jp nc, invalidPath
-	ld (drive), a
+	ld (k_open_drive), a
 	inc hl
 	inc hl
-	ld (path), hl
+	ld (k_open_path), hl
 
 
 
@@ -101,7 +101,7 @@ tableSpotFound:
 ;	add hl, de
 
 	;search drive entry
-	ld a, (drive)
+	ld a, (k_open_drive)
 	call getDriveAddr
 	jr c, invalidDrive
 
@@ -130,7 +130,7 @@ tableSpotFound:
 	ex de, hl
 ;	pop bc ;filetable entry addr
 
-	ld a, (mode)
+	ld a, (k_open_mode)
 	ld (ix + fileTableMode), a
 	ld a, 0
 	ld (ix + fileTableOffset + 0), a
@@ -140,7 +140,7 @@ tableSpotFound:
 
 	ld de, return
 	push de
-	ld de, (path)
+	ld de, (k_open_path)
 
 	;FIX jumps to pointer
 	jp (hl)
@@ -152,7 +152,7 @@ return:
 	ld (ix + 0), 1
 
 
-	ld a, (fd)
+	ld a, (k_open_fd)
 	ld e, a
 	ld a, 0
 	ret
@@ -165,17 +165,17 @@ invalidPath:
 	ld a, 3
 	ret
 
-mode:
+;mode:
 	.db 0
-fd:
+;fd:
 	.db 0
-path:
+;path:
 	.dw 0
 ;pathBuffer:
 ;	.resb 13
 ;sector:
 ;	.resb 4
-drive:
+;drive:
 	.db 0
 
 .endf ;k_open
@@ -253,9 +253,19 @@ invalidFd:
 	ld d, (hl)
 	ex de, hl
 
-	;call file driver
 	pop bc ;count
 	pop de ;buffer
+
+	;check if count > 0
+	ld a, b
+	cp 0
+	jr nz, validCount
+	ld a, c
+	cp 0
+	jr z, zeroCount
+validCount:
+
+	;call file driver
 	jp (hl)
 
 invalidFd:
@@ -267,6 +277,10 @@ invalidDriver:
 	pop hl
 	pop hl
 	ld a, 2
+	ret
+zeroCount:
+	ld a, 0
+	ld de, 0
 	ret
 ;buffer:
 ;	.dw 0
@@ -310,9 +324,19 @@ invalidDriver:
 	ld d, (hl)
 	ex de, hl
 
-	;call file driver
 	pop bc ;count
 	pop de ;buffer
+
+	;check if count > 0
+	ld a, b
+	cp 0
+	jr nz, validCount
+	ld a, c
+	cp 0
+	jr z, zeroCount
+validCount:
+
+	;call file driver
 	jp (hl)
 
 invalidFd:
@@ -324,6 +348,10 @@ invalidDriver:
 	pop hl
 	pop hl
 	ld a, 2
+	ret
+zeroCount:
+	ld a, 0
+	ld de, 0
 	ret
 .endf ;k_write
 

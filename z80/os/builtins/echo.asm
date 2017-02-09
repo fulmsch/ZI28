@@ -4,7 +4,7 @@
 	;print all arguments
 	ld a, (argc)
 	dec a
-	ret z
+	jr z, newline
 	ld b, a
 	ld de, argv
 	inc de
@@ -26,6 +26,7 @@ loop:
 	call putc
 	djnz loop
 
+newline:
 	ld a, 0dh
 	call putc
 	ld a, 0ah
