@@ -20,8 +20,8 @@
 
 .define file_read  0
 .define file_write 2
-.define file_seek  4
-.define file_fctl   6
+;.define file_seek  4
+.define file_fctl   4
 
 .func getFileAddr:
 ;Inputs: a = index
@@ -357,5 +357,21 @@ zeroCount:
 
 
 .func k_seek:
+;; Description: change the offset on a file according to whence as follows:
+;;               SEEK_SET  : from start of file
+;;               SEEK_PCUR : from current location in positive direction
+;;               SEEK_NCUR : from current location in negative direction
+;;               SEEK_END  : from end of file in negative direction
+;; Inputs: a = file descriptor, dehl = offset, b = whence
+;; Outputs: a = errno, dehl = new offset from start of file
+;; Errors: 0=no error
+;;         1=invalid file descriptor
+;;         2=whence is invalid
+;;         3=the resulting offset would be invalid
 
-.endf
+.endf ;k_seek
+
+.define SEEK_SET  0
+.define SEEK_PCUR 1
+.define SEEK_NCUR 2
+.define SEEK_END  3

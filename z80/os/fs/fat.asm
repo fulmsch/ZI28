@@ -9,7 +9,7 @@ fat_fsDriver:
 fat_fileDriver:
 	.dw fat_read
 	.dw fat_write
-	.dw fat_seek
+;	.dw fat_seek
 	.dw fat_fctl
 
 .define fat_fileTableStartCluster fileTableData
@@ -378,10 +378,6 @@ readSector:
 .func fat_write:
 
 .endf ;fat_write
-
-.func fat_seek:
-
-.endf ;fat_seek
 
 .func fat_fctl:
 

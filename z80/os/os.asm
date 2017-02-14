@@ -50,7 +50,7 @@
 	jp      k_close
 	jp      k_read
 	jp      k_write
-
+	jp      k_seek
 
 
 	.resw nmiEntry - $

@@ -1,12 +1,11 @@
 .list
 
 ; FT240x driver
-; TODO allow more than 256 bytes read/write
 
 ft240_fileDriver:
 	.dw ft240_read
 	.dw ft240_write
-	.dw 0 ;seek
+;	.dw 0 ;seek
 
 
 .func ft240_read:
