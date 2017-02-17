@@ -189,15 +189,11 @@ invalidPath:
 ;        1=invalid file descriptor
 ;Destroyed: none
 .func k_close:
-	cp fileTableEntries
-	jr nc, invalidFd
-
 	call getFileAddr
 	jr c, invalidFd
 
-
-entryFound:
 	ld a, 0
+	ld b, fileTableEntrySize
 clearEntry:
 	ld (hl), a
 	inc hl
