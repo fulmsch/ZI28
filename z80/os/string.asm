@@ -1,5 +1,5 @@
 .list
-;; strings.asm
+;; string.asm
 ;; Contains string manipulation routines similar to those in the C library "string.h"
 ;;
 ;; Calling conventions:

@@ -64,6 +64,7 @@
 .include "sd.asm"
 .include "drivers/ft240.asm"
 .include "string.asm"
+.include "math.asm"
 
 
 ; Cold start -------------------------------------------------
