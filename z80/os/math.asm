@@ -36,7 +36,15 @@ sub32:
 ;; Output:
 ;; Destroyed: a, b, de, hl
 
-
+	ld b, 4
+loop:
+	ld a, (de)
+	sbc a, (hl)
+	ld (de), a
+	inc de
+	inc hl
+	djnz loop
+	ret
 .endf ;sub32
 
 
