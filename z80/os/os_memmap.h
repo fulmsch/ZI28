@@ -63,8 +63,12 @@
 #define k_open_drive            k_open_path + 2
 #define k_open_end              k_open_drive + 1
 
+;k_seek
+#define k_seek_new              k_open_end
+#define k_seek_end              k_seek_new + 4
+
 ;cli
-#define cliWorkspace            k_open_end
+#define cliWorkspace            k_seek_end
 
 #define inputBufferSize         128
 #define maxArgc                 32

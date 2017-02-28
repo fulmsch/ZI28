@@ -1,17 +1,12 @@
 .list
-;*********** File Table ********************
-;.define fileTableEntrySize  32
-;.define fileTableEntries    32
-
-;fileTable:
-;	.resb fileTableEntrySize * fileTableEntries
-
+;TODO consolidate error returns
 
 .define fileTableStatus     0
 .define fileTableDriver     fileTableStatus + 1
 .define fileTableAttributes fileTableDriver + 2
 .define fileTableOffset     fileTableAttributes + 1
-.define fileTableMode       fileTableOffset + 4
+.define fileTableSize       fileTableOffset + 4
+.define fileTableMode       fileTableSize + 4
 .define fileTableData       fileTableMode + 1
 
 ;.define fileTableDrive         fileTableMode + 1
@@ -22,6 +17,11 @@
 .define file_write 2
 ;.define file_seek  4
 .define file_fctl   4
+
+.define SEEK_SET  0
+.define SEEK_PCUR 1
+.define SEEK_NCUR 2
+.define SEEK_END  3
 
 .func getFileAddr:
 ;Inputs: a = index
@@ -358,16 +358,123 @@ zeroCount:
 ;;               SEEK_PCUR : from current location in positive direction
 ;;               SEEK_NCUR : from current location in negative direction
 ;;               SEEK_END  : from end of file in negative direction
-;; Inputs: a = file descriptor, dehl = offset, b = whence
-;; Outputs: a = errno, dehl = new offset from start of file
+;; Inputs: a = file descriptor, (de) = offset, h = whence
+;; Outputs: a = errno, (de) = new offset from start of file
 ;; Errors: 0=no error
 ;;         1=invalid file descriptor
 ;;         2=whence is invalid
 ;;         3=the resulting offset would be invalid
 
-.endf ;k_seek
+	push hl
+	push de
 
-.define SEEK_SET  0
-.define SEEK_PCUR 1
-.define SEEK_NCUR 2
-.define SEEK_END  3
+	;check if fd exists, get the address
+	call getFileAddr
+	pop de
+	pop bc
+	jp c, invalidFd
+	ld a, (hl)
+	cp 00h
+	jp z, invalidFd
+	;hl=table entry addr
+
+	push de
+	push hl
+
+	;check whence
+	ld a, b
+	cp SEEK_SET
+	jr z, set
+	cp SEEK_END
+	jr z, end
+	cp SEEK_PCUR
+	jr z, pcur
+	cp SEEK_NCUR
+	jr nz, invalidWhence
+
+ncur:
+	ld de, fileTableOffset
+	add hl, de
+	ld de, k_seek_new
+	call ld32
+	jr subOffs
+
+end:
+	ld de, fileTableSize
+	add hl, de
+	ld de, k_seek_new
+	call ld32
+
+subOffs:
+	;new=new-offs
+	ld hl, k_seek_new
+	pop de ;offset
+	push de
+	call cp32
+	pop de
+	jr c, invalidOffset
+
+	ld hl, k_seek_new
+	call sub32
+
+	pop hl ;table entry addr
+
+	ld de, fileTableOffset
+	add hl, de
+	push hl
+	ld de, k_seek_new
+	call ld32
+
+	pop de
+	ld a, 0
+	ret
+
+
+pcur:
+	ld de, fileTableOffset
+	add hl, de
+	ld de, k_seek_new
+	call ld32
+	jr addOffs
+
+set:
+	ld hl, k_seek_new
+	call clear32
+
+addOffs:
+	;new=new+offs
+	ld hl, k_seek_new
+	pop de ;offset
+	call add32
+
+	pop hl ;table entry addr
+	push hl
+	ld de, fileTableSize
+	add hl, de
+	ex de, hl
+	ld hl, k_seek_new
+	call cp32
+	pop hl
+	jr nc, invalidOffset
+
+	ld de, fileTableOffset
+	add hl, de
+	push hl
+	ld de, k_seek_new
+	call ld32
+
+	pop de
+	ld a, 0
+	ret
+
+
+invalidFd:
+	ld a, 1
+	ret
+invalidWhence:
+	ld a, 2
+	ret
+invalidOffset:
+	ld a, 3
+	ret
+.endf ;k_seek
