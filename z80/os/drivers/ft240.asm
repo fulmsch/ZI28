@@ -7,6 +7,8 @@ ft240_fileDriver:
 	.dw ft240_write
 ;	.dw 0 ;seek
 
+.define FT240_DATA   0
+.define FT240_STATUS 1
 
 .func ft240_read:
 ;; Inputs: ix = file entry addr, (de) = buffer, bc = count
@@ -22,10 +24,10 @@ ft240_fileDriver:
 	ld hl, 0
 
 poll:
-	in a, (TERMCR)
+	in a, (FT240_STATUS)
 	bit 1, a
 	jr nz, poll
-	in a, (TERMDR)
+	in a, (FT240_DATA)
 	ld (de), a
 	inc de
 	inc hl
@@ -52,11 +54,11 @@ poll:
 	ld hl, 0
 
 poll:
-	in a, (TERMCR)
+	in a, (FT240_STATUS)
 	bit 0, a
 	jr nz, poll
 	ld a, (de)
-	out (TERMDR), a
+	out (FT240_DATA), a
 	inc de
 	inc hl
 	djnz poll

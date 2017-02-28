@@ -1,5 +1,3 @@
-TERMDR  equ    0
-TERMCR  equ    1
 BANKSR  equ    2
 
 
