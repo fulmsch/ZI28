@@ -11,9 +11,11 @@
 	<h1>ZI-28 Documentation</h1>
 	<h2>Index</h2>
 
+	$if(files)$
 	<div class="files">
 		<h3>Files</h3>
 	$for(files)$
+		$if(files.name)$
 		<div class="menuentry">
 			<div class="menutitle">
 				<a href="$files.name$.html">$files.name$</a>
@@ -22,12 +24,16 @@
 				<p>$files.desc$</p>
 			</div>
 		</div>
+		$endif$
 	$endfor$
 	</div>
+	$endif$
 
+	$if(routines)$
 	<div class="routines">
 		<h3>Routines</h3>
 	$for(routines)$
+		$if(routines.name)$
 		<div class="menuentry">
 			<div class="menutitle">
 				<a href="$routines.file$.html#$routines.name$">$routines.name$</a>
@@ -36,8 +42,10 @@
 				<p>$routines.sdesc$</p>
 			</div>
 		</div>
+		$endif$
 	$endfor$
 	</div>
+	$endif$
 
 
 
