@@ -70,7 +70,8 @@ def main(argv):
 
 		#Append the filename and short description to index
 		entry = {'name':name, 'desc':sdesc}
-		index['files'].append(entry)
+		if entry not in index['files']:
+			index['files'].append(entry)
 
 		file_index = {'name':name, 'desc':desc, 'routines':[]}
 		del lines[:n]
