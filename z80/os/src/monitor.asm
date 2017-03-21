@@ -1,3 +1,4 @@
+;; Machine monitor, unstable and incomplete
 ;TODO:
 ;Change call to rst
 ;Only allow printable chars as input

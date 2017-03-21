@@ -1,5 +1,5 @@
-;TODO:
-;Every device should be represented by one bit, so that multiple devices may be selected
+;; Legacy terminal I/O, will be replaced with the new file system
+;TODO: replace this with device files
 
 TERMDR  equ    0
 TERMCR  equ    1

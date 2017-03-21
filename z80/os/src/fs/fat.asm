@@ -1,3 +1,4 @@
+;; FAT-16 file system
 .list
 ;TODO move all variables to ram
 

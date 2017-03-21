@@ -1,18 +1,35 @@
-.list
-;; math.asm
 ;; Contains advanced math routines
+;;
 ;; Based on: http://www.ticalc.org/pub/83/asm/source/routines/math32.inc
+.list
 
 
 add32:
+;; Add two 32-bit numbers
+;;
+;; Input:
+;; : (hl), (de) - 32-bit numbers
+;;
+;; Output:
+;; : (hl) = (hl) + (de)
+;;
+;; Destroyed:
+;; : a, b, de, hl
+
 	;clear the carry flag
 	or a
 
 .func adc32:
-;; Description: Adds (de) to (hl)
-;; Input: (hl), (de): 32-bit pointers
+;; Add two 32-bit numbers and the carry bit
+;;
+;; Input:
+;; : (hl), (de) - 32-bit numbers
+;;
 ;; Output:
-;; Destroyed: a, b, de, hl
+;; : (hl) = (hl) + (de) + cf
+;;
+;; Destroyed:
+;; : a, b, de, hl
 
 	ld b, 4
 loop:
@@ -27,14 +44,31 @@ loop:
 
 
 sub32:
+;; Subtract two 32-bit numbers
+;;
+;; Input:
+;; : (hl), (de) - 32-bit numbers
+;;
+;; Output:
+;; : (hl) = (hl) - (de)
+;;
+;; Destroyed:
+;; : a, b, de, hl
+
 	;clear the carry flag
 	or a
 
 .func sbc32:
-;; Description: Subtracts (de) from (hl)
-;; Input: (hl), (de): 32-bit pointers
+;; Subtract two 32-bit numbers and the carry bit
+;;
+;; Input:
+;; : (hl), (de) - 32-bit numbers
+;;
 ;; Output:
-;; Destroyed: a, b, de, hl
+;; : (hl) = (hl) - (de) - cf
+;;
+;; Destroyed:
+;; : a, b, de, hl
 
 	ld b, 4
 loop:
@@ -49,10 +83,17 @@ loop:
 
 
 .func ld8:
-;; Description: Load a to (hl)
-;; Input: a: 8-bit number
+;; Load an 8-bit number into a 32-bit pointer
+;;
+;; Input:
+;; : a - 8-bit number
+;; : hl - 32-bit pointer
+;;
 ;; Output:
-;; Destroyed: b, de, hl
+;; : (hl) = a
+;;
+;; Destroyed:
+;; : b, de, hl
 
 	;save hl
 	ld d, h
@@ -66,10 +107,17 @@ loop:
 
 
 .func ld16:
-;; Description: Load de to (hl)
-;; Input: hl: 16-bit number
+;; Load a 16-bit number into a 32-bit pointer
+;;
+;; Input:
+;; : de - 16-bit nubmer
+;; : hl - 32-bit pointer
+;;
 ;; Output:
-;; Destroyed: a, hl
+;; : (hl) = de
+;;
+;; Destroyed:
+;; : a, hl
 
 	ld (hl), l
 	inc hl
@@ -83,10 +131,14 @@ loop:
 
 
 .func ld32:
-;; Description: Copies (hl) to (de)
-;; Input: (hl), (de): 32-bit numbers
-;; Output:
-;; Destroyed: bc, de, hl
+;; Copy a 32-bit number from (hl) to (de)
+;;
+;; Input:
+;; : (hl) - 32-bit number
+;; : de - 32-bit pointer
+;;
+;; Destroyed:
+;; : bc, de, hl
 
 	ld bc, 4
 	ldir
@@ -95,10 +147,19 @@ loop:
 
 
 .func cp32:
-;; Description: Compares (hl) to (de)
-;; Input: (hl), (de): 32-bit numbers
-;; Output: c-(hl)<(de), nc-(hl)>=(de), z-(hl)=(de), nz-(hl)!=(de)
-;; Destroyed: a, b, de, hl
+;; Compares two 32-bit numbers
+;;
+;; Input:
+;; : (hl), (de) - 32-bit numbers
+;;
+;; Output:
+;; : c - (hl)<(de)
+;; : nc - (hl)>=(de)
+;; : z - (hl)=(de)
+;; : nz - (hl)!=(de)
+;;
+;; Destroyed:
+;; : a, b, de, hl
 
 ;move the pointers to the msb
 	ld b, 3
@@ -119,10 +180,16 @@ loop:
 
 
 .func clear32:
-;; Description: Sets (hl) to 0
-;; Input: (hl): 32-bit number
-;; Output: (hl)=0
-;; Destroyed: b, hl
+;; Sets a 32-bit number to 0
+;;
+;; Input:
+;; : (hl) - 32-bit number
+;;
+;; Output:
+;; : (hl) = 0
+;;
+;; Destroyed:
+;; : b, hl
 
 	ld b, 4
 loop:

@@ -1,3 +1,4 @@
+;; 
 .list
 ;TODO consolidate error returns
 
@@ -24,10 +25,18 @@
 .define SEEK_END  3
 
 .func getFileAddr:
-;Inputs: a = index
-;Outputs: hl = table entry address
-;Errors: c = out of bounds
-;        nc = no error
+;; Finds the file entry of a given fd
+;;
+;; Input:
+;; : a - file descriptor
+;;
+;; Output:
+;; : hl - table entry address
+;; : carry - out of bounds
+;; : nc - no error
+;;
+;; See also:
+;; : [getTableAddr](drive.asm#getTableAddr)
 
 	ld hl, fileTable
 	ld de, fileTableEntrySize
@@ -37,19 +46,25 @@
 
 
 
-;*****************
-;Open file
-;Description: creates a new file table entry
-;Inputs: (de) = pathname, a = mode
-;Outputs: e = file descriptor, a = errno
+.func k_open:
+;; Open a file / device file
+;;
+;; Creates a new file table entry and returns the corresponding fd
+;;
+;; Input:
+;; : (de) - pathname
+;; : a - mode
+;;
+;; Output:
+;; : e - file descriptor
+;; : a - errno
 ;Errors: 0=no error
 ;        1=maximum allowed files already open
 ;        2=invalid drive number
 ;        3=invalid path
 ;        4=no matching file found
 ;        5=file too large
-;Destroyed: all
-.func k_open:
+
 ;TODO convert path to uppercase
 ;TODO set offset to 0
 	ld (k_open_mode), a
@@ -180,15 +195,20 @@ invalidPath:
 
 .endf ;k_open
 
-;*****************
-;Close file
-;Description: close a file table entry
-;Inputs: a = file descriptor
-;Outputs: a = errno
+
+.func k_close:
+;; Close a file
+;;
+;; Closes a file and makes its fd available again
+;;
+;; Input:
+;; : a - file descriptor
+;;
+;; Output:
+;; : a - errno
 ;Errors: 0=no error
 ;        1=invalid file descriptor
-;Destroyed: none
-.func k_close:
+
 	call getFileAddr
 	jr c, invalidFd
 
@@ -208,16 +228,22 @@ invalidFd:
 .endf ;k_close
 
 
-;*****************
-;Read from file
-;Description: copy data from a file to memory
-;Inputs: a = file descriptor, (de) = buffer, hl = count
-;Outputs: a = errno, de = count
+.func k_read:
+;; Read from an open file
+;;
+;; Finds and calls the read routine of the corresponding file driver.
+;;
+;; Input:
+;; : a - file descriptor
+;; : (de) - buffer
+;; : hl - count
+;;
+;; Output:
+;; : de - count
+;; : a - errno
 ;Errors: 0=no error
 ;        1=invalid file descriptor
-;        2=invalid file driver
-;Destroyed: none
-.func k_read:
+
 	push de ;buffer
 	push hl ;count
 ;	ld (buffer), de
@@ -286,12 +312,21 @@ zeroCount:
 
 
 .func k_write:
-;; Description: find the write routine associated with a file and call it
-;; Inputs: a = file descriptor, (de) = buffer, hl = count
-;; Outputs: a = errno, de = count
-;; Errors: 0=no error
-;;         1=invalid file descriptor
-;;         2=invalid file driver
+;; Write to an open file
+;;
+;; Finds and calls the write routine of the corresponding file driver.
+;;
+;; Input:
+;; : a - file descriptor
+;; : (de) - buffer
+;; : hl - count
+;;
+;; Output:
+;; : de - count
+;; : a - errno
+; Errors: 0=no error
+;         1=invalid file descriptor
+;         2=invalid file driver
 
 	push de ;buffer
 	push hl ;count
@@ -353,17 +388,27 @@ zeroCount:
 
 
 .func k_seek:
-;; Description: change the offset on a file according to whence as follows:
-;;               SEEK_SET  : from start of file
-;;               SEEK_PCUR : from current location in positive direction
-;;               SEEK_NCUR : from current location in negative direction
-;;               SEEK_END  : from end of file in negative direction
-;; Inputs: a = file descriptor, (de) = offset, h = whence
-;; Outputs: a = errno, (de) = new offset from start of file
-;; Errors: 0=no error
-;;         1=invalid file descriptor
-;;         2=whence is invalid
-;;         3=the resulting offset would be invalid
+;; Change the file offset of an open file
+;;
+;; The new offset is calculated according to whence as follows:
+;;
+;; * `SEEK_SET` : from start of file
+;; * `SEEK_PCUR` : from current location in positive direction
+;; * `SEEK_NCUR` : from current location in negative direction
+;; * `SEEK_END` : from end of file in negative direction
+;;
+;; Input:
+;; : a - file descriptor
+;; : (de) - offset
+;; : h - whence
+;;
+;; Output:
+;; : (de) - new offset from start of file
+;; : a - errno
+; Errors: 0=no error
+;         1=invalid file descriptor
+;         2=whence is invalid
+;         3=the resulting offset would be invalid
 
 	push hl
 	push de

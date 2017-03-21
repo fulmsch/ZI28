@@ -1,3 +1,4 @@
+;; Old SD-Card implementation, will be replaced by a proper device driver
 .define SD_ENABLE out (82h), a
 
 .define SD_DISABLE out (83h), a

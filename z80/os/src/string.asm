@@ -1,18 +1,23 @@
-.list
-;; string.asm
 ;; Contains string manipulation routines similar to those in the C library "string.h"
 ;;
-;; Calling conventions:
-;;  de = destination / str1
-;;  hl = source / str2
-;;  a  = char / len
+;; Calling convention:
+;; : de - destination / str1
+;; : hl - source / str2
+;; : a  - char / len
+.list
 
 
 .func memcmp:
-;; Description: Compares b bytes of hl and de
-;; Input: de, hl: Pointers
-;; Output: z if equal
-;; Destroyed: a, bc, de, hl
+;; Compares b bytes of hl and de
+;;
+;; Input:
+;; : de, hl - pointers
+;;
+;; Output:
+;; : z if equal
+;;
+;; Destroyed:
+;; : a, bc, de, hl
 
 	ld a, (de)
 	ld c, a
@@ -27,10 +32,12 @@
 
 
 .func memset:
-;; Description: Fills b bytes with a, starting at hl
-;; Input: a: value; hl: Pointer; b: count
-;; Output: none
-;; Destroyed:
+;; Fills b bytes with a, starting at hl
+;;
+;; Input:
+;; : a - value
+;; : hl - pointer
+;; : b - count
 
 	ld (hl), a
 	inc hl
@@ -40,10 +47,13 @@
 
 
 .func strcat:
-;; Description: Appends hl to the end of de
-;; Input: de, hl: String pointers
-;; Output: none
-;; Destroyed: a, de, hl
+;; Appends hl to the end of de
+;;
+;; Input:
+;; : de, hl - string pointers
+;;
+;; Destroyed:
+;; : a, de, hl
 
 	;Find the end of (de)
 srcloop:
@@ -59,10 +69,13 @@ srcloop:
 
 
 .func strncat:
-;; Description: Appends up to b characters from hl to the end of de
-;; Input: de, hl: String pointers
-;; Output: none
-;; Destroyed: a, b, de, hl
+;; Appends up to b characters from hl to the end of de
+;;
+;; Input:
+;; : de, hl - string pointers
+;;
+;; Destroyed:
+;; : a, b, de, hl
 
 	;Find the end of (de)
 srcloop:
@@ -77,9 +90,14 @@ srcloop:
 
 
 .func strcmp:
-;; Description: Compares hl and de
-;; Input: de, hl: String pointers
-;; Output: z if equal strings
+;; Compares hl and de
+;;
+;; Input:
+;; : de, hl - string pointers
+;;
+;; Output:
+;; : z if equal strings
+;;
 ;; Destroyed: a, b, de, hl
 
 	ld a, (de)
@@ -96,10 +114,17 @@ srcloop:
 
 
 .func strncmp:
-;; Description: Compares at most the first b characters of hl and de
-;; Input: de, hl: String pointers; b: length
-;; Output: z if equal strings
-;; Destroyed: a, bc, de, hl
+;; Compares at most the first b characters of hl and de
+;;
+;; Input:
+;; : de, hl - string pointers
+;; : b - length
+;;
+;; Output:
+;; : z if equal strings
+;;
+;; Destroyed:
+;; : a, bc, de, hl
 
 	ld a, (de)
 	ld c, a
@@ -116,10 +141,13 @@ srcloop:
 
 
 .func strcpy:
-;; Description: Copy hl to de
-;; Input: de, hl: String pointers
-;; Output: none
-;; Destroyed: a, de, hl
+;; Copy a string from hl to de
+;;
+;; Input:
+;; : de, hl - string pointers
+;;
+;; Destroyed:
+;; : a, de, hl
 
 	ld a, (hl)
 	ld (de), a
@@ -132,10 +160,14 @@ srcloop:
 
 
 .func strncpy:
-;; Description: Copy up to b characters from hl to de
-;; Input: de, hl: String pointers; b: length
-;; Output: none
-;; Destroyed: a, b, de, hl
+;; Copy up to b characters from hl to de
+;;
+;; Input:
+;; : de, hl - string pointers
+;; : b - length
+;;
+;; Destroyed:
+;; : a, b, de, hl
 
 	ld a, (hl)
 	ld (de), a
@@ -149,11 +181,17 @@ srcloop:
 
 
 .func strlen:
-;; Description: Returns the length of the string pointed to by hl
-;;              not including the null terminator
-;; Input: hl: String pointer
-;; Output: bc
-;; Destroyed: hl
+;; Returns the length of the string pointed to by hl
+;;
+;; Input:
+;; : hl - string pointer
+;;
+;; Output:
+;; : bc - length not including the null terminator
+;;
+;; Destroyed:
+;; : hl
+
 	ld bc, 0
 loop:
 	ld a, (hl)
@@ -166,10 +204,10 @@ loop:
 
 
 .func toupper:
-;; Description: Converts a to uppercase
-;; Input: a: char
-;; Output: a
-;; Destroyed: 
+;; Converts a character to uppercase
+;;
+;; Input:
+;; : a - char
 
 	cp 61h
 	ret c
@@ -181,10 +219,13 @@ loop:
 
 
 .func strtup:
-;; Description: Converts hl to uppercase
-;; Input: hl: String pointer
-;; Output: none
+;; Converts a string to uppercase
+;;
+;; Input:
+;; : hl - string pointer
+;;
 ;; Destroyed:
+;; : hl
 
 	ld a, (hl)
 	cp 0

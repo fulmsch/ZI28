@@ -1,3 +1,4 @@
+;; Contains routines for accessing drives
 .list
 ;*********** Drive Table ********************
 ;.define driveTableEntrySize  32
@@ -21,10 +22,18 @@
 .define fs_close 4
 
 .func getDriveAddr:
-;Inputs: a = index
-;Outputs: hl = table entry address
-;Errors: c = out of bounds
-;        nc = no error
+;; Finds the drive entry of a given drive number
+;;
+;; Input:
+;; : a - drive number
+;;
+;; Output:
+;; : hl - table entry address
+;; : carry - out of bounds
+;; : nc - no error
+;;
+;; See also:
+;; : [getTableAddr](#getTableAddr)
 
 	ld hl, driveTable
 	ld de, driveTableEntrySize
@@ -34,12 +43,20 @@
 
 
 .func k_mount:
-;; Description: Create a new entry in the drive table
-;;              and initialise the filesystem
-;; Inputs: de = fs driver, h = devfd, a = drive number
-;; Outputs: a = errno
-;; Errors: 0=no error
-;;         2=invalid drive number
+;; Mount a drive file
+;;
+;; Creates a new entry in the drive table
+;; and initialises the filesystem
+;;
+;; Input:
+;; : de - fs driver
+;; : h - devfd
+;; : a - drive number
+;;
+;; Output:
+;; : a - errno
+; Errors: 0=no error
+;         2=invalid drive number
 
 	push de
 	push hl
@@ -87,10 +104,18 @@ k_umount:
 
 
 .func getTableAddr:
-;Inputs: hl = table start, de = entry size, b = max entries, a = index
-;Outputs: hl = table entry address
-;Errors: c = out of bounds
-;        nc = no error
+;; Finds the file entry of a given fd
+;;
+;; Input:
+;; : hl - table start address
+;; : de - entry size
+;; : b - maximum number of entries
+;; : a - index
+;;
+;; Output:
+;; : hl - table entry address
+;; : carry - out of bounds
+;; : nc - no error
 
 	cp 00h
 	ret z
