@@ -1,6 +1,9 @@
 ;TODO:
 ;Every device should be represented by one bit, so that multiple devices may be selected
 
+TERMDR  equ    0
+TERMCR  equ    1
+
 _putc:
 	;Output a byte in A to the selected device
 	push af
