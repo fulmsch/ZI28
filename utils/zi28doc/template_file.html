@@ -17,9 +17,11 @@
 		$desc$
 	</div>
 
+	$if(routines)$
 	<div class="routines">
 		<h3>Routines</h3>
 	$for(routines)$
+		$if(routines.name)$
 		<div class="menuentry">
 			<div class="menutitle">
 				<a href=#$routines.name$>$routines.name$</a>
@@ -28,9 +30,11 @@
 				$routines.sdesc$
 			</div>
 		</div>
+		$endif$
 	$endfor$
 
 	$for(routines)$
+		$if(routines.name)$
 		<div id="$routines.name$" class="box">
 			<div class="boxheader">
 				<p>$routines.name$</p>
@@ -39,8 +43,10 @@
 				$routines.desc$
 			</div>
 		</div>
+		$endif$
 	$endfor$
 	</div>
+	$endif$
 
 
 
