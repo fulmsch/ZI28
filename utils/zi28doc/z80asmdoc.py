@@ -31,11 +31,6 @@ def main(argv):
 		print('Error: file "' + infile_name + '" not found')
 		sys.exit(-1)
 
-	if outfile_name == '':
-		outfile = sys.stdout
-	else:
-		outfile = open(outfile_name, 'w+')
-
 	index = {'files':[],'routines':[]}
 	if not index_name == '':
 		if os.path.isfile(index_name):
@@ -70,6 +65,11 @@ def main(argv):
 
 	if n > 0:
 		#File contains a description and should be added to the documentation
+		if outfile_name == '':
+			outfile = sys.stdout
+		else:
+			outfile = open(outfile_name, 'w+')
+
 
 		#Append the filename and short description to index
 		entry = {'name':name, 'desc':sdesc}
