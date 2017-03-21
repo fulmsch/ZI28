@@ -56,14 +56,17 @@ def main(argv):
 	sdesc = ''
 	desc = ''
 	n = 0
-	for line in lines:
-		if line[:2] == ';;':
-			if n == 0:
-				sdesc = line.lstrip('; ')
-			desc = desc + line.lstrip('; ')
-			n = n + 1
-		else:
-			break
+	line = lines[n].lstrip('; ')
+	while lines[n][:2] == ';;' and not line == '':
+		sdesc = sdesc + line
+		desc = desc + line
+		n = n + 1
+		line = lines[n].lstrip('; ')
+
+	while lines[n][:2] == ';;':
+		desc = desc + line
+		n = n + 1
+		line = lines[n].lstrip('; ')
 
 	if n > 0:
 		#File contains a description and should be added to the documentation
@@ -76,21 +79,28 @@ def main(argv):
 		file_index = {'name':name, 'desc':desc, 'routines':[]}
 		del lines[:n]
 
-		#Finde routines
+		#Find routines
 		i = 0
 		while i < len(lines):
 			if lines[i][:2] == ';;':
 				desc = ''
-				sdesc = lines[i].lstrip('; ')
+				sdesc = ''
+
 				name = lines[i-1].strip(': \n')
 				name = name.split()[-1]
-				#entry = {'name':name, 'desc': []}
-				while True:
-					if lines[i][:2] == ';;':
-						desc = desc + lines[i].lstrip('; ')
-						i = i+1
-					else:
-						break
+				line = lines[i].lstrip('; ')
+
+				while lines[i][:2] == ';;' and not line == '':
+					sdesc = sdesc + line
+					desc = desc + line
+					i = i + 1
+					line = lines[i].lstrip('; ')
+
+				while lines[i][:2] == ';;':
+					desc = desc + line
+					i = i + 1
+					line = lines[i].lstrip('; ')
+
 				entry = {'name':name, 'file':infile.name, 'sdesc':sdesc}
 				if entry not in index['routines']:
 					index['routines'].append(entry)
