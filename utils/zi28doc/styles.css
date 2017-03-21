@@ -30,8 +30,12 @@ p {
 .menuentry{
 	margin: 0.5em 0;
 	padding: 0;
-	border-top: 1px solid #000;
-	background-color: #eee;
+	border-top: 1px solid #666;
+	background-color: #f8f8f8;
+}
+
+.menutitle {
+	background-color: #f0f0f0;
 }
 
 .menutitle, .menudesc{
