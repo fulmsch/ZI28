@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>$name$ | ZI-28 Documentation</title>
+	<link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+	<h1>$name$</h1>
+
+	<div>
+		$desc$
+	</div>
+
+	<div class="routines">
+		<h2>Routines</h2>
+	$for(routines)$
+		<div class="menuentry">
+			<div class="menutitle">
+				<a href=#$routines.name$>$routines.name$</a>
+			</div>
+			<div class="menudesc">
+				$routines.sdesc$
+			</div>
+		</div>
+	$endfor$
+
+	$for(routines)$
+		<div id="$routines.name$" class="box">
+			<div class="boxheader">
+				<p>$routines.name$</p>
+			</div>
+			<div class="boxcontent">
+				$routines.desc$
+			</div>
+		</div>
+	$endfor$
+	</div>
+
+
+
+<footer>
+</footer>
+
+
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Index | ZI-28 Documentation</title>
+	<link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+	<h1>Index</h1>
+
+	<div class="files">
+		<h2>Files</h2>
+	$for(files)$
+		<div class="menuentry">
+			<div class="menutitle">
+				<a href="$files.name$.html">$files.name$</a>
+			</div>
+			<div class="menudesc">
+				<p>$files.desc$</p>
+			</div>
+		</div>
+	$endfor$
+	</div>
+
+	<div class="routines">
+		<h2>Routines</h2>
+	$for(routines)$
+		<div class="menuentry">
+			<div class="menutitle">
+				<a href="$routines.file$.html#$routines.name$">$routines.name$</a>
+			</div>
+			<div class="menudesc">
+				<p>$routines.sdesc$</p>
+			</div>
+		</div>
+	$endfor$
+	</div>
+
+
+
+<footer>
+</footer>
+
+
+</body>
+</html>
