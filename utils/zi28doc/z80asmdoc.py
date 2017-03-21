@@ -47,12 +47,12 @@ def main(argv):
 
 
 	lines = infile.readlines()
-	name = infile.name
+	name = os.path.basename(infile_name)
 	sdesc = ''
 	desc = ''
 	n = 0
 	line = lines[n].lstrip('; ')
-	while lines[n][:2] == ';;' and not line == '':
+	while lines[n][:2] == ';;' and not line == '\n':
 		sdesc = sdesc + line
 		desc = desc + line
 		n = n + 1
@@ -90,7 +90,7 @@ def main(argv):
 				name = name.split()[-1]
 				line = lines[i].lstrip('; ')
 
-				while lines[i][:2] == ';;' and not line == '':
+				while lines[i][:2] == ';;' and not line == '\n':
 					sdesc = sdesc + line
 					desc = desc + line
 					i = i + 1
@@ -101,7 +101,7 @@ def main(argv):
 					i = i + 1
 					line = lines[i].lstrip('; ')
 
-				entry = {'name':name, 'file':infile.name, 'sdesc':sdesc}
+				entry = {'name':name, 'file':os.path.basename(infile_name), 'sdesc':sdesc}
 				if entry not in index['routines']:
 					index['routines'].append(entry)
 
