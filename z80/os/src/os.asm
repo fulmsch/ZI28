@@ -111,11 +111,11 @@ ttyName:
 .include "monitor.asm"
 
 .include "drive.asm"
-.include "fs/file.asm"
+.include "file.asm"
 
 ; Filesystems
-.include "fs/fat.asm"
-.include "fs/devfs.asm"
+.include "fat.asm"
+.include "devfs.asm"
 
 ; Device drivers
 .include "drivers/sd.asm"

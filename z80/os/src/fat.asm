@@ -164,7 +164,6 @@ fat_dataStartSector:    .resb 4
 	ret
 .endf ;fat_init
 
-
 .func fat_open:
 ;; Description: creates a new file table entry
 ;; Old Inputs: (de) = pathname, a = mode
