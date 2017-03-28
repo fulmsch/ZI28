@@ -27,14 +27,8 @@ OBJS=main.o emulator.o sd.o
 all: $(OBJS)
 	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)
 
-main.o: $(SRCDIR)/main.c
-	$(CC) -c $(CCFLAGS) $(SRCDIR)/main.c $(GTKLIB) -o main.o
-
-emulator.o: $(SRCDIR)/emulator.c
-	$(CC) -c $(CCFLAGS) $(SRCDIR)/emulator.c -o emulator.o
-
-sd.o: $(SRCDIR)/sd.c
-	$(CC) -c $(CCFLAGS) $(SRCDIR)/sd.c -o sd.o
+%.o: $(SRCDIR)/%.c
+	$(CC) -c $(CCFLAGS) $(GTKLIB) $< -o $@
 
 clean:
 	rm -f *.o
