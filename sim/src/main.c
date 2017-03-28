@@ -2,7 +2,6 @@
 * limit frequency (based on tstates)
 * count cycles
 * log to file
-* protect rom
 * finish register & breakpoint gui
 * memory view / edit
 * load file to memory
@@ -294,4 +293,13 @@ void on_break_add_clicked() {
 
 void on_break_rem_all_clicked() {
 	memset(&breakpoints[0], 0, sizeof(breakpoints));
+}
+
+void on_menu_file_romProtect_toggled(GtkCheckMenuItem *check_menu_item) {
+	romProtect = gtk_check_menu_item_get_active(check_menu_item);
+	if (romProtect) {
+		console("ROM Write-Protection on\n");
+	} else {
+		console("ROM Write-Protection off\n");
+	}
 }

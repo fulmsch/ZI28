@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <z80.h>
 
+#include "main.h"
 #include "emulator.h"
 #include "sd.h"
 
@@ -24,6 +25,8 @@ void emulator_init() {
 
 	pty[0].fd = ptm;
 	pty[0].events = POLLIN;
+
+	romProtect = 1;
 
 	sd.imgFile = fopen("/home/florian/sd.img", "rb");
 	sd.status = IDLE;
@@ -61,7 +64,7 @@ byte context_mem_read_callback(int param, ushort address) {
 }
 
 void context_mem_write_callback(int param, ushort address, byte data) {
-	if (address > 0x1FFF) {
+	if (address > 0x1FFF || !romProtect) {
 		memory[address] = data;
 	}
 }
