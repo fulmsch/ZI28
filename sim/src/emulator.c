@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <z80.h>
 
+#include "main.h"
 #include "emulator.h"
 #include "sd.h"
 
@@ -24,6 +25,8 @@ void emulator_init() {
 
 	pty[0].fd = ptm;
 	pty[0].events = POLLIN;
+
+	romProtect = 1;
 
 	sd.imgFile = fopen("/home/florian/sd.img", "rb");
 	sd.status = IDLE;
@@ -45,11 +48,18 @@ void emulator_reset() {
 	Z80RESET(&context);
 }
 
-int emulator_runCycles(int n) {
-	for (int i = 0; i < n; i++) {
-		Z80Execute(&context);
-		if (breakpoints[context.PC]) {
-			return 1;
+int emulator_runCycles(int n_cycles, int useBreakpoints) {
+	context.tstates = 0;
+	if (useBreakpoints) {
+		while (context.tstates < n_cycles) {
+			Z80Execute(&context);
+			if (breakpoints[context.PC]) {
+				return 1;
+			}
+		}
+	} else {
+		while (context.tstates < n_cycles) {
+			Z80Execute(&context);
 		}
 	}
 	return 0;
@@ -61,7 +71,9 @@ byte context_mem_read_callback(int param, ushort address) {
 }
 
 void context_mem_write_callback(int param, ushort address, byte data) {
-	memory[address] = data;
+	if (address > 0x1FFF || !romProtect) {
+		memory[address] = data;
+	}
 }
 
 byte context_io_read_callback(int param, ushort address) {
