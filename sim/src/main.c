@@ -1,5 +1,5 @@
 /* TODO
-* limit frequency (based on tstates)
+* make frequency adjustable
 * count cycles
 * log to file
 * finish register & breakpoint gui
@@ -15,9 +15,7 @@
 #include <poll.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/time.h>
 #include <string.h>
-//#include <time.h>
 #include <z80.h>
 
 #include "main.h"
@@ -33,6 +31,8 @@ GtkEntry *g_field_reg_sp, *g_field_reg_pc;
 GtkEntry *g_field_break;
 //GtkButton *g_button_break_add, *g_button_break_rem_all;
 GtkTextBuffer *g_txt_console;
+
+gint timeout_update(gpointer data);
 
 enum {
 	PAUSE,
@@ -178,75 +178,32 @@ int main(int argc, char **argv) {
 
 	gtk_widget_show(window);
 
+	g_timeout_add(10, timeout_update, NULL);
 
-	struct timeval tv1, tv2;
+	gtk_main();
 
-	while (!quit_req) {
-		//gettimeofday(&tv1, NULL);
-		switch (status) {
-			case RUN:
-				gettimeofday(&tv1, NULL);
-				context.tstates = 0;
-				for (int i = 0; i < 10000; i++) {
-					Z80Execute(&context);
-				}
-				gtk_main_iteration_do(FALSE);
-				gettimeofday(&tv2, NULL);
-				long int dtime = tv2.tv_usec - tv1.tv_usec;
-				//printf("%d tstates in %ld usec = %ld Hz\n", context.tstates, dtime, context.tstates*1000000L/dtime);
-				if (dtime > 0) {
-					unsigned long targetTime = context.tstates / 8;
-				//	printf("%ld\n", targetTime);
-					struct timespec sleeptime, remtime;
-					sleeptime.tv_sec = 0;
-					sleeptime.tv_nsec = (targetTime - dtime) * 1000L;
-					nanosleep(&sleeptime, &remtime);
-					gettimeofday(&tv2, NULL);
-					dtime = tv2.tv_usec - tv1.tv_usec;
-					printf("%d tstates in %ld usec = %ld Hz\n", context.tstates, dtime, context.tstates*1000000L/dtime);
-
-				}
-				break;
-			case CONT:
-				if (emulator_runCycles(1000)) {
-					console("Break at 0x%04X\n", context.PC);
-					status = PAUSE;
-				}
-				gtk_main_iteration_do(FALSE);
-				break;
-			default:
-				updateRegisters();
-				gtk_main_iteration_do(TRUE);
-				break;
-		}
-		if (status == RUN || status == CONT) {
-			if (emulator_runCycles(8000)) {
-				console("Break at 0x%04X\n", context.PC);
-				status = PAUSE;
-			}
-			gtk_main_iteration_do(FALSE);
-		} else {
-			updateRegisters();
-			gtk_main_iteration_do(TRUE);
-		}
-		//gettimeofday(&tv2, NULL);
-		//long int dtime = tv2.tv_usec - tv1.tv_usec;
-		//printf("%ld\n", dtime);
-		//if (dtime > 0) {
-		//	sleeptime.tv_nsec = dtime * 1000000;
-		//	nanosleep(&sleeptime, &remtime);
-		//}
-	}
 	fclose(sd.imgFile);
 	remove("/tmp/zi28sim");
 
 	return 0;
-
 }
 
-// called when window is closed
-void quit_application() {
-	quit_req = 1;
+gint timeout_update(gpointer data) {
+	switch (status) {
+		case RUN:
+			emulator_runCycles(80000, 0);
+			break;
+		case CONT:
+			if (emulator_runCycles(80000, 1)) {
+				console("Break at 0x%04X\n", context.PC);
+				status = PAUSE;
+			}
+			break;
+		default:
+			break;
+	}
+	updateRegisters();
+	return 1;
 }
 
 void on_Run_clicked() {
@@ -268,7 +225,7 @@ void on_Pause_clicked() {
 
 void on_Step_clicked() {
 	console("Step\n");
-	emulator_runCycles(1);
+	emulator_runCycles(1, 1);
 }
 
 void on_Reset_clicked() {

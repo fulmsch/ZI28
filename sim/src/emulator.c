@@ -48,11 +48,18 @@ void emulator_reset() {
 	Z80RESET(&context);
 }
 
-int emulator_runCycles(int n) {
-	for (int i = 0; i < n; i++) {
-		Z80Execute(&context);
-		if (breakpoints[context.PC]) {
-			return 1;
+int emulator_runCycles(int n_cycles, int useBreakpoints) {
+	context.tstates = 0;
+	if (useBreakpoints) {
+		while (context.tstates < n_cycles) {
+			Z80Execute(&context);
+			if (breakpoints[context.PC]) {
+				return 1;
+			}
+		}
+	} else {
+		while (context.tstates < n_cycles) {
+			Z80Execute(&context);
 		}
 	}
 	return 0;
