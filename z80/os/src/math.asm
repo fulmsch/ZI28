@@ -155,6 +155,7 @@ loop:
 ;;
 ;; Output:
 ;; : (hl) = (hl) << 1
+;; : carry flag
 ;;
 ;; Destroyed:
 ;; : a, hl

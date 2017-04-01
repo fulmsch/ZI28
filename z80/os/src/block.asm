@@ -67,14 +67,15 @@
 
 readLoop:
 	ld de, return
-	push de
+	push de ;return address
 	ld de, block_buffer
 	ld bc, block_curBlock
 	ld hl, (block_callback)
 	jp (hl)
 
 return:
-	ret
+	cp 0
+	jr nz, error
 	;TODO error checking
 
 	ld hl, block_curBlock
@@ -125,8 +126,10 @@ end:
 	ld bc, (block_remCount)
 	ldir
 
-
 	xor a
+	ret
+
+error:
 	ret
 .endf ;block_read
 

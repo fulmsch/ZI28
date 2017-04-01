@@ -8,9 +8,18 @@ sd_fileDriver:
 ;.define SD_ENABLE out (82h), a
 ;.define SD_DISABLE out (83h), a
 
+;SD command set
+.define SD_GO_IDLE_STATE      0 ;Software reset
+.define SD_SEND_OP_COND       1 ;Initiate initialization process
+.define SD_SET_BLOCKLEN      16 ;Change R/W block size
+.define SD_READ_SINGLE_BLOCK 17 ;Read a block
+.define SD_WRITE_BLOCK       24 ;Write a block
+.define SD_READ_OCR          58 ;Read OCR
+
+
 
 .func sd_read:
-;; Read a SD-Card
+;; Read from a SD-Card
 ;;
 ;; Input:
 ;; : ix - file entry addr
@@ -22,7 +31,7 @@ sd_fileDriver:
 ;; : a - errno
 
 ; Errors: 0=no error
-	ld hl, sd_readblock
+	ld hl, sd_readBlock
 	jp block_read
 .endf ;sd_read
 
@@ -38,6 +47,77 @@ sd_fileDriver:
 ;; : de = count
 ;; : a - errno
 
+	push de ;buffer
+
+	;TODO partition support (offset, max size)
+	;calculate start address from sector number
+	ld h, b
+	ld l, c
+	ld de, reg32
+	call ld32
+	;(reg32) = sector number
+	ld hl, reg32
+	call lshift32
+	ld hl, reg32
+	call lshiftbyte32
+	;(reg32) = start address
+
+	SD_ENABLE
+
+	ld hl, reg32
+	ld a, SD_READ_SINGLE_BLOCK
+	ld c, 80h ;TODO proper addressing
+	call sd_sendCmd
+	jr c, error
+
+;Wait for data packet start
+	ld b, 100
+	ld e, 0feh
+	call sd_getResponse
+	jr c, error
+
+	pop hl ;buffer
+
+	ld b, 0
+readBlock1:
+	;read the first 256 bytes
+	inc c
+	out (c), a
+	dec c
+	nop
+	nop
+	ini
+	jr nz, readBlock1
+readBlock2:
+	;and the second 256 bytes
+	inc c
+	out (c), a
+	dec c
+	nop
+	nop
+	ini
+	jr nz, readBlock2
+
+;Receive the crc and discard it
+	ld b, 2
+getCrc:
+	inc c
+	out (c), a
+	dec c
+	nop
+	nop
+	in a, (c)
+	djnz getCrc
+
+	SD_DISABLE
+	xor a
+	ret
+
+error:
+	pop af ;clear stack
+	SD_DISABLE
+	ld a, 1
+	ret
 .endf
 
 
@@ -57,6 +137,100 @@ sd_fileDriver:
 
 .endf ;sd_write
 
+
+.func sd_sendCmd:
+;; Send a command to the SD-Card
+;;
+;; Input:
+;; : a - Command index
+;; : c - Base port address
+;; : (hl) - 32-bit argument
+;;
+;; Output:
+;; : carry - timeout
+;; : nc - no error
+;;
+;; Destroyed:
+;; : a, b
+
+; a: Command
+; edcb: Argument
+
+	;point to msb
+	inc hl
+	inc hl
+	inc hl
+
+	;command starts with b01
+	or 40h
+
+	;command index
+	out (c), a
+	inc c
+	out (c), a
+	dec c
+
+	;argument
+	ld b, 4
+	outi
+
+argLoop:
+	inc c
+	out (c), a
+	dec c
+	dec hl
+	outi
+	jr nz, argLoop
+
+	inc c
+	out (c), a
+	dec c
+
+	;optional crc
+;	ld a, 0ffh
+	out (c), a
+	inc c
+	out (c), a
+	dec c
+
+;Wait for cmd response
+	ld b, 10
+	ld e, 0
+	jp sd_getResponse
+.endf
+
+
+.func sd_getResponse:
+;; Look for a specific response from the SD-Card
+;;
+;; Input:
+;; : e - expected response
+;; : b - number of retries
+;; : c - base port address
+;;
+;; Output:
+;; : carry - timeout
+;; : nc - got correct response
+;;
+;; Destroyed:
+;; : a, b
+
+	inc c
+	out (c), a
+	dec c
+	nop
+	nop
+	in a, (c)
+	cp e
+	jr z, success
+	djnz sd_getResponse
+
+timeout:
+	scf
+
+success:
+	ret
+.endf
 
 ;.func delay100:
 ;	;Wait for approx. 100ms
