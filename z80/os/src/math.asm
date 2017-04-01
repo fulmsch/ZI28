@@ -111,14 +111,14 @@ loop:
 .endf
 
 
-.func rshiftbyte32:
-;; Shift a 32-bit number right by 1 byte
+.func lshiftbyte32:
+;; Shift a 32-bit number left by 1 byte
 ;;
 ;; Input:
 ;; : (hl) - 32-bit number
 ;;
 ;; Output:
-;; : (hl) = (hl) >> 8
+;; : (hl) = (hl) << 8
 ;;
 ;; Destroyed:
 ;; : a, hl
@@ -141,6 +141,67 @@ loop:
 	ld a, (hl)
 	inc hl
 	ld (hl), a
+	dec hl
+	ld (hl), 0
+	ret
+.endf
+
+
+.func lshift32:
+;; Shift a 32-bit number left by 1 bit
+;;
+;; Input:
+;; : (hl) - 32-bit number
+;;
+;; Output:
+;; : (hl) = (hl) << 1
+;;
+;; Destroyed:
+;; : a, hl
+
+	or a
+	rl (hl)
+	inc hl
+	rl (hl)
+	inc hl
+	rl (hl)
+	inc hl
+	rl (hl)
+	ret
+.endf
+
+
+.func rshiftbyte32:
+;; Shift a 32-bit number right by 1 byte
+;;
+;; Input:
+;; : (hl) - 32-bit number
+;;
+;; Output:
+;; : (hl) = (hl) >> 8
+;;
+;; Destroyed:
+;; : a, hl
+
+	inc hl
+	ld a, (hl)
+	dec hl
+	ld (hl), a
+	inc hl
+
+	inc hl
+	ld a, (hl)
+	dec hl
+	ld (hl), a
+	inc hl
+
+	inc hl
+	ld a, (hl)
+	dec hl
+	ld (hl), a
+	inc hl
+
+	ld (hl), 0
 	ret
 .endf
 
