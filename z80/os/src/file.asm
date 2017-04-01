@@ -19,10 +19,6 @@
 ;.define file_seek  4
 .define file_fctl   4
 
-.define REG_FILE  1
-.define CHAR_DEV  2
-.define BLOCK_DEV 3
-
 .define SEEK_SET  0
 .define SEEK_PCUR 1
 .define SEEK_NCUR 2
@@ -151,7 +147,7 @@ tableSpotFound:
 
 	ld a, (k_open_mode)
 	ld (ix + fileTableMode), a
-	ld a, 0
+	xor a
 	ld (ix + fileTableOffset + 0), a
 	ld (ix + fileTableOffset + 1), a
 	ld (ix + fileTableOffset + 2), a
@@ -168,12 +164,12 @@ return:
 	;TODO check for succesful call
 	cp 0
 	ret nz
-	ld (ix + 0), 1
+	ld (ix + fileTableStatus), 1
 
 
 	ld a, (k_open_fd)
 	ld e, a
-	ld a, 0
+	xor a
 	ret
 
 
@@ -216,14 +212,14 @@ invalidPath:
 	call getFileAddr
 	jr c, invalidFd
 
-	ld a, 0
+	xor a
 	ld b, fileTableEntrySize
 clearEntry:
 	ld (hl), a
 	inc hl
 	djnz clearEntry
 
-	ld a, 0
+	xor a
 	ret
 
 invalidFd:
@@ -291,10 +287,6 @@ invalidFd:
 	jr z, zeroCount
 validCount:
 
-	;check if block device, else call file driver
-	ld a, (ix + fileTableStatus)
-	cp BLOCK_DEV
-	jp z, block_read
 	jp (hl)
 
 invalidFd:
@@ -308,7 +300,7 @@ invalidDriver:
 	ld a, 2
 	ret
 zeroCount:
-	ld a, 0
+	xor a
 	ld de, 0
 	ret
 ;buffer:
@@ -388,7 +380,7 @@ invalidDriver:
 	ld a, 2
 	ret
 zeroCount:
-	ld a, 0
+	xor a
 	ld de, 0
 	ret
 .endf ;k_write
@@ -478,7 +470,7 @@ subOffs:
 	call ld32
 
 	pop de
-	ld a, 0
+	xor a
 	ret
 
 
@@ -516,7 +508,7 @@ addOffs:
 	call ld32
 
 	pop de
-	ld a, 0
+	xor a
 	ret
 
 
