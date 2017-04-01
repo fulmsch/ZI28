@@ -19,6 +19,10 @@
 ;.define file_seek  4
 .define file_fctl   4
 
+.define REG_FILE  1
+.define CHAR_DEV  2
+.define BLOCK_DEV 3
+
 .define SEEK_SET  0
 .define SEEK_PCUR 1
 .define SEEK_NCUR 2
@@ -287,7 +291,10 @@ invalidFd:
 	jr z, zeroCount
 validCount:
 
-	;call file driver
+	;check if block device, else call file driver
+	ld a, (ix + fileTableStatus)
+	cp BLOCK_DEV
+	jp z, block_read
 	jp (hl)
 
 invalidFd:

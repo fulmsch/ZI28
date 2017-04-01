@@ -82,6 +82,98 @@ loop:
 .endf ;sub32
 
 
+.func inc32:
+;; Increment a 32-bit number by 1
+;;
+;; Input:
+;; : (hl) - 32-bit number
+;;
+;; Output:
+;; : (hl) = (hl) + 1
+;;
+;; Destroyed:
+;; : hl
+
+	inc (hl)
+	ret nz
+	inc hl
+	
+	inc (hl)
+	ret nz
+	inc hl
+
+	inc (hl)
+	ret nz
+	inc hl
+
+	inc (hl)
+	ret
+.endf
+
+
+.func rshiftbyte32:
+;; Shift a 32-bit number right by 1 byte
+;;
+;; Input:
+;; : (hl) - 32-bit number
+;;
+;; Output:
+;; : (hl) = (hl) >> 8
+;;
+;; Destroyed:
+;; : a, hl
+
+	inc hl
+	inc hl
+
+	ld a, (hl)
+	inc hl
+	ld (hl), a
+	dec hl
+	dec hl
+
+	ld a, (hl)
+	inc hl
+	ld (hl), a
+	dec hl
+	dec hl
+
+	ld a, (hl)
+	inc hl
+	ld (hl), a
+	ret
+.endf
+
+
+.func rshift32:
+;; Shift a 32-bit number right by 1 bit
+;;
+;; Input:
+;; : (hl) - 32-bit number
+;;
+;; Output:
+;; : (hl) = (hl) >> 1
+;; : carry flag
+;;
+;; Destroyed:
+;; : a, hl
+
+	or a
+	inc hl
+	inc hl
+	inc hl
+
+	rr (hl)
+	dec hl
+	rr (hl)
+	dec hl
+	rr (hl)
+	dec hl
+	rr (hl)
+	ret
+.endf
+
+
 .func ld8:
 ;; Load an 8-bit number into a 32-bit pointer
 ;;

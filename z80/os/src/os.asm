@@ -112,6 +112,7 @@ ttyName:
 
 .include "drive.asm"
 .include "file.asm"
+.include "block.asm"
 
 ; Filesystems
 .include "fat.asm"

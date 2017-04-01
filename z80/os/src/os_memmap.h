@@ -2,7 +2,7 @@
 #define sysStack   8000h
 #define monStack   4200h
 
-#define sdBuffer   4200h
+;#define sdBuffer   4200h
 
 ;BIOS memory map
 #define memBase    0000h
@@ -11,7 +11,7 @@
 
 
 ;Monitor workspace
-#define monWorkspace            5000h
+#define monWorkspace            4200h
 #define monInputBuffer          monWorkspace + 0
 #define monInputBufferSize      40h
 #define lineCounter             monInputBuffer + monInputBufferSize
@@ -35,11 +35,14 @@
 #define osWorkspace             registerStack
 #define terminalFd              osWorkspace
 
+#define reg32                   terminalFd + 1
+#define osWorkspaceEnd          reg32 + 4
+
 ;Device Fs
 #define devfsEntrySize          16
 #define devfsEntries            32
 
-#define devfsRoot               terminalFd + 1
+#define devfsRoot               osWorkspaceEnd
 #define devfsRootTerminator     devfsRoot + devfsEntrySize * devfsEntries
 #define devfsRootEnd            devfsRootTerminator + 1
 
@@ -57,8 +60,19 @@
 #define fileTable               driveTableEnd
 #define fileTableEnd            fileTable + fileTableEntrySize * fileTableEntries
 
+;Block driver
+#define block_buffer            fileTableEnd
+#define sdBuffer block_buffer ;legacy
+#define block_curBlock          block_buffer + 512
+#define block_endBlock          block_curBlock + 4
+#define block_remCount          block_endBlock + 4
+#define block_relOffs           block_remCount + 2
+#define block_callback          block_relOffs + 2
+#define block_dest              block_callback + 2
+#define block_end               block_dest + 2
+
 ;k_open
-#define k_open_mode             fileTableEnd
+#define k_open_mode             block_end
 #define k_open_fd               k_open_mode + 1
 #define k_open_path             k_open_fd + 1
 #define k_open_drive            k_open_path + 2

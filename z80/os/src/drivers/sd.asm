@@ -5,15 +5,17 @@ sd_fileDriver:
 	.dw sd_read
 	.dw sd_write
 
-.define SD_ENABLE out (82h), a
-.define SD_DISABLE out (83h), a
+;.define SD_ENABLE out (82h), a
+;.define SD_DISABLE out (83h), a
 
 
 .func sd_read:
-;; Inputs
+;; Read a block from a SD-Card
+;;
+;; Input:
 ;; : ix - file entry addr
 ;; : (de) - buffer
-;; : bc - count
+;; : (bc) - 32-bit block number
 ;;
 ;; Output:
 ;; : de = count
@@ -43,17 +45,17 @@ sd_fileDriver:
 .endf ;sd_write
 
 
-.func delay100:
-	;Wait for approx. 100ms
-	ld b, 0
-	ld c, 41
-loop:
-	ex (sp), hl
-	ex (sp), hl
-	ex (sp), hl
-	ex (sp), hl
-	djnz delay100Loop
-	dec c
-	jr nz, delay100Loop
-	ret
-.endf ;delay100
+;.func delay100:
+;	;Wait for approx. 100ms
+;	ld b, 0
+;	ld c, 41
+;loop:
+;	ex (sp), hl
+;	ex (sp), hl
+;	ex (sp), hl
+;	ex (sp), hl
+;	djnz delay100Loop
+;	dec c
+;	jr nz, delay100Loop
+;	ret
+;.endf ;delay100
