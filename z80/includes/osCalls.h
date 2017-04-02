@@ -14,3 +14,8 @@
 #define u_read     u_close + 3
 #define u_write    u_read + 3
 #define u_seek     u_write + 3
+
+#define SEEK_SET  0
+#define SEEK_PCUR 1
+#define SEEK_NCUR 2
+#define SEEK_END  3

@@ -19,9 +19,9 @@
 
 	;get address of file offset
 	ld de, fileTableOffset
-	add ix, de
 	push ix
 	pop hl
+	add hl, de
 	push hl
 	;(hl) = file offset
 
@@ -118,7 +118,7 @@ return:
 
 end:
 ;last block
-	ld hl, (block_buffer)
+	ld hl, block_buffer
 	ld de, (block_relOffs)
 	add hl, de
 

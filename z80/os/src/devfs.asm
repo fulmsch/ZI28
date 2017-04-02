@@ -39,6 +39,32 @@ devfs_fsDriver:
 	inc de
 	inc de
 	inc de
+	inc de
+
+	;copy filename
+	ld hl, sdaName
+	ld bc, 8
+	ldir
+	;register driver address
+	ld hl, sd_fileDriver
+	ld a, l
+	ld (de), a
+	inc de
+	ld a, h
+	ld (de), a
+	inc de
+	;dev number
+	ld a, 0
+	ld (de), a
+	inc de
+	;attributes (char, rw)
+	ld (de), a
+	inc de
+	;reserved bytes
+	inc de
+	inc de
+	inc de
+	inc de
 
 	;end of devfs
 	ld hl, devfsRootTerminator
@@ -51,6 +77,8 @@ devfs_fsDriver:
 
 tty0name:
 	.asciiz "TTY0"
+sdaName:
+	.asciiz "SDA"
 .endf ;devfs_init
 
 

@@ -1,3 +1,4 @@
+.list
 ;; Contains the memory map of used by the OS
 #define sysStack   8000h
 #define monStack   4200h

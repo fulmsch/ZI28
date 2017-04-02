@@ -9,12 +9,12 @@ sd_fileDriver:
 ;.define SD_DISABLE out (83h), a
 
 ;SD command set
-.define SD_GO_IDLE_STATE      0 ;Software reset
-.define SD_SEND_OP_COND       1 ;Initiate initialization process
-.define SD_SET_BLOCKLEN      16 ;Change R/W block size
-.define SD_READ_SINGLE_BLOCK 17 ;Read a block
-.define SD_WRITE_BLOCK       24 ;Write a block
-.define SD_READ_OCR          58 ;Read OCR
+.define SD_GO_IDLE_STATE      0 + 40h ;Software reset
+.define SD_SEND_OP_COND       1 + 40h ;Initiate initialization process
+.define SD_SET_BLOCKLEN      16 + 40h ;Change R/W block size
+.define SD_READ_SINGLE_BLOCK 17 + 40h ;Read a block
+.define SD_WRITE_BLOCK       24 + 40h ;Write a block
+.define SD_READ_OCR          58 + 40h ;Read OCR
 
 
 

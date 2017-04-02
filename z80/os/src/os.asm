@@ -98,11 +98,44 @@ _coldStart:
 ;	ld a, (0c000h)
 ;	call putc
 
+	call sdInit
+
+	ld de, sdName
+	call k_open
+
+	ld a, e
+	push af
+	ld de, 0c000h
+	ld hl, 16
+	call k_read
+
+	ld hl, reg32
+	ld a, 15
+	call ld8
+	ld de, reg32
+
+	ld h, SEEK_SET
+	pop af
+	push af
+	call k_seek
+	pop af
+	push af
+
+	ld de, 0c010h
+	ld hl, 512
+	call k_read
+
+	pop af
+	call k_close
+
+	rst monitor
 
 	call cli
 
 ttyName:
 	.asciiz "0:TTY0"
+sdName:
+	.asciiz "0:SDA"
 
 
 

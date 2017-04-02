@@ -255,7 +255,7 @@ loop:
 
 	;clear (hl)
 	call clear32
-	ld (hl), a
+	ld (de), a
 	ret
 .endf ;ld8
 
@@ -349,6 +349,6 @@ loop:
 loop:
 	ld (hl), 0
 	inc hl
-	djnz clear32
+	djnz loop
 	ret
 .endf ;clear32

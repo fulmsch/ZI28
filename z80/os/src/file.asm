@@ -19,11 +19,6 @@
 ;.define file_seek  4
 .define file_fctl   4
 
-.define SEEK_SET  0
-.define SEEK_PCUR 1
-.define SEEK_NCUR 2
-.define SEEK_END  3
-
 .func getFileAddr:
 ;; Finds the file entry of a given fd
 ;;
@@ -409,21 +404,21 @@ zeroCount:
 ;         2=whence is invalid
 ;         3=the resulting offset would be invalid
 
-	push hl
-	push de
+	push hl ;h = whence
+	push de ;offset
 
 	;check if fd exists, get the address
 	call getFileAddr
-	pop de
-	pop bc
+	pop de ;offset
+	pop bc ;b = whence
 	jp c, invalidFd
 	ld a, (hl)
 	cp 00h
 	jp z, invalidFd
 	;hl=table entry addr
 
-	push de
-	push hl
+	push hl ;table entry
+	push de ;offset
 
 	;check whence
 	ld a, b
@@ -491,7 +486,7 @@ addOffs:
 	pop de ;offset
 	call add32
 
-	pop hl ;table entry addr
+	pop hl ;table entry
 	push hl
 	ld de, fileTableSize
 	add hl, de
@@ -499,12 +494,14 @@ addOffs:
 	ld hl, k_seek_new
 	call cp32
 	pop hl
-	jr nc, invalidOffset
+	;TODO reenable size checking
+	;jr nc, invalidOffset
 
 	ld de, fileTableOffset
 	add hl, de
 	push hl
 	ld de, k_seek_new
+	ex de, hl
 	call ld32
 
 	pop de
