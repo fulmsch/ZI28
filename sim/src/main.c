@@ -26,6 +26,7 @@ int quit_req = 0;
 GtkTextView *g_view_console;
 GtkEntry *g_field_instruction;
 GtkEntry *g_field_main[7];
+GtkEntry *g_field_flags_main[8];
 GtkEntry *g_field_reg_ix, *g_field_reg_iy;
 GtkEntry *g_field_reg_sp, *g_field_reg_pc;
 GtkEntry *g_field_break;
@@ -76,7 +77,13 @@ void updateRegisters() {
 
 	Z80Debug(&context, NULL, str);
 	gtk_entry_set_text(g_field_instruction, str);
+
+	//Flags
+	for (int i = 0; i < 8; i++) {
+		gtk_entry_set_text(g_field_flags_main[i], (context.R1.br.F & (1 << i)) ? "1" : "0");
+	}
 }
+
 
 void clearRegisters() {
 	for (int i = 0; i < 7; i++) {
@@ -160,6 +167,15 @@ int main(int argc, char **argv) {
 	g_field_main[4] = GTK_ENTRY(gtk_builder_get_object(builder, "field_reg_d"));
 	g_field_main[5] = GTK_ENTRY(gtk_builder_get_object(builder, "field_reg_l"));
 	g_field_main[6] = GTK_ENTRY(gtk_builder_get_object(builder, "field_reg_h"));
+
+	g_field_flags_main[0] = GTK_ENTRY(gtk_builder_get_object(builder, "field_flag_c"));
+	g_field_flags_main[1] = GTK_ENTRY(gtk_builder_get_object(builder, "field_flag_n"));
+	g_field_flags_main[2] = GTK_ENTRY(gtk_builder_get_object(builder, "field_flag_pv"));
+	g_field_flags_main[3] = GTK_ENTRY(gtk_builder_get_object(builder, "field_flag_3"));
+	g_field_flags_main[4] = GTK_ENTRY(gtk_builder_get_object(builder, "field_flag_h"));
+	g_field_flags_main[5] = GTK_ENTRY(gtk_builder_get_object(builder, "field_flag_5"));
+	g_field_flags_main[6] = GTK_ENTRY(gtk_builder_get_object(builder, "field_flag_z"));
+	g_field_flags_main[7] = GTK_ENTRY(gtk_builder_get_object(builder, "field_flag_s"));
 
 	g_field_reg_ix = GTK_ENTRY(gtk_builder_get_object(builder, "field_reg_ix"));
 	g_field_reg_iy = GTK_ENTRY(gtk_builder_get_object(builder, "field_reg_iy"));
