@@ -9,6 +9,7 @@ enum command_t {
 	SEND_OP_COND = 1,
 	STOP_TRANSMISSION = 12,
 	SET_BLOCKLEN = 16,
+	READ_SINGLE_BLOCK = 17,
 	READ_MULTIPLE_BLOCK = 18
 };
 
@@ -23,8 +24,10 @@ struct SdCard {
 		IDLE,
 		COMMAND,
 		RESPONSE,
-		READ_RESPONSE,
-		READ,
+		S_READ_RESPONSE,
+		S_READ,
+		M_READ_RESPONSE,
+		M_READ,
 		WRITE
 	} status;
 };

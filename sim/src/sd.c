@@ -29,12 +29,34 @@ unsigned char SdCard_transfer(struct SdCard *card, unsigned char in) {
 				out = card->response;
 				card->status = IDLE;
 				break;
-			case READ_RESPONSE:
+			case S_READ_RESPONSE:
 				out = card->response;
-				card->status = READ;
+				card->status = S_READ;
 				card->count = 0;
 				break;
-			case READ:
+			case S_READ:
+				if (card->count == 0) {
+					// Data token
+					out = 0xfe;
+					card->count++;
+				} else if (card->count > card->blockLen + 2) {
+					card->count = 0;
+					card->status = COMMAND;
+				} else if (card->count > card->blockLen) {
+					// CRC, not calculated
+					out = 0xff;
+					card->count++;
+				} else {
+					out = fgetc(card->imgFile);
+					card->count++;
+				}
+				break;
+			case M_READ_RESPONSE:
+				out = card->response;
+				card->status = M_READ;
+				card->count = 0;
+				break;
+			case M_READ:
 				if ((in & 0xc0) == 0x40) {
 					card->status = COMMAND;
 					card->count = 0;
@@ -99,10 +121,15 @@ void SdCard_parseCommand(struct SdCard *card) {
 			card->response = 0x00;
 			card->status = RESPONSE;
 			break;
+		case READ_SINGLE_BLOCK:
+			fseek(card->imgFile, argument, SEEK_SET);
+			card->response = 0x00;
+			card->status = S_READ_RESPONSE;
+			break;
 		case READ_MULTIPLE_BLOCK:
 			fseek(card->imgFile, argument, SEEK_SET);
 			card->response = 0x00;
-			card->status = READ_RESPONSE;
+			card->status = M_READ_RESPONSE;
 			break;
 		default:
 			break;
