@@ -71,6 +71,15 @@
 ; Cold start -------------------------------------------------
 
 _coldStart:
+	;clear ram TODO other banks
+	ld a, 0
+	ld hl, 2000h
+	ld bc, 0e000h
+clearRamLoop:
+	ld (hl), a
+	inc hl
+	djnz clearRamLoop
+
 	ld sp, sysStack
 
 	;Set input and output to USB
