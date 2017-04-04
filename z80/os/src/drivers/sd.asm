@@ -5,6 +5,9 @@ sd_fileDriver:
 	.dw sd_read
 	.dw sd_write
 
+
+.define sd_fileTableStartSector dev_fileTableData
+
 ;.define SD_ENABLE out (82h), a
 ;.define SD_DISABLE out (83h), a
 
@@ -49,13 +52,19 @@ sd_fileDriver:
 
 	push de ;buffer
 
-	;TODO partition support (offset, max size)
 	;calculate start address from sector number
 	ld h, b
 	ld l, c
 	ld de, reg32
 	call ld32
-	;(reg32) = sector number
+	;(reg32) = sector number relative to partition start
+	ld d, ixh
+	ld e, ixl
+	ld hl, sd_fileTableStartSector
+	add hl, de ;(hl) = sector offset
+	ld hl, reg32
+	ex de, hl
+	call add32 ;(reg32) = absolute sector number
 	ld hl, reg32
 	call lshift32
 	ld hl, reg32

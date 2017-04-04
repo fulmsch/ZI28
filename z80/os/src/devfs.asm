@@ -3,13 +3,17 @@
 .define devfs_name         0
 .define devfs_entryDriver  8
 .define devfs_number      10
-.define devfs_attributes  11
+;.define devfs_attributes  11
+.define devfs_data        11
 
 
 devfs_fsDriver:
 	.dw devfs_init
 	.dw devfs_open
 	.dw devfs_close
+
+.define dev_fileTableNumber fileTableData
+.define dev_fileTableData   dev_fileTableNumber + 1
 
 
 .func devfs_init:
