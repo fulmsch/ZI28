@@ -1,3 +1,4 @@
+;; Device filesystem
 .list
 
 .define devfs_name         0
@@ -19,61 +20,16 @@ devfs_fsDriver:
 .func devfs_init:
 ;; Adds all permanently attached devices
 
-	;copy filename
-	ld de, devfsRoot
+	;ft240
 	ld hl, tty0name
-	ld bc, 8
-	ldir
-	;register driver address
-	ld hl, ft240_fileDriver
-	ld a, l
-	ld (de), a
-	inc de
-	ld a, h
-	ld (de), a
-	inc de
-	;dev number
+	ld de, ft240_fileDriver
 	ld a, 0
-	ld (de), a
-	inc de
-	;attributes (char, rw)
-	ld (de), a
-	inc de
-	;reserved bytes
-	inc de
-	inc de
-	inc de
-	inc de
+	call devfs_addDev
 
-	;copy filename
 	ld hl, sdaName
-	ld bc, 8
-	ldir
-	;register driver address
-	ld hl, sd_fileDriver
-	ld a, l
-	ld (de), a
-	inc de
-	ld a, h
-	ld (de), a
-	inc de
-	;dev number
+	ld de, sd_fileDriver
 	ld a, 0
-	ld (de), a
-	inc de
-	;attributes (char, rw)
-	ld (de), a
-	inc de
-	;reserved bytes
-	inc de
-	inc de
-	inc de
-	inc de
-
-	;end of devfs
-	ld hl, devfsRootTerminator
-	ld (hl), 0
-
+	call devfs_addDev
 
 	xor a
 	ret
@@ -86,11 +42,82 @@ sdaName:
 .endf ;devfs_init
 
 
+.func devfs_addDev:
+;; Add a new device entry
+;;
+;; Input:
+;; : (hl) - name
+;; : de - driver address
+;; : a - number
+;;
+;; Output:
+;; : carry - unable to create entry
+;; : nc - no error
+;; : hl - custom data start
+
+	push af
+	push de
+	push hl
+
+	;find free entry
+	ld a, 0
+	ld hl, devfsRoot
+	ld de, devfsEntrySize
+	ld bc, devfsEntries
+
+findEntryLoop:
+	cp (hl)
+	jr z, freeEntryFound
+	add hl, de
+	djnz findEntryLoop
+
+	;no free entry found
+	pop hl
+	pop hl
+	pop hl
+	scf
+	ret
+
+freeEntryFound:
+	;hl = entry
+
+	;copy filename
+	pop de ;name
+	ex de, hl
+	ld bc, 8
+	ldir
+	ex de, hl
+
+	;register driver address
+	pop de ;driver address
+	ld (hl), e
+	inc hl
+	ld (hl), d
+	inc hl
+
+	;dev number
+	pop af
+	ld (hl), a
+	inc hl
+
+	or a
+	ret
+.endf
+
+
 .func devfs_open:
-;; Inputs: ix = table entry, (de) = absolute path, a = mode
-;; Outputs: a = errno
-;; Errors: 0=no error
-;;         4=no matching file found
+;; Open a device file
+;;
+;; Input:
+;; : ix - table entry
+;; : (de) - absolute path
+;; : a - mode
+;;
+;; Output:
+;; : a - errno
+
+; Errors: 0=no error
+;         4=no matching file found
 
 	ld hl, devfsRoot
 	push de ;path
