@@ -22,6 +22,8 @@
 #include "emulator.h"
 #include "sd.h"
 
+GResource *resources_get_resource(void);
+
 int quit_req = 0;
 GtkTextView *g_view_console;
 GtkEntry *g_field_instruction;
@@ -154,13 +156,16 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
+	g_resources_register(resources_get_resource());
 
-	GtkBuilder   *builder; 
+	GtkBuilder *builder; 
 
 	gtk_init(&argc, &argv);
 
-	builder = gtk_builder_new();
-	gtk_builder_add_from_file (builder, "glade/window_main.glade", NULL);
+//	builder = gtk_builder_new();
+//	gtk_builder_add_from_file (builder, "glade/window_main.glade", NULL);
+
+	builder = gtk_builder_new_from_resource("/zi28sim/window_main.glade");
 
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "window_main"));
 	gtk_builder_connect_signals(builder, NULL);

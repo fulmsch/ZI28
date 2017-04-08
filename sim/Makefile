@@ -2,6 +2,8 @@ TARGET=zi28sim
 SRCDIR=src
 INCDIR=include
 
+INSTALLDIR=/usr/local/bin
+
 #compiler
 CC=gcc
 # debug
@@ -22,13 +24,25 @@ LD=gcc
 LDFLAGS=$(PTHREAD) $(GTKLIB) -export-dynamic
 LIBS=-lz80 -lutil
 
-OBJS=main.o emulator.o sd.o
+OBJS=main.o resources.o emulator.o sd.o
 
-all: $(OBJS)
+.PHONY: all clean install
+
+all: zi28sim
+
+zi28sim: $(OBJS)
 	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)
+
+install: zi28sim
+	cp zi28sim $(INSTALLDIR)/zi28sim && chmod +x $(INSTALLDIR)/zi28sim
+
+src/resources.c: glade/resources.xml glade/window_main.glade
+	cd glade && glib-compile-resources --target=../$(SRCDIR)/resources.c --generate-source resources.xml
 
 %.o: $(SRCDIR)/%.c
 	$(CC) -c $(CCFLAGS) $(GTKLIB) $< -o $@
 
 clean:
 	rm -f *.o
+	rm -f $(SRCDIR)/resources.c
+
