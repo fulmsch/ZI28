@@ -1,4 +1,6 @@
 z80/programs/basic/
+sim/src/resources.c
+sim/zi28sim
 
 *.hex
 *.obj

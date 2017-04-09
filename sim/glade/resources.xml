@@ -1,0 +1,5 @@
+<gresources>
+	<gresource prefix="/zi28sim/">
+		<file compressed="true">window_main.glade</file>
+	</gresource>
+</gresources>

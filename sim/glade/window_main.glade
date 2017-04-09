@@ -2,11 +2,6 @@
 <!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
-  <object class="GtkImage">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-quit</property>
-  </object>
   <object class="GtkTextBuffer" id="txt_console"/>
   <object class="GtkApplicationWindow" id="window_main">
     <property name="can_focus">False</property>
@@ -70,13 +65,40 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkCheckMenuItem" id="menu_file_romProtect">
+                      <object class="GtkSeparatorMenuItem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">ROM Write-Protection</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="menu_file_quit">
+                        <property name="label">gtk-quit</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_stock">True</property>
+                        <signal name="activate" handler="gtk_main_quit" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">_Memory</property>
+                <property name="use_underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkMenuItem">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Memory editor</property>
                         <property name="use_underline">True</property>
-                        <property name="active">True</property>
-                        <signal name="toggled" handler="on_menu_file_romProtect_toggled" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -86,13 +108,55 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="menu_file_quit">
-                        <property name="label" translatable="yes">Quit</property>
+                      <object class="GtkCheckMenuItem" id="menu_mem_romProtect">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="image">__glade_unnamed_1</property>
-                        <property name="use_stock">False</property>
-                        <signal name="activate" handler="gtk_main_quit" swapped="no"/>
+                        <property name="label" translatable="yes">ROM Write-Protection</property>
+                        <property name="use_underline">True</property>
+                        <property name="active">True</property>
+                        <signal name="toggled" handler="on_menu_mem_romProtect_toggled" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="menu_mem_romLoad">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Load ROM Image</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_menu_mem_romLoad_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="menu_mem_romReload">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Reload ROM Image</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_menu_mem_romReload_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="menu_mem_ramClear">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Clear RAM</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_menu_mem_ramClear_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="menu_mem_ramRand">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Randomize RAM</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_menu_mem_ramRand_activate" swapped="no"/>
                       </object>
                     </child>
                   </object>

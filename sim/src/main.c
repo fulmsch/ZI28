@@ -22,6 +22,8 @@
 #include "emulator.h"
 #include "sd.h"
 
+GResource *resources_get_resource(void);
+
 int quit_req = 0;
 GtkTextView *g_view_console;
 GtkEntry *g_field_instruction;
@@ -34,6 +36,10 @@ GtkEntry *g_field_break;
 GtkTextBuffer *g_txt_console;
 
 gint timeout_update(gpointer data);
+
+GtkWidget    *window;
+
+char *romFile = 0;
 
 enum {
 	PAUSE,
@@ -99,7 +105,6 @@ int main(int argc, char **argv) {
 	int hflag = 0;
 	int rflag = 0;
 	int bflag = 0;
-	char *romFile;
 	int c;
 	while ((c = getopt(argc, argv, "hr:b")) != -1) {
 		switch (c) {
@@ -126,15 +131,21 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
-	if (!rflag) {
-		fprintf(stderr, "Missing argument(s)\nUse '-h' for help\n");
+	if (bflag && !rflag) {
+		fprintf(stderr, "Error: No ROM-image specified\nUse '-h' for help\n");
 		return 1;
 	}
+//	if (!rflag) {
+//		fprintf(stderr, "Missing argument(s)\nUse '-h' for help\n");
+//		return 1;
+//	}
 
 
 	//Start z80lib
 	emulator_init();
-	emulator_loadRom(romFile);
+	if (romFile) {
+		emulator_loadRom(romFile);
+	}
 
 	if (bflag) {
 		while (1) {
@@ -145,14 +156,16 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
+	g_resources_register(resources_get_resource());
 
-	GtkBuilder   *builder; 
-	GtkWidget    *window;
+	GtkBuilder *builder; 
 
 	gtk_init(&argc, &argv);
 
-	builder = gtk_builder_new();
-	gtk_builder_add_from_file (builder, "glade/window_main.glade", NULL);
+//	builder = gtk_builder_new();
+//	gtk_builder_add_from_file (builder, "glade/window_main.glade", NULL);
+
+	builder = gtk_builder_new_from_resource("/zi28sim/window_main.glade");
 
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "window_main"));
 	gtk_builder_connect_signals(builder, NULL);
@@ -268,11 +281,58 @@ void on_break_rem_all_clicked() {
 	memset(&breakpoints[0], 0, sizeof(breakpoints));
 }
 
-void on_menu_file_romProtect_toggled(GtkCheckMenuItem *check_menu_item) {
+void on_menu_mem_romProtect_toggled(GtkCheckMenuItem *check_menu_item) {
 	romProtect = gtk_check_menu_item_get_active(check_menu_item);
 	if (romProtect) {
 		console("ROM Write-Protection on\n");
 	} else {
 		console("ROM Write-Protection off\n");
 	}
+}
+
+void on_menu_mem_romLoad_activate() {
+	GtkWidget *dialog;
+	gint res;
+
+	dialog = gtk_file_chooser_dialog_new ("Open ROM-Image",
+										  GTK_WINDOW(window),
+										  GTK_FILE_CHOOSER_ACTION_OPEN,
+										  "_Cancel",
+										  GTK_RESPONSE_CANCEL,
+										  "_Open",
+										  GTK_RESPONSE_ACCEPT,
+										  NULL);
+
+	res = gtk_dialog_run (GTK_DIALOG (dialog));
+	if (res == GTK_RESPONSE_ACCEPT) {
+		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+		romFile = gtk_file_chooser_get_filename (chooser);
+		emulator_loadRom(romFile);
+		console("Loaded the contents of %s into ROM\n", romFile);
+	}
+
+	gtk_widget_destroy (dialog);
+}
+
+void on_menu_mem_romReload_activate() {
+	if (romFile) {
+		emulator_loadRom(romFile);
+		console("ROM-File reloaded\n");
+	} else {
+		console("Warning: No ROM-file specified\n");
+	}
+}
+
+void on_menu_mem_ramClear_activate() {
+	for (int i = 0x4000; i < 0x10000; i++) {
+		memory[i] = 0;
+	}
+	console("RAM cleared\n");
+}
+
+void on_menu_mem_ramRand_activate() {
+	for (int i = 0x4000; i < 0x10000; i++) {
+		memory[i] = rand();
+	}
+	console("RAM randomized\n");
 }
