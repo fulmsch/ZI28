@@ -1,4 +1,5 @@
 #include "sd.h"
+#include "main.h"
 
 //SdCard::SdCard(char* fileName) {
 //	imgFile = fopen(fileName, "rb");
@@ -134,6 +135,7 @@ void SdCard_parseCommand(struct SdCard *card) {
 		default:
 			break;
 	}
+	console("Command: %d, Argument: %d, Response: %d\n", command, argument, card->response);
 }
 
 
