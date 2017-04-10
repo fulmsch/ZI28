@@ -1,6 +1,6 @@
 ;; Contains advanced math routines
 ;;
-;; Based on: http://www.ticalc.org/pub/83/asm/source/routines/math32.inc
+;; Based on: <http://www.ticalc.org/pub/83/asm/source/routines/math32.inc>
 .list
 
 

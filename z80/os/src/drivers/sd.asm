@@ -1,6 +1,6 @@
 ;; SD-card driver
 ;;
-;; Based on this design: [http://www.ecstaticlyrics.com/electronics/SPI/fast_z80_interface.html]()
+;; Based on this design: <http://www.ecstaticlyrics.com/electronics/SPI/fast_z80_interface.html>
 ;;
 ;; Port 0 is the transfer buffer.  
 ;; A write to port 1 transfers a byte between the buffer and the SD-card.  
