@@ -5,13 +5,17 @@
 fat_fsDriver:
 	.dw fat_init
 	.dw fat_open
-	.dw 0000h     ;close
+
+.define fat_fat1StartSector    driveTableFsdata
+.define fat_fat2StartSector    fat_fat1StartSector + 4
+.define fat_rootDirStartSector fat_fat2StartSector + 4
+.define fat_dataStartSector    fat_rootDirStartSector
+
 
 fat_fileDriver:
 	.dw fat_read
 	.dw fat_write
-;	.dw fat_seek
-	.dw fat_fctl
+;	.dw fat_fctl
 
 .define fat_fileTableStartCluster fileTableData
 .define fat_fileTableSize         fat_fileTableStartCluster + 2
@@ -37,11 +41,6 @@ fat_driveNumber:        .resb 2
 fat_bootRecordSig:      .resb 1
 fat_serialNumber:       .resb 4
 
-fat_fat1StartSector:    .resb 4
-fat_fat2StartSector:    .resb 4
-
-fat_rootDirStartSector: .resb 4
-fat_dataStartSector:    .resb 4
 
 .func fat_init:
 ;; Calculate and store filesystem offsets

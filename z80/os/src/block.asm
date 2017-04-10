@@ -28,11 +28,11 @@
 	;calculate current block
 	ld de, block_curBlock
 	call ld32
-	
+
 	ld hl, block_curBlock
 	call rshift32
-	dec hl
 	call rshiftbyte32
+
 
 	;calculate final block
 	pop hl ;file offset
@@ -41,6 +41,7 @@
 	call ld32
 
 	ld de, (block_remCount)
+	dec de
 	ld hl, reg32
 	call ld16
 
@@ -50,8 +51,8 @@
 
 	ld hl, block_endBlock
 	call rshift32
-	dec hl
 	call rshiftbyte32
+
 
 	;calculate offset relative to block start
 	pop de ;file offset
@@ -59,9 +60,10 @@
 	ld l, a
 	inc de
 	ld a, (de)
-	and 0b00000001
+	and 1
 	ld h, a
 	ld (block_relOffs), hl
+
 
 	;TODO store sector currently in buffer, check if same
 
@@ -94,7 +96,7 @@ return:
 	ld hl, block_buffer
 	add hl, de ;buffer + reloffs
 
-	ld de, block_dest
+	ld de, (block_dest)
 
 	ldir
 

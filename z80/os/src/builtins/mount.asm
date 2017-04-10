@@ -5,7 +5,7 @@
 	cp 3
 	jr nz, invalidCall
 
-	call sdInit
+	call sd_init
 
 	ld hl, argv
 	inc hl

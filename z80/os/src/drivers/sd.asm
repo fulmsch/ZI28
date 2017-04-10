@@ -1,4 +1,11 @@
-;; SD-Card driver
+;; SD-card driver
+;;
+;; Based on this design: [http://www.ecstaticlyrics.com/electronics/SPI/fast_z80_interface.html]()
+;;
+;; Port 0 is the transfer buffer.  
+;; A write to port 1 transfers a byte between the buffer and the SD-card.  
+;; Writing to port 2 enables the SD-card, writing to port 3 disabled it.
+
 .list
 
 sd_fileDriver:
@@ -8,8 +15,6 @@ sd_fileDriver:
 
 .define sd_fileTableStartSector dev_fileTableData
 
-;.define SD_ENABLE out (82h), a
-;.define SD_DISABLE out (83h), a
 
 ;SD command set
 .define SD_GO_IDLE_STATE      0 + 40h ;Software reset
@@ -20,9 +25,87 @@ sd_fileDriver:
 .define SD_READ_OCR          58 + 40h ;Read OCR
 
 
+.func sd_init:
+;; Initialises the SD-card
+;;
+;; Input:
+;; : c - base port address
+
+	ld c, 80h ;TODO proper addressing
+
+	ld hl, reg32
+	call clear32
+
+	call sd_disable
+
+	;Send 80 clock pulses
+	ld b, 10
+	inc c
+poweronLoop:
+	out (c), a
+	djnz poweronLoop
+	dec c
+
+	call sd_enable
+
+	ld a, SD_GO_IDLE_STATE
+	ld hl, reg32
+	call sd_sendCmd
+	ld b, 10
+	ld e, 1
+	call sd_getResponse
+	jr c, error
+
+	ld d, 11
+operatingLoop:
+	dec d
+	jr z, error ;timeout
+
+	ld a, SD_SEND_OP_COND
+	ld hl, reg32
+	call sd_sendCmd
+
+	call delay100
+
+	ld b, 10
+operatingRespLoop:
+	call sd_transferByte
+	in a, (c)
+	cp 1
+	jr z, operatingLoop
+	cp 0
+	jr z, operatingSuccess
+	djnz operatingRespLoop
+	
+	;card doesn't go into operating state
+	jr error
+
+
+operatingSuccess:
+	;set blocksizet to 512 bytes
+	ld hl, reg32
+	ld de, 200h
+	call ld16
+	ld hl, reg32
+	ld a, SD_SET_BLOCKLEN
+	call sd_sendCmd
+	ld b, 10
+	ld e, 0
+	call sd_getResponse
+	jr c, error
+
+	call sd_disable
+	or a
+	ret
+
+error:
+	call sd_disable
+	ld a, -1
+	ret
+.endf
 
 .func sd_read:
-;; Read from a SD-Card
+;; Read from a SD-card
 ;;
 ;; Input:
 ;; : ix - file entry addr
@@ -39,7 +122,7 @@ sd_fileDriver:
 .endf ;sd_read
 
 .func sd_readBlock:
-;; Read a block from a SD-Card
+;; Read a block from a SD-card
 ;;
 ;; Input:
 ;; : ix - file entry addr
@@ -71,12 +154,16 @@ sd_fileDriver:
 	call lshiftbyte32
 	;(reg32) = start address
 
-	SD_ENABLE
+	ld c, 80h ;TODO proper addressing
+
+	call sd_enable
 
 	ld hl, reg32
 	ld a, SD_READ_SINGLE_BLOCK
-	ld c, 80h ;TODO proper addressing
 	call sd_sendCmd
+	ld b, 10
+	ld e, 0
+	call sd_getResponse
 	jr c, error
 
 ;Wait for data packet start
@@ -90,41 +177,29 @@ sd_fileDriver:
 	ld b, 0
 readBlock1:
 	;read the first 256 bytes
-	inc c
-	out (c), a
-	dec c
-	nop
-	nop
+	call sd_transferByte
 	ini
 	jr nz, readBlock1
 readBlock2:
 	;and the second 256 bytes
-	inc c
-	out (c), a
-	dec c
-	nop
-	nop
+	call sd_transferByte
 	ini
 	jr nz, readBlock2
 
 ;Receive the crc and discard it
 	ld b, 2
 getCrc:
-	inc c
-	out (c), a
-	dec c
-	nop
-	nop
+	call sd_transferByte
 	in a, (c)
 	djnz getCrc
 
-	SD_DISABLE
+	call sd_disable
 	xor a
 	ret
 
 error:
 	pop af ;clear stack
-	SD_DISABLE
+	call sd_disable
 	ld a, 1
 	ret
 .endf
@@ -148,7 +223,7 @@ error:
 
 
 .func sd_sendCmd:
-;; Send a command to the SD-Card
+;; Send a command to the SD-card
 ;;
 ;; Input:
 ;; : a - Command index
@@ -162,55 +237,35 @@ error:
 ;; Destroyed:
 ;; : a, b
 
-; a: Command
-; edcb: Argument
-
 	;point to msb
 	inc hl
 	inc hl
 	inc hl
 
-	;command starts with b01
-	or 40h
-
 	;command index
 	out (c), a
-	inc c
-	out (c), a
-	dec c
+	call sd_transferByte
 
 	;argument
 	ld b, 4
-	outi
-
+	outd
 argLoop:
-	inc c
-	out (c), a
-	dec c
-	dec hl
-	outi
+	call sd_transferByte
+	outd
 	jr nz, argLoop
-
-	inc c
-	out (c), a
-	dec c
+	call sd_transferByte
 
 	;optional crc
-;	ld a, 0ffh
+	ld a, 95h ;needs to be 95h for CMD0, after that it's ignored
 	out (c), a
-	inc c
-	out (c), a
-	dec c
+	call sd_transferByte
 
-;Wait for cmd response
-	ld b, 10
-	ld e, 0
-	jp sd_getResponse
+	ret
 .endf
 
 
 .func sd_getResponse:
-;; Look for a specific response from the SD-Card
+;; Look for a specific response from the SD-card
 ;;
 ;; Input:
 ;; : e - expected response
@@ -224,11 +279,7 @@ argLoop:
 ;; Destroyed:
 ;; : a, b
 
-	inc c
-	out (c), a
-	dec c
-	nop
-	nop
+	call sd_transferByte
 	in a, (c)
 	cp e
 	jr z, success
@@ -241,17 +292,77 @@ success:
 	ret
 .endf
 
-;.func delay100:
-;	;Wait for approx. 100ms
-;	ld b, 0
-;	ld c, 41
-;loop:
-;	ex (sp), hl
-;	ex (sp), hl
-;	ex (sp), hl
-;	ex (sp), hl
-;	djnz delay100Loop
-;	dec c
-;	jr nz, delay100Loop
-;	ret
-;.endf ;delay100
+
+.func sd_enable:
+;; Set CS to low to enable the SD-card
+;;
+;; Input:
+;; : c - base port address
+;;
+;; Destroyed:
+;; : none
+
+	inc c
+	inc c
+	out (c), a
+	dec c
+	dec c
+	ret
+.endf
+
+
+.func sd_disable:
+;; Set CS to low to enable the SD-card
+;;
+;; Input:
+;; : c - base port address
+;;
+;; Destroyed:
+;; : none
+
+	inc c
+	inc c
+	inc c
+	out (c), a
+	dec c
+	dec c
+	dec c
+	ret
+.endf
+
+
+.func sd_transferByte:
+;; Transfer a byte between the buffer and the SD-card
+;;
+;; Destroyed:
+;; : none
+
+	inc c
+	out (c), a
+	dec c
+	ret
+.endf
+
+
+.func delay100:
+;; Wait for approx. 100ms
+;;
+;; Destroyed:
+;; : none
+
+	push bc
+
+	ld b, 0
+	ld c, 41
+loop:
+	ex (sp), hl
+	ex (sp), hl
+	ex (sp), hl
+	ex (sp), hl
+	djnz loop
+	dec c
+	jr nz, loop
+
+	pop bc
+	ret
+.endf

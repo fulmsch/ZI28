@@ -33,7 +33,7 @@
 	.db     00h
 	jp      00h          ;CALL 1Ch
 	.db     00h
-	jp      _sdRead      ;RST 20h
+	jp      00h          ;RST 20h
 	.db     00h
 	jp      00h          ;CALL 24h
 	.db     00h
@@ -62,7 +62,7 @@
 
 .include "io.asm"
 .include "interrupt.asm"
-.include "sd.asm"
+;.include "sd.asm"
 .include "drivers/ft240.asm"
 .include "string.asm"
 .include "math.asm"
@@ -107,22 +107,24 @@ clearRamLoop:
 ;	ld a, (0c000h)
 ;	call putc
 
-	call sdInit
+	call sd_init
 
 	ld de, sdName
 	call k_open
 
 	ld a, e
 	push af
-	ld de, 0c000h
-	ld hl, 16
-	call k_read
 
 	ld hl, reg32
-	ld a, 15
-	call ld8
-	ld de, reg32
+	ld (hl), 00h
+	inc hl
+	ld (hl), 12h
+	inc hl
+	ld (hl), 01h
+	inc hl
+	ld (hl), 00h
 
+	ld de, reg32
 	ld h, SEEK_SET
 	pop af
 	push af
@@ -130,8 +132,8 @@ clearRamLoop:
 	pop af
 	push af
 
-	ld de, 0c010h
-	ld hl, 512
+	ld de, 0c000h
+	ld hl, 1024
 	call k_read
 
 	pop af

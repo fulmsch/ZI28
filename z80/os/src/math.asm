@@ -218,7 +218,7 @@ loop:
 ;; : carry flag
 ;;
 ;; Destroyed:
-;; : a, hl
+;; : a
 
 	or a
 	inc hl
@@ -264,7 +264,7 @@ loop:
 ;; Load a 16-bit number into a 32-bit pointer
 ;;
 ;; Input:
-;; : de - 16-bit nubmer
+;; : de - 16-bit number
 ;; : hl - 32-bit pointer
 ;;
 ;; Output:
@@ -273,9 +273,9 @@ loop:
 ;; Destroyed:
 ;; : a, hl
 
-	ld (hl), l
+	ld (hl), e
 	inc hl
-	ld (hl), h
+	ld (hl), d
 	inc hl
 	ld (hl), 0
 	inc hl
@@ -325,6 +325,7 @@ startLoop:
 	ld b, 4
 loop:
 	ld a, (de)
+	cp (hl)
 	ret nz
 	dec hl
 	dec de
