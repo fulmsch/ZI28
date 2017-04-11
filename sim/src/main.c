@@ -41,6 +41,8 @@ GtkWidget    *window;
 
 char *romFile = 0;
 
+int breakpointsEnabled = 1;
+
 enum {
 	PAUSE,
 	RUN,
@@ -218,28 +220,20 @@ int main(int argc, char **argv) {
 }
 
 gint timeout_update(gpointer data) {
-	switch (status) {
-		case RUN:
-			emulator_runCycles(80000, 0);
-			break;
-		case CONT:
+	if (CONT == status) {
+		if (breakpointsEnabled) {
 			if (emulator_runCycles(80000, 1)) {
 				console("Break at 0x%04X\n", context.PC);
 				status = PAUSE;
 			}
-			break;
-		default:
-			break;
+		} else {
+			emulator_runCycles(80000, 0);
+		}
 	}
 	updateRegisters();
 	return 1;
 }
 
-void on_Run_clicked() {
-	clearRegisters();
-	console("Running...\n");
-	status = RUN;
-}
 
 void on_Continue_clicked() {
 	clearRegisters();
@@ -254,6 +248,7 @@ void on_Pause_clicked() {
 
 void on_Step_clicked() {
 	console("Step\n");
+	status = PAUSE;
 	emulator_runCycles(1, 1);
 }
 
@@ -262,10 +257,15 @@ void on_Reset_clicked() {
 	emulator_reset();
 }
 
+void on_break_enable_toggled(GtkToggleButton *toggle_button) {
+	breakpointsEnabled = gtk_toggle_button_get_active(toggle_button);
+}
+
 void on_break_add_clicked() {
-	unsigned int val;
 	const char *str = gtk_entry_get_text(g_field_break);
-	if (1 == sscanf(str, "%x", &val)) {
+	char *endptr;
+	unsigned int val = strtoul(str, &endptr, 16);
+	if ('\0'== *endptr ) {
 		if (!breakpoints[val]) {
 			breakpoints[val] = 1;
 			console("Added breakpoint at address 0x%04X\n", val);
