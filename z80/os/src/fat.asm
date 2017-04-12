@@ -9,7 +9,8 @@ fat_fsDriver:
 .define fat_fat1StartSector    driveTableFsdata
 .define fat_fat2StartSector    fat_fat1StartSector + 4
 .define fat_rootDirStartSector fat_fat2StartSector + 4
-.define fat_dataStartSector    fat_rootDirStartSector
+.define fat_sectorsPerCluster  fat_rootDirStartSector + 4
+.define fat_dataStartSector    fat_sectorsPerCluster + 1
 
 
 fat_fileDriver:
@@ -21,140 +22,119 @@ fat_fileDriver:
 .define fat_fileTableSize         fat_fileTableStartCluster + 2
 
 
-fat_bootStartSector:    .resb 4
-
-fat_vbr:
-fat_oemName:            .resb 8
-fat_bytesPerSector:     .resb 2
-fat_sectorsPerCluster:  .resb 1
-fat_reservedSectors:    .resb 2
-fat_fatCopies:          .resb 1
-fat_maxRootDirEntries:  .resb 2
-fat_sectorsShort:       .resb 2
-fat_mediaDescriptor:    .resb 1
-fat_sectorsPerFat:      .resb 2
-fat_sectorsPerTrack:    .resb 2
-fat_heads:              .resb 2
-fat_sectorsBeforeVBR:   .resb 4
-fat_sectorsLong:        .resb 4
-fat_driveNumber:        .resb 2
-fat_bootRecordSig:      .resb 1
-fat_serialNumber:       .resb 4
+;Boot sector contents             Offset|Length (in bytes)
+.define FAT_VBR_OEM_NAME             03h ;8
+.define FAT_VBR_BYTES_PER_SECTOR     0bh ;2
+.define FAT_VBR_SECTORS_PER_CLUSTER  0dh ;1
+.define FAT_VBR_RESERVED_SECTORS     0eh ;2
+.define FAT_VBR_FAT_COPIES           10h ;1
+.define FAT_VBR_MAX_ROOT_DIR_ENTRIES 11h ;2
+.define FAT_VBR_SECTORS_SHORT        13h ;2
+.define FAT_VBR_MEDIA_DESCRIPTOR     15h ;1
+.define FAT_VBR_SECTORS_PER_FAT      16h ;2
+.define FAT_VBR_SECTORS_PER_TRACK    18h ;2
+.define FAT_VBR_HEADS                1ah ;4
+.define FAT_VBR_SECTORS_BEFORE_VBR   1ch ;4
+.define FAT_VBR_SECTORS_LONG         20h ;1
+.define FAT_VBR_DRIVE_NUMBER         24h ;1
+.define FAT_VBR_BOOT_RECORD_SIG      26h ;1
+.define FAT_VBR_SERIAL_NUMBER        27h ;4
 
 
 .func fat_init:
 ;; Calculate and store filesystem offsets
+;;
+;; Input:
+;; : a - fd of device containing the fs
 
-	;load the MBR
-	xor a
-	ld b, a
-	ld c, a
-	ld d, a
-	ld e, a
-	ld a, 1
-	ld hl, sdBuffer
-	rst sdRead
-	;TODO add error
+	;TODO store values in the actual drive table entry
 
-	;store partition start in memory
-	ld hl, sdBuffer + 1c6h
-	ld de, fat_bootStartSector
-	ld bc, 4
-	ldir
+	;Store the sector of the first FAT
+	ld hl, fat_fat1StartSector
+	call clear32
 
-	;load volume boot record
-	ld hl, sdBuffer + 1c6h
-	call sectorToAddr
+	push af
+	ld de, FAT_VBR_RESERVED_SECTORS
+	ld h, SEEK_SET
+	call k_seek
+	pop af
 
-	ld a, 1
-	ld hl, sdBuffer
-	rst sdRead
-	;TODO add error
-
-	;store information about the fs in memory
-	ld hl, sdBuffer + 3
-	ld de, fat_vbr
-	ld bc, 2ah
-	ldir
-
-	;TODO check the number of fat copies
-
-	;calculate the sector of the first fat
-	ld a, (fat_reservedSectors)
-	ld hl, fat_bootStartSector
+	push af
 	ld de, fat_fat1StartSector
+	ld hl, 1
+	call k_read
+	pop af
 
-	add a, (hl)
-	ld (de), a
 
-	ld b, 3
-	call addCarry
-
-	;calculate the sector of the second fat
+	;Calculate the sector of the second FAT
 	ld hl, fat_fat1StartSector
 	ld de, fat_fat2StartSector
-	ld bc, fat_sectorsPerFat
+	call ld32
 
-	ld a, (bc)
-	add a, (hl)
-	ld (de), a
-	inc hl
-	inc de
-	inc bc
-	ld a, (bc)
-	adc a, (hl)
-	ld (de), a
+	ld hl, reg32
+	call clear32
 
-	ld b, 2
-	call addCarry
+	push af
+	ld de, FAT_VBR_SECTORS_PER_FAT
+	ld h, SEEK_SET
+	call k_seek
+	pop af
+
+	push af
+	ld de, reg32
+	ld hl, 2
+	call k_read
+	pop af
+	;(reg32) = sectors per fat
+
+	ld hl, fat_fat2StartSector
+	ld de, reg32
+	call add32
 
 
-	;calculate the start of the root directory
+	;Calculate the start of the root directory
 	ld hl, fat_fat2StartSector
 	ld de, fat_rootDirStartSector
-	ld bc, fat_sectorsPerFat
+	call ld32
 
-	ld a, (bc)
-	add a, (hl)
-	ld (de), a
-	inc hl
-	inc de
-	inc bc
-	ld a, (bc)
-	adc a, (hl)
-	ld (de), a
+	ex de, hl
+	ld de, reg32
+	call add32
 
-	ld b, 2
-	call addCarry
 
-	;calculate the size of the root directory
-	ld hl, (fat_maxRootDirEntries)
-	xor a
-	add hl, hl
-	rla
-	add hl, hl
-	rla
-	add hl, hl
-	rla
-	add hl, hl
-	rla
-	ld c, h
-	ld b, a
-
-	;calculate the start of the data region
+	;Calculate the start of the data region
 	ld hl, fat_rootDirStartSector
 	ld de, fat_dataStartSector
-	ld a, (hl)
-	add a, c
-	ld (de), a
-	inc hl
-	inc de
-	ld a, (hl)
-	adc a, b
-	ld (de), a
+	call ld32
 
-	ld b, 2
-	call addCarry
+	ld hl, reg32
+	call clear32
+
+	push af
+	ld de, FAT_VBR_MAX_ROOT_DIR_ENTRIES
+	ld h, SEEK_SET
+	call k_seek
+	pop af
+
+	push af
+	ld de, reg32
+	ld hl, 2
+	call k_read
+	pop af
+
+	;Calculate the length of the root dir
+	;Length in sectors = n_entries * size of entry / size of sector
+	;                  = n_entries * 32 / 512 = n_entries >> 4
+	ld hl, reg32
+	ld b, 4
+rootDirSizeLoop:
+	call rshift32
+	djnz rootDirSizeLoop
+	;(reg32) = size of root dir in sectors
+
+	ld de, fat_dataStartSector
+	ex de, hl
+	call add32
 
 	;close all open files
 ;	ld a, 0
@@ -458,22 +438,6 @@ clusterToSectorLoop:
 	ld (de), a
 
 	ret
-
-;*****************
-;Add long numbers
-;Description: add carry and (hl), stores it at (de), b times
-;Inputs: number at (hl), b, carry
-;Outputs: number at (de)
-;Destroyed: a
-addCarry:
-	inc hl
-	inc de
-	ld a, 0
-	adc a, (hl)
-	ld (de), a
-	djnz addCarry
-	ret
-
 
 ;*****************
 ;Find directory entry
