@@ -14,7 +14,7 @@ add32:
 ;; : (hl) = (hl) + (de)
 ;;
 ;; Destroyed:
-;; : a, b, de, hl
+;; : none
 
 	;clear the carry flag
 	or a
@@ -29,7 +29,12 @@ add32:
 ;; : (hl) = (hl) + (de) + cf
 ;;
 ;; Destroyed:
-;; : a, b, de, hl
+;; : none
+
+	push af
+	push bc
+	push de
+	push hl
 
 	ld b, 4
 loop:
@@ -39,6 +44,12 @@ loop:
 	inc hl
 	inc de
 	djnz loop
+
+	pop hl
+	pop de
+	pop bc
+	pop af
+
 	ret
 .endf ;add32
 
@@ -53,7 +64,7 @@ sub32:
 ;; : (hl) = (hl) - (de)
 ;;
 ;; Destroyed:
-;; : a, b, de, hl
+;; : none
 
 	;clear the carry flag
 	or a
@@ -68,7 +79,12 @@ sub32:
 ;; : (hl) = (hl) - (de) - cf
 ;;
 ;; Destroyed:
-;; : a, b, de, hl
+;; : none
+
+	push af
+	push bc
+	push de
+	push hl
 
 	ld b, 4
 loop:
@@ -78,6 +94,12 @@ loop:
 	inc de
 	inc hl
 	djnz loop
+
+	pop hl
+	pop de
+	pop bc
+	pop af
+
 	ret
 .endf ;sub32
 
@@ -92,7 +114,9 @@ loop:
 ;; : (hl) = (hl) + 1
 ;;
 ;; Destroyed:
-;; : hl
+;; : none
+
+	push hl
 
 	inc (hl)
 	ret nz
@@ -107,6 +131,8 @@ loop:
 	inc hl
 
 	inc (hl)
+
+	pop hl
 	ret
 .endf
 
@@ -121,7 +147,10 @@ loop:
 ;; : (hl) = (hl) << 8
 ;;
 ;; Destroyed:
-;; : a, hl
+;; : none
+
+	push af
+	push hl
 
 	inc hl
 	inc hl
@@ -143,6 +172,9 @@ loop:
 	ld (hl), a
 	dec hl
 	ld (hl), 0
+
+	pop hl
+	pop af
 	ret
 .endf
 
@@ -158,7 +190,9 @@ loop:
 ;; : carry flag
 ;;
 ;; Destroyed:
-;; : a, hl
+;; : none
+
+	push hl
 
 	or a
 	rl (hl)
@@ -168,6 +202,8 @@ loop:
 	rl (hl)
 	inc hl
 	rl (hl)
+
+	pop hl
 	ret
 .endf
 
@@ -182,7 +218,10 @@ loop:
 ;; : (hl) = (hl) >> 8
 ;;
 ;; Destroyed:
-;; : a, hl
+;; : none
+
+	push af
+	push hl
 
 	inc hl
 	ld a, (hl)
@@ -203,6 +242,9 @@ loop:
 	inc hl
 
 	ld (hl), 0
+
+	pop hl
+	pop af
 	ret
 .endf
 
@@ -218,7 +260,7 @@ loop:
 ;; : carry flag
 ;;
 ;; Destroyed:
-;; : a
+;; : none
 
 	or a
 	inc hl
@@ -247,15 +289,11 @@ loop:
 ;; : (hl) = a
 ;;
 ;; Destroyed:
-;; : b, de, hl
-
-	;save hl
-	ld d, h
-	ld e, l
+;; : none
 
 	;clear (hl)
 	call clear32
-	ld (de), a
+	ld (hl), a
 	ret
 .endf ;ld8
 
@@ -271,7 +309,9 @@ loop:
 ;; : (hl) = de
 ;;
 ;; Destroyed:
-;; : a, hl
+;; : none
+
+	push hl
 
 	ld (hl), e
 	inc hl
@@ -280,6 +320,8 @@ loop:
 	ld (hl), 0
 	inc hl
 	ld (hl), 0
+
+	pop hl
 	ret
 .endf ;ld16
 
@@ -292,10 +334,19 @@ loop:
 ;; : de - 32-bit pointer
 ;;
 ;; Destroyed:
-;; : bc, de, hl
+;; : none
+
+	push bc
+	push de
+	push hl
 
 	ld bc, 4
 	ldir
+
+	pop hl
+	pop de
+	pop bc
+
 	ret
 .endf ;ld32
 
@@ -344,12 +395,17 @@ loop:
 ;; : (hl) = 0
 ;;
 ;; Destroyed:
-;; : b, hl
+;; : none
 
+	push hl
+	push bc
 	ld b, 4
 loop:
 	ld (hl), 0
 	inc hl
 	djnz loop
+
+	pop bc
+	pop hl
 	ret
 .endf ;clear32

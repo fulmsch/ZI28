@@ -49,7 +49,6 @@
 	ld de, reg32
 	call add32
 
-	ld hl, block_endBlock
 	call rshift32
 	call rshiftbyte32
 

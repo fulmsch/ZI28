@@ -86,7 +86,6 @@ operatingSuccess:
 	ld hl, reg32
 	ld de, 200h
 	call ld16
-	ld hl, reg32
 	ld a, SD_SET_BLOCKLEN
 	call sd_sendCmd
 	ld b, 10
@@ -150,7 +149,6 @@ error:
 	call add32 ;(reg32) = absolute sector number
 	ld hl, reg32
 	call lshift32
-	ld hl, reg32
 	call lshiftbyte32
 	;(reg32) = start address
 
@@ -158,7 +156,6 @@ error:
 
 	call sd_enable
 
-	ld hl, reg32
 	ld a, SD_READ_SINGLE_BLOCK
 	call sd_sendCmd
 	ld b, 10
