@@ -12,10 +12,16 @@
 ;; : (de) - buffer
 ;; : bc - count
 ;; : (hl) - block device driver callback
+;;
+;; Output:
+;; : de - count
+;; : a - errno
 
 	ld (block_callback), hl
 	ld (block_dest), de
 	ld (block_remCount), bc
+	ld de, 0
+	ld (block_totalCount), de
 
 	;get address of file offset
 	ld de, fileTableOffset
@@ -100,6 +106,10 @@ return:
 	ldir
 
 	pop bc
+	ld hl, (block_totalCount)
+	add hl, bc
+	ld (block_totalCount), hl
+
 	ld hl, (block_dest)
 	add hl, bc
 	ld (block_dest), hl
@@ -125,12 +135,19 @@ end:
 
 	ld de, (block_dest)
 	ld bc, (block_remCount)
+	push bc
 	ldir
+
+	pop de
+	ld hl, (block_totalCount)
+	add hl, de
+	ex de, hl
 
 	xor a
 	ret
 
 error:
+	ld de, (block_totalCount)
 	ret
 .endf ;block_read
 

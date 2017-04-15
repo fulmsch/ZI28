@@ -112,7 +112,7 @@ error:
 ;; : bc - count
 ;;
 ;; Output:
-;; : de = count
+;; : de - count
 ;; : a - errno
 
 ; Errors: 0=no error

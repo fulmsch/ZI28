@@ -67,7 +67,8 @@
 #define block_curBlock          block_buffer + 512
 #define block_endBlock          block_curBlock + 4
 #define block_remCount          block_endBlock + 4
-#define block_relOffs           block_remCount + 2
+#define block_totalCount        block_remCount + 2
+#define block_relOffs           block_totalCount + 2
 #define block_callback          block_relOffs + 2
 #define block_dest              block_callback + 2
 #define block_end               block_dest + 2

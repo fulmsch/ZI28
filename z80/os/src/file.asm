@@ -281,8 +281,30 @@ invalidFd:
 	cp 0
 	jr z, zeroCount
 validCount:
+	;push return address to stack
+	push hl
+	ld hl, return
+	ex (sp), hl
 
 	jp (hl)
+
+return:
+	push de
+	;add count to offset
+	ld hl, reg32
+	call ld16 ;load count into reg32
+	ld d, h
+	ld e, l
+
+	ld b, ixh
+	ld c, ixl
+	ld hl, fileTableOffset
+	add hl, bc
+	call add32
+
+	pop de ;count
+	xor a
+	ret
 
 invalidFd:
 	pop hl
