@@ -5,15 +5,22 @@
 ft240_fileDriver:
 	.dw ft240_read
 	.dw ft240_write
-;	.dw 0 ;seek
 
-.define FT240_DATA   0
-.define FT240_STATUS 1
+.define FT240_DATA_PORT   0
+.define FT240_STATUS_PORT 1
 
 .func ft240_read:
-;; Inputs: ix = file entry addr, (de) = buffer, bc = count
-;; a = errno, de = count
-;; Errors: 0=no error
+;; Read from the USB-connection on the mainboard
+;;
+;; Input:
+;; : ix - file entry addr
+;; : (de) - buffer
+;; : bc - count
+;;
+;; Output:
+;; : de - count
+;; : a - errno
+; Errors: 0=no error
 
 	;calculate loop value in bc
 	ld a, c
@@ -24,10 +31,10 @@ ft240_fileDriver:
 	ld hl, 0
 
 poll:
-	in a, (FT240_STATUS)
+	in a, (FT240_STATUS_PORT)
 	bit 1, a
 	jr nz, poll
-	in a, (FT240_DATA)
+	in a, (FT240_DATA_PORT)
 	ld (de), a
 	inc de
 	inc hl
@@ -40,9 +47,17 @@ poll:
 
 
 .func ft240_write:
-;; Inputs: ix = file entry addr, (de) = buffer, bc = count
-;; a = errno, de = count
-;; Errors: 0=no error
+;; Write to the USB-connection on the mainboard
+;;
+;; Input:
+;; : ix - file entry addr
+;; : (de) - buffer
+;; : bc - count
+;;
+;; Output:
+;; : de - count
+;; : a - errno
+; Errors: 0=no error
 
 	;calculate loop value in bc
 	ld a, c
@@ -54,11 +69,11 @@ poll:
 	ld hl, 0
 
 poll:
-	in a, (FT240_STATUS)
+	in a, (FT240_STATUS_PORT)
 	bit 0, a
 	jr nz, poll
 	ld a, (de)
-	out (FT240_DATA), a
+	out (FT240_DATA_PORT), a
 	inc de
 	inc hl
 	djnz poll
