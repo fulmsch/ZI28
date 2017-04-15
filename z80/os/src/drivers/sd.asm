@@ -29,7 +29,9 @@ sd_fileDriver:
 ;; Initialises the SD-card
 ;;
 ;; Input:
-;; : c - base port address
+;; : ix - devfs entry address
+
+	;TODO read mbr, find partitions
 
 	ld c, 80h ;TODO proper addressing
 
@@ -144,13 +146,14 @@ error:
 	ld e, ixl
 	ld hl, sd_fileTableStartSector
 	add hl, de ;(hl) = sector offset
-	ld hl, reg32
+	ld de, reg32
 	ex de, hl
 	call add32 ;(reg32) = absolute sector number
 	ld hl, reg32
 	call lshift32
 	call lshiftbyte32
 	;(reg32) = start address
+
 
 	ld c, 80h ;TODO proper addressing
 

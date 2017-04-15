@@ -31,6 +31,14 @@ devfs_fsDriver:
 	ld a, 0
 	call devfs_addDev
 
+	ld hl, sda1Name
+	ld de, sd_fileDriver
+	ld a, 1
+	call devfs_addDev
+	call clear32
+	ld a, 89h
+	call ld8
+
 	xor a
 	ret
 
@@ -39,6 +47,8 @@ tty0name:
 	.asciiz "TTY0"
 sdaName:
 	.asciiz "SDA"
+sda1Name:
+	.asciiz "SDA1"
 .endf ;devfs_init
 
 
@@ -48,7 +58,7 @@ sdaName:
 ;; Input:
 ;; : (hl) - name
 ;; : de - driver address
-;; : a - number
+;; : a - number / port
 ;;
 ;; Output:
 ;; : carry - unable to create entry
@@ -104,6 +114,38 @@ freeEntryFound:
 	ret
 .endf
 
+.func devfs_addExpCard:
+;; Add an entry for an expansion card to the devfs and initialise the module.
+;; Should eventually also read the eeprom and handle driver loading somehow.
+;;
+;; Input:
+;; : b - expansion slot number
+;; : de - device driver (temporary)
+
+	;TODO check if card is inserted; read the eeprom; evt. load driver; needs unio driver
+
+	;calculate port
+	;port = $80 + n * 16
+	xor a
+	cp b
+	jr z, portFound
+	ld a, 7
+	cp b
+	jr c, error ;invalid slot number
+
+	ld a, 80h
+portLoop:
+	add a, 16
+	djnz portLoop
+portFound:
+	
+	call devfs_addDev
+	jr c, error
+
+error:
+	ret
+.endf
+
 
 .func devfs_open:
 ;; Open a device file
@@ -149,6 +191,23 @@ fileFound:
 	ld (ix + fileTableDriver), a
 	ld a, (iy + devfs_entryDriver + 1)
 	ld (ix + fileTableDriver + 1), a
+
+	ld a, (iy + devfs_number)
+	ld (ix + dev_fileTableNumber), a
+
+	;copy custom data
+	ld bc, devfsEntrySize - devfs_data
+	ld d, ixh
+	ld e, ixl
+	ld hl, dev_fileTableData
+	add hl, de
+	push hl
+	ld d, iyh
+	ld e, iyl
+	ld hl, devfs_data
+	add hl, de
+	pop de
+	ldir
 
 	;fill table spot
 	ld (ix + 0), 1

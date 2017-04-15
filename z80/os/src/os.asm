@@ -104,49 +104,58 @@ clearRamLoop:
 	ld de, 0c000h
 	ld hl, 1
 	call k_write
+
+
 ;	ld a, (0c000h)
 ;	call putc
+
+
+;	ld hl, reg32
+;	ld (hl), 00h
+;	inc hl
+;	ld (hl), 12h
+;	inc hl
+;	ld (hl), 01h
+;	inc hl
+;	ld (hl), 00h
+;
+;	ld de, reg32
+;	ld h, SEEK_SET
+;	pop af
+;	push af
+;	call k_seek
+;	pop af
+;	push af
 
 	call sd_init
 
 	ld de, sdName
 	call k_open
-
 	ld a, e
 	push af
 
-	ld hl, reg32
-	ld (hl), 00h
-	inc hl
-	ld (hl), 12h
-	inc hl
-	ld (hl), 01h
-	inc hl
-	ld (hl), 00h
-
-	ld de, reg32
-	ld h, SEEK_SET
-	pop af
-	push af
-	call k_seek
-	pop af
-	push af
-
 	ld de, 0c000h
-	ld hl, 1024
+	ld hl, 512
 	call k_read
 
 	pop af
+	push af
+
+	ld de, 0c200h
+	ld hl, 512
+	call k_read
+
+	pop af
+	rst monitor
 	call k_close
 
-	rst monitor
 
 	call cli
 
 ttyName:
 	.asciiz "0:TTY0"
 sdName:
-	.asciiz "0:SDA"
+	.asciiz "0:SDA1"
 
 
 
