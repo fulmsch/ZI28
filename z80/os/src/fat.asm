@@ -59,15 +59,11 @@ fat_fileDriver:
 	push hl ;fat1StarSector
 	call clear32
 
-	ld hl, reg32
-	ld a, FAT_VBR_RESERVED_SECTORS
-	call ld8
-	ex de, hl ;de = reg32
-
 	ld a, (ix + driveTableDevfd)
 	push af
-	ld h, SEEK_SET
 	push ix
+	ld de, FAT_VBR_RESERVED_SECTORS
+	ld h, SEEK_SET
 	call k_seek
 	pop ix
 	pop af
@@ -94,10 +90,7 @@ fat_fileDriver:
 
 	push af
 	push ix
-	ld hl, reg32
 	ld de, FAT_VBR_SECTORS_PER_FAT
-	call ld16
-	ex de, hl ;de = reg32
 	ld h, SEEK_SET
 	call k_seek
 	pop ix
@@ -149,10 +142,7 @@ fat_fileDriver:
 
 	push af
 	push ix
-	ld hl, reg32
 	ld de, FAT_VBR_MAX_ROOT_DIR_ENTRIES
-	call ld16
-	ex de, hl ;de = reg32
 	ld h, SEEK_SET
 	call k_seek
 	pop ix
@@ -187,10 +177,7 @@ rootDirSizeLoop:
 
 	push af
 	push ix
-	ld hl, reg32
 	ld de, FAT_VBR_SECTORS_PER_CLUSTER
-	call ld16
-	ex de, hl ;de = reg32
 	ld h, SEEK_SET
 	call k_seek
 	pop ix

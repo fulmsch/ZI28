@@ -106,27 +106,6 @@ clearRamLoop:
 	call k_write
 
 
-;	ld a, (0c000h)
-;	call putc
-
-
-;	ld hl, reg32
-;	ld (hl), 00h
-;	inc hl
-;	ld (hl), 12h
-;	inc hl
-;	ld (hl), 01h
-;	inc hl
-;	ld (hl), 00h
-;
-;	ld de, reg32
-;	ld h, SEEK_SET
-;	pop af
-;	push af
-;	call k_seek
-;	pop af
-;	push af
-
 	call sd_init
 
 	ld de, sdName
@@ -135,23 +114,6 @@ clearRamLoop:
 	ld a, 1
 	ld de, fat_fsDriver
 	call k_mount
-
-;	ld a, e
-;	push af
-;
-;	ld de, 0c000h
-;	ld hl, 512
-;	call k_read
-;
-;	pop af
-;	push af
-;
-;	ld de, 0c200h
-;	ld hl, 512
-;	call k_read
-;
-;	pop af
-	call k_close
 
 	call cli
 

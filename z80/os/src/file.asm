@@ -403,8 +403,35 @@ zeroCount:
 .endf ;k_write
 
 
-.func k_seek:
-;; Change the file offset of an open file
+k_seek:
+;; Change the file offset of an open file using a 16-bit offset.
+;;
+;; The new offset is calculated according to whence as follows:
+;;
+;; * `SEEK_SET` : from start of file
+;; * `SEEK_PCUR` : from current location in positive direction
+;; * `SEEK_NCUR` : from current location in negative direction
+;; * `SEEK_END` : from end of file in negative direction
+;;
+;; Input:
+;; : a - file descriptor
+;; : de - offset
+;; : h - whence
+;;
+;; Output:
+;; : (de) - new offset from start of file
+;; : a - errno
+
+	push hl
+	ld hl, reg32
+	call ld16
+	ld d, h
+	ld e, l
+	pop hl
+
+
+.func k_lseek:
+;; Change the file offset of an open file using a 32-bit offset.
 ;;
 ;; The new offset is calculated according to whence as follows:
 ;;
