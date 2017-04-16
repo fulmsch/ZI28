@@ -9,8 +9,8 @@ fat_fsDriver:
 .define fat_fat1StartSector    driveTableFsdata
 .define fat_fat2StartSector    fat_fat1StartSector + 4
 .define fat_rootDirStartSector fat_fat2StartSector + 4
-.define fat_sectorsPerCluster  fat_rootDirStartSector + 4
-.define fat_dataStartSector    fat_sectorsPerCluster + 1
+.define fat_dataStartSector    fat_rootDirStartSector + 4
+.define fat_sectorsPerCluster  fat_dataStartSector + 4 ;1 byte
 
 
 fat_fileDriver:
@@ -45,96 +45,164 @@ fat_fileDriver:
 ;; Calculate and store filesystem offsets
 ;;
 ;; Input:
-;; : a - fd of device containing the fs
+;;; : a - fd of device containing the fs
+;; : ix - drive table entry address
 
-	;TODO store values in the actual drive table entry
+	;TODO fix this crap
+
 
 	;Store the sector of the first FAT
+	ld d, ixh
+	ld e, ixl
 	ld hl, fat_fat1StartSector
+	add hl, de
+	push hl ;fat1StarSector
 	call clear32
 
+	ld hl, reg32
+	ld a, FAT_VBR_RESERVED_SECTORS
+	call ld8
+	ex de, hl ;de = reg32
+
+	ld a, (ix + driveTableDevfd)
 	push af
-	ld de, FAT_VBR_RESERVED_SECTORS
 	ld h, SEEK_SET
+	push ix
 	call k_seek
+	pop ix
 	pop af
 
+	pop de ;fat1StarSector
+	push de
 	push af
-	ld de, fat_fat1StartSector
+	push ix
 	ld hl, 1
 	call k_read
+	pop ix
 	pop af
 
 
 	;Calculate the sector of the second FAT
-	ld hl, fat_fat1StartSector
-	ld de, fat_fat2StartSector
-	call ld32
-
-	ld hl, reg32
+	pop hl ;fat1StartSector
+	ld d, h
+	ld e, l
+	ld bc, 4 ;fat_fat2StartSector - fat_fat1StartSector
+	add hl, bc
 	call clear32
+	push de ;fat_fat1StartSector
+	push hl ;fat_fat2StartSector
 
 	push af
+	push ix
+	ld hl, reg32
 	ld de, FAT_VBR_SECTORS_PER_FAT
+	call ld16
+	ex de, hl ;de = reg32
 	ld h, SEEK_SET
 	call k_seek
+	pop ix
 	pop af
+
+;	ld hl, reg32
+;	call clear32
+;	ex de, hl ;de = reg32
+
+	pop de ;fat_fat2StartSector
+	push de
 
 	push af
-	ld de, reg32
+	push ix
 	ld hl, 2
 	call k_read
+	pop ix
 	pop af
-	;(reg32) = sectors per fat
+	;(fat_fat2StartSector) = sectors per fat
 
-	ld hl, fat_fat2StartSector
-	ld de, reg32
-	call add32
-
-
-	;Calculate the start of the root directory
-	ld hl, fat_fat2StartSector
-	ld de, fat_rootDirStartSector
-	call ld32
-
+	pop hl ;fat2StartSector
+	ld d, h
+	ld e, l
+	ld bc, 4 ;fat_rootDirStartSector - fat_fat2StartSector
+	add hl, bc
 	ex de, hl
-	ld de, reg32
-	call add32
+	;hl = fat_fat2StartSector
+	;de = fat_rootDirStartSector
+	call ld32
+	ld b, d
+	ld c, e
+
+	pop de ;fat_fat1StartSector
+	call add32 ;fat2StartSector = sectors_per_fat + fat1StartSector
+	ex de, hl ;de = fat2StartSector
+	ld h, b
+	ld l, c
+	call add32 ;rootDirStartSector = sectors_per_fat + fat2StartSector
+	push hl ;rootDirStartSector
 
 
 	;Calculate the start of the data region
-	ld hl, fat_rootDirStartSector
-	ld de, fat_dataStartSector
-	call ld32
-
-	ld hl, reg32
+	;hl = fat_rootDirStartSector
+	ld de, 4 ;fat_dataStartSector - fat_rootDirStartSector
+	add hl, de
+	;hl = fat_dataStartSector
 	call clear32
+	push hl ;fat_dataStartSector
 
 	push af
+	push ix
+	ld hl, reg32
 	ld de, FAT_VBR_MAX_ROOT_DIR_ENTRIES
+	call ld16
+	ex de, hl ;de = reg32
 	ld h, SEEK_SET
 	call k_seek
+	pop ix
 	pop af
 
+	pop de ;fat_dataStartSector
+	push de
 	push af
-	ld de, reg32
+	push ix
 	ld hl, 2
 	call k_read
+	pop ix
 	pop af
 
 	;Calculate the length of the root dir
 	;Length in sectors = n_entries * size of entry / size of sector
 	;                  = n_entries * 32 / 512 = n_entries >> 4
-	ld hl, reg32
+	pop hl
 	ld b, 4
 rootDirSizeLoop:
 	call rshift32
 	djnz rootDirSizeLoop
-	;(reg32) = size of root dir in sectors
+	;(hl) = size of root dir in sectors
 
-	ld de, fat_dataStartSector
-	ex de, hl
+	pop de ;fat_rootDirStartSector
 	call add32
+
+	ld de, 4 ;fat_sectorsPerCluster - fat_dataStartSector
+	add hl, de
+	;hl = fat_sectorsPerCluster
+	push hl
+
+	push af
+	push ix
+	ld hl, reg32
+	ld de, FAT_VBR_SECTORS_PER_CLUSTER
+	call ld16
+	ex de, hl ;de = reg32
+	ld h, SEEK_SET
+	call k_seek
+	pop ix
+	pop af
+
+	pop de ;fat_sectorsPerCluster
+	push af
+	push ix
+	ld hl, 1
+	call k_read
+	pop ix
+	pop af
 
 	;close all open files
 ;	ld a, 0

@@ -131,24 +131,27 @@ clearRamLoop:
 
 	ld de, sdName
 	call k_open
-	ld a, e
-	push af
+	ld h, e
+	ld a, 1
+	ld de, fat_fsDriver
+	call k_mount
 
-	ld de, 0c000h
-	ld hl, 512
-	call k_read
-
-	pop af
-	push af
-
-	ld de, 0c200h
-	ld hl, 512
-	call k_read
-
-	pop af
-	rst monitor
+;	ld a, e
+;	push af
+;
+;	ld de, 0c000h
+;	ld hl, 512
+;	call k_read
+;
+;	pop af
+;	push af
+;
+;	ld de, 0c200h
+;	ld hl, 512
+;	call k_read
+;
+;	pop af
 	call k_close
-
 
 	call cli
 
