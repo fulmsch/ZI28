@@ -17,7 +17,7 @@ PTHREAD=-pthread
 
 CCFLAGS=$(DEBUG) $(OPT) $(WARN) $(PTHREAD) -I$(INCDIR) -pipe
 
-GTKLIB=`pkg-config --cflags --libs gtk+-3.0`
+GTKLIB=`pkg-config --cflags --libs gtk+-3.0` `pkg-config --cflags --libs gtkhex-3`
 
 # linker
 LD=gcc

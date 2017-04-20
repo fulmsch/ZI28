@@ -18,6 +18,8 @@
 #include <string.h>
 #include <z80.h>
 
+#include <gtkhex.h>
+
 #include "main.h"
 #include "emulator.h"
 #include "sd.h"
@@ -335,4 +337,16 @@ void on_menu_mem_ramRand_activate() {
 		memory[i] = rand();
 	}
 	console("RAM randomized\n");
+}
+
+void on_menu_mem_editor_activate() {
+	GtkWidget *memEditorWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	HexDocument *hexdoc = hex_document_new();
+	hex_document_set_data(hexdoc, 0,
+								  0x10000, 0, memory,
+								  FALSE);
+	GtkWidget *hexeditor = gtk_hex_new(hexdoc);
+	gtk_hex_show_offsets(GTK_HEX(hexeditor), TRUE);
+	gtk_container_add(GTK_CONTAINER(memEditorWindow), hexeditor);
+	gtk_widget_show_all(memEditorWindow);
 }
