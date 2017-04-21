@@ -6,11 +6,11 @@ fat_fsDriver:
 	.dw fat_init
 	.dw fat_open
 
-.define fat_fat1StartSector    driveTableFsdata
-.define fat_fat2StartSector    fat_fat1StartSector + 4
-.define fat_rootDirStartSector fat_fat2StartSector + 4
-.define fat_dataStartSector    fat_rootDirStartSector + 4
-.define fat_sectorsPerCluster  fat_dataStartSector + 4 ;1 byte
+.define fat_fat1StartAddr    driveTableFsdata
+.define fat_fat2StartAddr    fat_fat1StartAddr + 4
+.define fat_rootDirStartAddr fat_fat2StartAddr + 4
+.define fat_dataStartAddr    fat_rootDirStartAddr + 4
+.define fat_sectorsPerCluster  fat_dataStartAddr + 4 ;1 byte
 
 
 fat_fileDriver:
@@ -54,9 +54,9 @@ fat_fileDriver:
 	;Store the sector of the first FAT
 	ld d, ixh
 	ld e, ixl
-	ld hl, fat_fat1StartSector
+	ld hl, fat_fat1StartAddr
 	add hl, de
-	push hl ;fat1StarSector
+	push hl ;fat1StarAddr
 	call clear32
 
 	ld a, (ix + driveTableDevfd)
@@ -68,7 +68,7 @@ fat_fileDriver:
 	pop ix
 	pop af
 
-	pop de ;fat1StarSector
+	pop de ;fat1StarAddr
 	push de
 	push af
 	push ix
@@ -77,16 +77,17 @@ fat_fileDriver:
 	pop ix
 	pop af
 
+	pop hl ;fat1StartAddr
+	call lshift9_32
 
 	;Calculate the sector of the second FAT
-	pop hl ;fat1StartSector
 	ld d, h
 	ld e, l
-	ld bc, 4 ;fat_fat2StartSector - fat_fat1StartSector
+	ld bc, 4 ;fat_fat2StartAddr - fat_fat1StartAddr
 	add hl, bc
 	call clear32
-	push de ;fat_fat1StartSector
-	push hl ;fat_fat2StartSector
+	push de ;fat_fat1StartAddr
+	push hl ;fat_fat2StartAddr
 
 	push af
 	push ix
@@ -100,7 +101,7 @@ fat_fileDriver:
 ;	call clear32
 ;	ex de, hl ;de = reg32
 
-	pop de ;fat_fat2StartSector
+	pop de ;fat_fat2StartAddr
 	push de
 
 	push af
@@ -109,36 +110,38 @@ fat_fileDriver:
 	call k_read
 	pop ix
 	pop af
-	;(fat_fat2StartSector) = sectors per fat
 
-	pop hl ;fat2StartSector
+	pop hl ;fat2StartAddr
+	call lshift9_32
+	;(fat_fat2StartAddr) = bytes per fat
+
 	ld d, h
 	ld e, l
-	ld bc, 4 ;fat_rootDirStartSector - fat_fat2StartSector
+	ld bc, 4 ;fat_rootDirStartAddr - fat_fat2StartAddr
 	add hl, bc
 	ex de, hl
-	;hl = fat_fat2StartSector
-	;de = fat_rootDirStartSector
+	;hl = fat_fat2StartAddr
+	;de = fat_rootDirStartAddr
 	call ld32
 	ld b, d
 	ld c, e
 
-	pop de ;fat_fat1StartSector
-	call add32 ;fat2StartSector = sectors_per_fat + fat1StartSector
-	ex de, hl ;de = fat2StartSector
+	pop de ;fat_fat1StartAddr
+	call add32 ;fat2StartAddr = bytes_per_fat + fat1StartAddr
+	ex de, hl ;de = fat2StartAddr
 	ld h, b
 	ld l, c
-	call add32 ;rootDirStartSector = sectors_per_fat + fat2StartSector
-	push hl ;rootDirStartSector
+	call add32 ;rootDirStartAddr = bytes_per_fat + fat2StartAddr
+	push hl ;rootDirStartAddr
 
 
 	;Calculate the start of the data region
-	;hl = fat_rootDirStartSector
-	ld de, 4 ;fat_dataStartSector - fat_rootDirStartSector
+	;hl = fat_rootDirStartAddr
+	ld de, 4 ;fat_dataStartAddr - fat_rootDirStartAddr
 	add hl, de
-	;hl = fat_dataStartSector
+	;hl = fat_dataStartAddr
 	call clear32
-	push hl ;fat_dataStartSector
+	push hl ;fat_dataStartAddr
 
 	push af
 	push ix
@@ -148,7 +151,7 @@ fat_fileDriver:
 	pop ix
 	pop af
 
-	pop de ;fat_dataStartSector
+	pop de ;fat_dataStartAddr
 	push de
 	push af
 	push ix
@@ -158,19 +161,19 @@ fat_fileDriver:
 	pop af
 
 	;Calculate the length of the root dir
-	;Length in sectors = n_entries * size of entry / size of sector
-	;                  = n_entries * 32 / 512 = n_entries >> 4
+	;Length in sectors = n_entries * size of entry
+	;                  = n_entries * 32 = n_entries << 5
 	pop hl
-	ld b, 4
+	ld b, 5
 rootDirSizeLoop:
-	call rshift32
+	call lshift32
 	djnz rootDirSizeLoop
-	;(hl) = size of root dir in sectors
+	;(hl) = size of root dir in bytes
 
-	pop de ;fat_rootDirStartSector
+	pop de ;fat_rootDirStartAddr
 	call add32
 
-	ld de, 4 ;fat_sectorsPerCluster - fat_dataStartSector
+	ld de, 4 ;fat_sectorsPerCluster - fat_dataStartAddr
 	add hl, de
 	;hl = fat_sectorsPerCluster
 	push hl
@@ -211,7 +214,7 @@ rootDirSizeLoop:
 ;	ld (tableEntry), hl
 	ld (mode), a
 
-	ld hl, fat_rootDirStartSector ;path is relative to the root directory
+	ld hl, fat_rootDirStartAddr ;path is relative to the root directory
 	jr nextLevel
 
 resolvePath:
@@ -275,9 +278,9 @@ pathLoop:
 	ld a, (iy + 1bh)
 	ld (ix + fat_fileTableStartCluster + 1), a
 	ld a, (iy + 1ch)
-	ld (ix + fat_fileTableSize), a
+	ld (ix + fileTableSize), a
 	ld a, (iy + 1dh)
-	ld (ix + fat_fileTableSize + 1), a
+	ld (ix + fileTableSize + 1), a
 ;	;TODO depending on mode
 ;	xor a
 ;	ld (iy+fileTablePointer), a
@@ -324,14 +327,14 @@ sector:
 	;TODO check mode
 	;TODO check filesize
 
-	ld l, (ix+fat_fileTableSize)
-	ld h, (ix+fat_fileTableSize+1)
+	ld l, (ix+fileTableSize)
+	ld h, (ix+fileTableSize+1)
 	or a
 	sbc hl, bc
 	jr nc, readCluster
 
-	ld c, (ix+fat_fileTableSize)
-	ld b, (ix+fat_fileTableSize+1)
+	ld c, (ix+fileTableSize)
+	ld b, (ix+fileTableSize+1)
 
 readCluster:
 	push bc ;count
@@ -473,7 +476,7 @@ clusterToSectorLoop:
 	;ahl=sector offset
 	pop de
 	push af
-	ld bc, fat_dataStartSector
+	ld bc, fat_dataStartAddr
 	ld a, (bc)
 	add a, l
 	ld (de), a
