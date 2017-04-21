@@ -150,8 +150,7 @@ error:
 	ex de, hl
 	call add32 ;(reg32) = absolute sector number
 	ld hl, reg32
-	call lshift32
-	call lshiftbyte32
+	call lshift9_32
 	;(reg32) = start address
 
 

@@ -178,6 +178,19 @@ loop:
 	ret
 .endf
 
+lshift9_32:
+;; Shift a 32-bit number left by 9 bits
+;;
+;; Input:
+;; : (hl) - 32-bit number
+;;
+;; Output:
+;; : (hl) = (hl) << 9
+;;
+;; Destroyed:
+;; : none
+
+	call lshiftbyte32
 
 .func lshift32:
 ;; Shift a 32-bit number left by 1 bit
@@ -248,6 +261,19 @@ loop:
 	ret
 .endf
 
+rshift9_32:
+;; Shift a 32-bit number right by 9 bits
+;;
+;; Input:
+;; : (hl) - 32-bit number
+;;
+;; Output:
+;; : (hl) = (hl) >> 9
+;;
+;; Destroyed:
+;; : none
+
+	call rshiftbyte32
 
 .func rshift32:
 ;; Shift a 32-bit number right by 1 bit

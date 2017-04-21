@@ -36,8 +36,7 @@
 	call ld32
 
 	ld hl, block_curBlock
-	call rshift32
-	call rshiftbyte32
+	call rshift9_32
 
 
 	;calculate final block
@@ -55,8 +54,7 @@
 	ld de, reg32
 	call add32
 
-	call rshift32
-	call rshiftbyte32
+	call rshift9_32
 
 
 	;calculate offset relative to block start

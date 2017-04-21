@@ -19,7 +19,7 @@ fat_fileDriver:
 ;	.dw fat_fctl
 
 .define fat_fileTableStartCluster fileTableData
-.define fat_fileTableSize         fat_fileTableStartCluster + 2
+;.define fat_fileTableSize         fat_fileTableStartCluster + 2
 
 
 ;Boot sector contents             Offset|Length (in bytes)
