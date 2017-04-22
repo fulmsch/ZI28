@@ -420,6 +420,72 @@ readSector:
 
 .endf ;fat_fctl
 
+.func fat_nextCluster:
+;; Find the next cluster of a chain from the first FAT
+;;
+;; Input:
+;; : a - device fd
+;; : hl - current cluster
+;;
+;; Output:
+;; : hl - next cluster
+;; : carry - the current cluster is the last of the chain
+
+	add hl, hl ;double the cluster number to get its offset in the FAT
+	ex de, hl
+	ld hl, reg32
+	call clear32
+	call ld16
+	push hl
+
+	ld d, ixh
+	ld e, ixl
+	ld hl, fat_fat1StartAddr
+	add hl, de
+	ex de, hl
+	;(de) = fat1StartAddr
+	pop hl
+	call add32 ;clusterOffs + fat1StartAddr
+	ex de, hl
+
+	push af
+	ld h, SEEK_SET
+	call k_lseek
+	pop af
+
+	ld de, reg32
+	ld hl, 2 ;count
+	call k_read
+	;TODO error checking
+
+	;check if fat entry is end of chain
+	ld hl, (reg32)
+
+	xor a
+	cp h
+	jr z, check00
+	dec a
+	cp h
+	jr z, checkFF
+validCluster:
+	or a
+	ret
+
+check00:
+	ld a, 1
+	cp l
+	jr c, validCluster
+eoc:
+	scf
+	ret
+
+checkFF:
+	ld a, 0xf7
+	cp l
+	jr c, eoc
+	jr validCluster
+.endf
+
 ;*****************
 ;SectorToAddress
 ;Description: converts a sd-card sector to an address
