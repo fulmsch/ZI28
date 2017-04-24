@@ -119,21 +119,57 @@ loop:
 	push hl
 
 	inc (hl)
-	ret nz
+	jr nz, exit
 	inc hl
 	
 	inc (hl)
-	ret nz
+	jr nz, exit
 	inc hl
 
 	inc (hl)
-	ret nz
+	jr nz, exit
 	inc hl
 
 	inc (hl)
 
+exit:
 	pop hl
 	ret
+.endf
+
+
+.func dec32:
+;; Decrement a 32-bit number by 1
+;;
+;; Input:
+;; : (hl) - 32-bit number
+;;
+;; Output:
+;; : (hl) = (hl) - 1
+;;
+;; Destroyed:
+;; : none
+
+	push hl
+
+	dec (hl)
+	jp p, exit
+	inc hl
+
+	dec (hl)
+	jp p, exit
+	inc hl
+
+	dec (hl)
+	jp p, exit
+	inc hl
+
+	dec (hl)
+
+exit:
+	pop hl
+	ret
+
 .endf
 
 
