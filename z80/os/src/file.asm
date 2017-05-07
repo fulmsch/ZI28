@@ -503,6 +503,7 @@ subOffs:
 	jr c, invalidOffset
 
 	ld hl, k_seek_new
+	ex de, hl
 	call sub32
 
 	pop hl ;table entry addr

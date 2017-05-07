@@ -61,7 +61,7 @@ sub32:
 ;; : (hl), (de) - 32-bit numbers
 ;;
 ;; Output:
-;; : (hl) = (hl) - (de)
+;; : (de) = (de) - (hl)
 ;;
 ;; Destroyed:
 ;; : none
@@ -76,7 +76,7 @@ sub32:
 ;; : (hl), (de) - 32-bit numbers
 ;;
 ;; Output:
-;; : (hl) = (hl) - (de) - cf
+;; : (de) = (de) - (hl) - cf
 ;;
 ;; Destroyed:
 ;; : none
