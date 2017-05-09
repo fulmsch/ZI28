@@ -36,8 +36,13 @@
 #define osWorkspace             registerStack
 #define terminalFd              osWorkspace
 
-#define reg32                   terminalFd + 1
-#define osWorkspaceEnd          reg32 + 4
+;32-bit registers
+#define regA                    terminalFd + 1
+#define reg32                   regA
+#define regB                    regA + 4
+#define regC                    regB + 4
+
+#define osWorkspaceEnd          regC + 4
 
 ;Device Fs
 #define devfsEntrySize          16
@@ -84,8 +89,23 @@
 #define k_seek_new              k_open_end
 #define k_seek_end              k_seek_new + 4
 
+;fat_open
+#define fat_open_path           k_seek_end                  ;2 bytes
+#define fat_open_pathBuffer1    fat_open_path + 2           ;12 bytes (no \0)
+#define fat_open_pathBuffer2    fat_open_pathBuffer1 + 12   ;13 bytes (inc \0)
+#define fat_open_dirEntryBuffer fat_open_pathBuffer2 + 13   ;32 bytes
+#define fat_open_end            fat_open_dirEntryBuffer + 32
+
+;fat_read
+#define fat_read_remCount       fat_open_end
+#define fat_read_totalCount     fat_read_remCount + 2
+#define fat_read_dest           fat_read_totalCount + 2
+#define fat_read_cluster        fat_read_dest + 2
+#define fat_read_clusterSize    fat_read_cluster + 2
+#define fat_read_end            fat_read_clusterSize + 2
+
 ;cli
-#define cliWorkspace            k_seek_end
+#define cliWorkspace            fat_read_end
 
 #define inputBufferSize         128
 #define maxArgc                 32

@@ -2,13 +2,16 @@
 .list
 ;TODO consolidate error returns
 
-.define fileTableStatus     0
-.define fileTableDriver     fileTableStatus + 1
-.define fileTableAttributes fileTableDriver + 2
-.define fileTableOffset     fileTableAttributes + 1
-.define fileTableSize       fileTableOffset + 4
-.define fileTableMode       fileTableSize + 4
-.define fileTableData       fileTableMode + 1
+.define fileTableStatus      0                        ;1 byte
+.define fileTableDriveNumber fileTableStatus + 1      ;1 byte
+.define fileTableDriver      fileTableDriveNumber + 1 ;2 bytes
+.define fileTableAttributes  fileTableDriver + 2      ;1 byte
+.define fileTableOffset      fileTableAttributes + 1  ;4 bytes
+.define fileTableSize        fileTableOffset + 4      ;4 bytes
+.define fileTableMode        fileTableSize + 4        ;1 byte
+                                                      ;-------
+                                                ;Total 14 bytes
+.define fileTableData        fileTableMode + 1  ;Max   18 bytes
 
 ;.define fileTableDrive         fileTableMode + 1
 ;.define fileTableStartCluster  fileTableAttributes + 1
@@ -142,6 +145,8 @@ tableSpotFound:
 
 	ld a, (k_open_mode)
 	ld (ix + fileTableMode), a
+	ld a, (k_open_drive)
+	ld (ix + fileTableDriveNumber), a
 	xor a
 	ld (ix + fileTableOffset + 0), a
 	ld (ix + fileTableOffset + 1), a
@@ -176,17 +181,17 @@ invalidPath:
 	ret
 
 ;mode:
-	.db 0
+;	.db 0
 ;fd:
-	.db 0
+;	.db 0
 ;path:
-	.dw 0
+;	.dw 0
 ;pathBuffer:
 ;	.resb 13
 ;sector:
 ;	.resb 4
 ;drive:
-	.db 0
+;	.db 0
 
 .endf ;k_open
 
@@ -239,6 +244,8 @@ invalidFd:
 ;Errors: 0=no error
 ;        1=invalid file descriptor
 
+	;TODO limit count to size-offset
+
 	push de ;buffer
 	push hl ;count
 ;	ld (buffer), de
@@ -281,6 +288,7 @@ invalidFd:
 	cp 0
 	jr z, zeroCount
 validCount:
+	push ix
 	;push return address to stack
 	push hl
 	ld hl, return
@@ -289,9 +297,10 @@ validCount:
 	jp (hl)
 
 return:
+	pop ix
 	push de
 	;add count to offset
-	ld hl, reg32
+	ld hl, regA
 	call ld16 ;load count into reg32
 	ld d, h
 	ld e, l

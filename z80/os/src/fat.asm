@@ -6,20 +6,20 @@ fat_fsDriver:
 	.dw fat_init
 	.dw fat_open
 
-.define fat_fat1StartAddr    driveTableFsdata
-.define fat_fat2StartAddr    fat_fat1StartAddr + 4
-.define fat_rootDirStartAddr fat_fat2StartAddr + 4
-.define fat_dataStartAddr    fat_rootDirStartAddr + 4
-.define fat_sectorsPerCluster  fat_dataStartAddr + 4 ;1 byte
+.define fat_fat1StartAddr     driveTableFsdata          ;4 bytes
+.define fat_fat2StartAddr     fat_fat1StartAddr + 4     ;4 bytes
+.define fat_rootDirStartAddr  fat_fat2StartAddr + 4     ;4 bytes
+.define fat_dataStartAddr     fat_rootDirStartAddr + 4  ;4 bytes
+.define fat_sectorsPerCluster fat_dataStartAddr + 4     ;1 byte
 
 
 fat_fileDriver:
 	.dw fat_read
-	.dw fat_write
+	.dw 0x0000 ;fat_write
 ;	.dw fat_fctl
 
-.define fat_fileTableStartCluster fileTableData
-;.define fat_fileTableSize         fat_fileTableStartCluster + 2
+.define fat_fileTableStartCluster fileTableData                 ;2 bytes
+.define fat_dirEntryAddr          fat_fileTableStartCluster + 2 ;4 bytes
 
 
 ;Boot sector contents             Offset|Length (in bytes)
@@ -96,10 +96,6 @@ fat_fileDriver:
 	call k_seek
 	pop ix
 	pop af
-
-;	ld hl, reg32
-;	call clear32
-;	ex de, hl ;de = reg32
 
 	pop de ;fat_fat2StartAddr
 	push de
@@ -194,222 +190,406 @@ rootDirSizeLoop:
 	pop ix
 	pop af
 
-	;close all open files
-;	ld a, 0
-	;ld (fileTableMap), a
-
 	ret
 .endf ;fat_init
 
 .func fat_open:
-;; Description: creates a new file table entry
-;; Old Inputs: (de) = pathname, a = mode
-;; Inputs: ix = table entry, (de) = absolute path, a = mode
-;; Outputs: a = errno
-;; Errors: 0=no error
-;;         4=no matching file found
-;;         5=file too large
-;; Destroyed: all
+;; Creates a new file table entry
+;;
+;; Input:
+;; : ix - table entry
+;; : (de) - absolute path
+;; : a - mode (not yet implemented)
+;;
+;; Output:
+;; : a - errno
 
-;	ld (tableEntry), hl
-	ld (mode), a
+; Errors: 0=no error
+;         4=no matching file found
+;         5=file too large
+; Destroyed: all
 
-	ld hl, fat_rootDirStartAddr ;path is relative to the root directory
-	jr nextLevel
+	ld (fat_open_path), de
 
-resolvePath:
-	ld a, 0
-	ld (bc), a
-	push de
-	;ld d, b
-	;ld e, c
-	ld de, pathBuffer
-	call findDirEntry
-	pop de
-	ld a, 4
-	ret nz
-	push de
-	;calculate start sector of subdirectory
-	ld l, (iy+1ah)
-	ld h, (iy+1bh)
-	ld de, sector
-	call clusterToSector
+	;get the drive table entry of the filesystem
+	ld a, (ix + fileTableDriveNumber)
+	call getDriveAddr
+	jp c, error ;drive number out of bounds
+	push hl
+	pop iy
+	;iy = table entry address
 
-	pop de
-	inc de
-	ld hl, sector
+	;open the root directory
+	;populate: driver, size, startcluster
+	;size = dataStart - rootDirStart
+	ld b, ixh
+	ld c, ixl
+	ld hl, fileTableDriver
+	add hl, bc
+	ld (hl), fat_fileDriver & 0xff
+	inc hl
+	ld (hl), fat_fileDriver >> 8
 
+	ld bc, 6 ;fileTableSize - (fileTableDriver + 1)
+	add hl, bc
+	ex de, hl
+	;(de) = size
 
-nextLevel:
-	;(de)=relative path, hl=directory sector
-	;copy the next file/directory to a buffer
-	ld bc, pathBuffer
-pathLoop:
-	ld a, (de)
-	cp '/'
-	jr z, resolvePath ;copied the entire folder name
-	ld (bc), a
-	inc bc
-	inc de
-	cp 0
-	jr nz, pathLoop
-	
-	;reached the deepest level
-	ld de, pathBuffer
-	call findDirEntry
-	ld a, 4
-	ret nz ;no file found
-	;TODO check filesize
-	;(iy)=directory entry
+	ld b, iyh
+	ld c, iyl
+	ld hl, fat_dataStartAddr
+	add hl, bc
+	;(hl) = dataStart
 
-;	ld ix, (tableEntry)
-	;TODO check mode
+	call ld32 ;size = dataStart
 
-	;populate table entry
-;	push ix
-;	push iy
-;	pop de
-;	pop hl
-;	call buildFilenameString
-	ld a, (iy + 0x0b)
-	ld (ix + fileTableAttributes), a
-	ld a, (iy + 1ah)
-	ld (ix + fat_fileTableStartCluster), a
-	ld a, (iy + 1bh)
-	ld (ix + fat_fileTableStartCluster + 1), a
-	ld a, (iy + 1ch)
-	ld (ix + fileTableSize), a
-	ld a, (iy + 1dh)
-	ld (ix + fileTableSize + 1), a
-;	;TODO depending on mode
-;	xor a
-;	ld (iy+fileTablePointer), a
-;	ld (iy+fileTablePointer+1), a
-	;TODO move to k_open
-	ld a, (mode)
-	ld (ix + fileTableMode), a
+	ld bc, -4 ;fat_dataStartAddr - fat_rootDirStartAddr
+	add hl, bc
+	;(de) = size, (hl) = rootDirStart
+	call sub32 ;size = dataStart - rootDirStart = rootDirSize
 
-	ld hl, fat_fileDriver
-	ld (ix + fileTableDriver), l
-	ld (ix + fileTableDriver + 1), h
-
-;	ld a, (driveNumber)
-;	ld (iy + fileTableDrive), a
-
-	;fill table spot
-	ld (ix + 0), 01h
-
-	;operation succesful
+	ld hl, 5 ;fat_fileTableStartCluster - fileTableSize
+	add hl, de
+	;(hl) = startCluster
+	;set startCluster to 0 to indicate the rootDir
 	xor a
+	ld (ix + fat_fileTableStartCluster), a
+	ld (ix + fat_fileTableStartCluster + 1), a
+
+	ld hl, (fat_open_path)
+	;a = 0
+	cp (hl)
+	ret z ;root directory was requested
+
+openFile:
+	ld de, fat_open_pathBuffer1
+	;hl = (fat_open_path)
+	ld b, 12
+copyFilenameLoop:
+	ld a, (hl)
+	cp '/'
+	jr z, copyFilenameCont
+	cp 0x00
+	jr z, copyFilenameCont
+	ld (de), a
+	inc de
+	inc hl
+	djnz copyFilenameLoop
+	jr error ;filename too long
+
+copyFilenameCont:
+	;(hl) = '/' or 0x00
+	ld (fat_open_path), hl
+
+compareLoop:
+	ld de, fat_open_dirEntryBuffer
+	ld bc, 32 ;count
+	push ix
+	call fat_read
+	pop ix
+
+	;add count to offset
+	ld hl, regA
+	call ld16 ;load count into reg32
+	ld d, h
+	ld e, l
+
+	ld b, ixh
+	ld c, ixl
+	ld hl, fileTableOffset
+	add hl, bc
+	call add32
+
+	;TODO check for EOF
+	ld hl, fat_open_dirEntryBuffer
+	ld a, (hl)
+	cp 0x00 ;end of dir reached, no match
+	jr z, error
+	cp 0x2e ;dot entry (. or ..), gets ignored
+	jr z, compareLoop
+	cp 0xe5 ;deleted file
+	jr z, compareLoop
+
+	;generate filename in pathBuffer2
+	ld de, fat_open_pathBuffer2
+	push de
+	call fat_buildFilename
+	pop de
+
+	;compare buffer 1 and 2
+	ld b, 12
+	ld hl, fat_open_pathBuffer1
+	call strncmp
+	jr nz, compareLoop
+
+match:
+	;open the found file
+	;populate: offset, size, startcluster, TODO dirEntryAddr
+	ld b, ixh
+	ld c, ixl
+	ld hl, fileTableOffset
+	add hl, bc
+	call clear32
+
+	ld bc, 4 ;fileTableSize - fileTableOffset
+	add hl, bc
+
+	ex de, hl
+	;(de) = fileTableSize
+	ld hl, fat_open_dirEntryBuffer + 0x1c
+	call ld32
+
+	ld a, (fat_open_dirEntryBuffer + 0x1a)
+	ld (ix + fat_fileTableStartCluster), a
+	ld a, (fat_open_dirEntryBuffer + 0x1a + 1)
+	ld (ix + fat_fileTableStartCluster + 1), a
+
+
+	ld hl, (fat_open_path)
+	xor a
+	cp (hl)
+	ret z
+
+	inc hl
+	ld (fat_open_path), hl
+	jp openFile
+
+error:
+	ld a, 1
 	ret
-
-;tableEntry:
-;	.dw 0
-mode:
-	.db 0
-pathBuffer:
-	.resb 13
-sector:
-	.resb 4
-
 .endf ;fat_open
 
 .func fat_read:
-;; Description: copy data from a file to memory
-;; Old Inputs: a = file descriptor, (de) = buffer, hl = count
-;; Inputs: ix = file entry addr, (de) = buffer, bc = count
-;; Outputs: a = errno, de = count
-;; Errors: 0=no error
-;;         1=invalid file descriptor
-;; Destroyed: none
+;; Copy data from a file to memory
+;;
+;; Input:
+;; : ix - file entry addr
+;; : (de) - buffer
+;; : bc - count
+;;
+;; Output:
+;; : a - errno
+;; : de - count
 
-	;(ix)=table entry
-	;TODO check mode
-	;TODO check filesize
+; Errors: 0=no error
+;         1=invalid file descriptor
 
-	ld l, (ix+fileTableSize)
-	ld h, (ix+fileTableSize+1)
+	;******************************************;
+	;                                          ;
+	;  TODO test and debug multi-cluster read  ;
+	;                                          ;
+	;******************************************;
+
+	ld (fat_read_remCount), bc
+	ld (fat_read_dest), de
+	ld de, 0
+	ld (fat_read_totalCount), de
+
+	;get the drive table entry of the filesystem for clustersize, devfd, etc.
+	ld a, (ix + fileTableDriveNumber)
+	call getDriveAddr
+	jp c, error ;drive number out of bounds
+	push hl
+	pop iy
+	;iy = table entry address
+
+	;check if root dir (cluster = 0)
+	ld hl, fat_fileTableStartCluster
+	ld d, ixh
+	ld e, ixl
+	add hl, de
+	ex de, hl
+	ld hl, regA
+	call clear32
+	call cp32
+	jp z, rootDir
+
+
+	ld a, (iy + fat_sectorsPerCluster)
+	ld h, a
+	sla h
+	ld l, 0
+	ld (fat_read_clusterSize), hl
+
+	;calculate the starting cluster of the read
+	;a = sectorsPerCluster
+	ld hl, fileTableOffset
+	ld d, ixh
+	ld e, ixl
+	add hl, de
+	ld de, regA
+	call ld32
+
+	ex de, hl
+	call rshiftbyte32
+clusterIndexLoop:
+	call rshift32
+	srl a
+	jr nc, clusterIndexLoop
+
+	;(regA) = index of cluster in chain (16-bit)
+
+	ld e, (ix + fat_fileTableStartCluster)
+	ld d, (ix + fat_fileTableStartCluster + 1)
+
+	ld bc, (regA)
+	;check if index is 0
+	or a
+	ld hl, 0x0000
+	sbc hl, bc
+	jr z, startClusterFound
+
+	ex de, hl
+	;hl = startCluster
+
+	ld a, (iy + driveTableDevfd)
+startClusterLoop:
+	push ix
+	call fat_nextCluster
+	pop ix
+	jp c, error ;the chain shouldn't end
+	dec c
+	jr nz, startClusterLoop
+	djnz startClusterLoop
+	ex de, hl
+startClusterFound:
+	;de = start cluster
+	ld (fat_read_cluster), de
+
+
+	;calculate the address to start reading
+	ld hl, regA
+	call ld16
+	call fat_clusterToAddr
+
+	;calculate offset relative to the cluster
+	ld e, (ix + fileTableOffset)
+	ld d, (ix + fileTableOffset + 1)
+	;de = offset[15..0]
+	;relOffs = offs % (sectorsPerCluster * 512)
+	ld a, (iy + fat_sectorsPerCluster)
+	ld b, 0 ;bitmask
+relOffsLoop:
+	sla b
+	inc b
+	srl a
+	jr nc, relOffsLoop
+
+	and d
+	;de = relOffs
+	push de
+
+	ld hl, regB
+	call ld16
+	;(regB) = relOffs
+
+	ex de, hl
+	ld hl, regA
+	call add32
+	;(regA) = startAddr
+
+	ex de, hl ;de = regA
+
+	ld a, (iy + driveTableDevfd)
+
+	ld h, SEEK_SET
+	push ix
+	push af
+	call k_lseek
+	pop af
+	pop ix
+
+	pop bc ;relOffs
+	ld hl, (fat_read_clusterSize)
 	or a
 	sbc hl, bc
-	jr nc, readCluster
-
-	ld c, (ix+fileTableSize)
-	ld b, (ix+fileTableSize+1)
+	push hl ;maximum count in first cluster
 
 readCluster:
-	push bc ;count
-	push de ;buffer
-	;calculate starting sector
-	ld l, (ix+fat_fileTableStartCluster)
-	ld h, (ix+fat_fileTableStartCluster+1)
-	ld de, readSector
-	call clusterToSector
+	ld hl, (fat_read_remCount)
+	ld de, (fat_read_clusterSize)
+	or a
+	sbc hl, de
+	pop hl ;count
+	jr c, lastCluster
 
-	;TODO count bytes
-	pop hl ;buffer
-	pop de ;count
+	;read(clustersize - clusteroffs)
+	ld de, (fat_read_dest)
 	push de
+	push ix
+	push af
+	call k_read
+	pop af
+	pop ix
+	pop hl
+	add hl, de ;buffer += count
+	ld (fat_read_dest), hl
+	ld hl, (fat_read_totalCount)
+	add hl, de ;totalCount += count
+	ld (fat_read_totalCount), hl
+
+	ld hl, (fat_read_cluster)
+	push ix
+	call fat_nextCluster
+	pop ix
+	jr c, error ;unexpected end of chain
+	ld (fat_read_cluster), hl
+	ex de, hl
+	ld hl, regA
+	call ld16
+	call fat_clusterToAddr
+	ex de, hl
+	ld h, SEEK_SET
+	push ix
+	call k_lseek
+	pop ix
+	jr readCluster
 	
-	;calculate the number of full sectors
-	ld a, d
-	srl a
-	push hl ;buffer
-	jr z, readLastSector ;less than a sector left
 
 
-	;load full sectors directly
-	ld hl, readSector
-	call sectorToAddr
-	pop hl ;buffer
-	push af ;amount of full sectors to be read
-	rst sdRead
-	;TODO add error
+lastCluster:
+	;read(remCount)
+	ld hl, (fat_read_remCount)
+	ld de, (fat_read_dest)
 
-	pop af ;count of read sectors
-	push hl ;buffer
+	call k_read
+	ld hl, (fat_read_totalCount)
+	add hl, de ;totalCount += count
+	ex de, hl
+	;de = total count
 
-	ld hl, readSector
-	add a, (hl)
-	ld (hl), a
-	ld b, 3
-readAddSectorsLoop:
-	inc hl
-	ld a, 0
-	adc a, (hl)
-	ld (hl), a
-	djnz readAddSectorsLoop
-
-readLastSector:
-	;load last sector into sdBuffer
-	ld hl, readSector
-	call sectorToAddr
-	ld hl, sdBuffer
-	ld a, 1
-	rst sdRead
-	;TODO add error
-
-	;copy the remaining bytes into memory
-	pop de
-	pop bc
-	ld a, b
-	and 1
-	ld b, a
-
-	ld hl, sdBuffer
-	ldir
-
-	ld a, 0
 	ret
 
-tableEntry:
-	.dw 0
-;buffer:
-;	.dw 0
-count:
-	.dw 0
-readSector:
-	.resb 4
+rootDir:
+	;lseek offset + rootDirStart
+	ld a, (iy + driveTableDevfd)
+	ld b, iyh
+	ld c, iyl
+	ld hl, fat_rootDirStartAddr
+	add hl, bc
+	ld de, regA
+	call ld32
 
+	ld b, ixh
+	ld c, ixl
+	ld hl, fileTableOffset
+	add hl, bc
+	ex de, hl
+	call add32
+	ex de, hl
+
+	;(de) = offset
+	ld h, SEEK_SET
+	push af
+	call k_lseek
+	pop af
+
+	ld de, (fat_read_dest)
+	ld hl, (fat_read_remCount)
+	jp k_read
+
+error:
+	ret
 .endf ;fat_read
 
 .func fat_write:
@@ -430,10 +610,13 @@ readSector:
 ;; Output:
 ;; : hl - next cluster
 ;; : carry - the current cluster is the last of the chain
+;;
+;; Preserved:
+;; : a
 
 	add hl, hl ;double the cluster number to get its offset in the FAT
 	ex de, hl
-	ld hl, reg32
+	ld hl, regA
 	call clear32
 	call ld16
 	push hl
@@ -453,13 +636,14 @@ readSector:
 	call k_lseek
 	pop af
 
-	ld de, reg32
+	ld de, regA
 	ld hl, 2 ;count
+	push af
 	call k_read
 	;TODO error checking
 
 	;check if fat entry is end of chain
-	ld hl, (reg32)
+	ld hl, (regA)
 
 	xor a
 	cp h
@@ -468,6 +652,7 @@ readSector:
 	cp h
 	jr z, checkFF
 validCluster:
+	pop af
 	or a
 	ret
 
@@ -476,6 +661,7 @@ check00:
 	cp l
 	jr c, validCluster
 eoc:
+	pop af
 	scf
 	ret
 
@@ -486,153 +672,50 @@ checkFF:
 	jr validCluster
 .endf
 
-;*****************
-;SectorToAddress
-;Description: converts a sd-card sector to an address
-;Inputs: sector at hl
-;Outputs: address in bcde
-;Destroyed: none
-sectorToAddr:
-	ld b, 0
-	ld c, (hl)
-	inc hl
-	ld d, (hl)
-	inc hl
-	ld e, (hl)
-	sla c
-	rl d
-	rl e
-	ret
+.func fat_clusterToAddr:
+;; Calculate the starting address of a cluster
+;;
+;; Input:
+;; : (hl) - 32-bit cluster number
+;; : iy - drive table entry
+;;
+;; Output:
+;; : (hl) - address
 
+	;subtract 2 from the cluster, because of how FAT works
+	call dec32
+	call dec32
 
-;*****************
-;Cluster to sector
-;Description: converts a cluster to a sector
-;Inputs: cluster in hl, buffer at de
-;Outputs:
-;Destroyed: a, bc
-clusterToSector:
-	or a ;clear carry flag
-	ld bc, 2
-	sbc hl, bc ;get real cluster offset
-	;multiply by the number of sectors per cluster
-	push de
+	ld a, (iy + fat_sectorsPerCluster)
+
+	call lshiftbyte32
+loop:
+	call lshift32
+	srl a
+	jr nc, loop
+
+	push hl
+	ld hl, fat_dataStartAddr
+	ld d, iyh
+	ld e, iyl
+	add hl, de
 	ex de, hl
-	ld a, (fat_sectorsPerCluster)
-	;multiply de by a, result in ahl
-	;rountine from http://wikiti.brandonw.net/index.php?title=Z80_Routines:Math:Multiplication
-	ld c, 0
-	ld h, c
-	ld l, h
-
-	add a, a ; optimised 1st iteration
-	jr nc, $+4
-	ld h,d
-	ld l,e
-
-	ld b, 7
-clusterToSectorLoop:
-	add hl, hl
-	rla
-	jr nc, $+4
-	add hl, de
-	adc a, c
-	djnz clusterToSectorLoop
-
-	;ahl=sector offset
-	pop de
-	push af
-	ld bc, fat_dataStartAddr
-	ld a, (bc)
-	add a, l
-	ld (de), a
-	inc bc
-	inc de
-	ld a, (bc)
-	adc a, h
-	ld (de), a
-	inc bc
-	inc de
 	pop hl
-	ld a, (bc)
-	adc a, h
-	ld (de), a
-	ld a, (bc)
-	adc a, 0
-	ld (de), a
+	call add32 ;relAddr += dataStartAddr
 
 	ret
+.endf
 
-;*****************
-;Find directory entry
-;Description: search for the entry of a named file
-;Inputs: directory sector at (hl), name string at (de)
-;Outputs: directory entry at (iy)
-;Destroyed: a, bc
-.func findDirEntry:
-	;TODO add capability to search sequential sectors
-	push de
-	ld de, entrySector
-	ld bc, 4
-	ldir
+.func fat_buildFilename:
+;; Creates a 8.3 string from a directory entry
+;;
+;; Input:
+;; : (hl) - dir entry
+;; : (de) - filename buffer (max. length: 13 bytes)
+;;
+;; Destroyed:
+;; : a, bc, de, hl
 
-	ld hl, entrySector
-	call sectorToAddr
-	ld a, 1
-	ld hl, sdBuffer
-	rst sdRead
-	;TODO add error
-
-	ld hl, sdBuffer
-	ld b, 16
-entryLoop:
-	;cycle through entries
-	ld a, (hl)
-	cp 0
-	jr z, entryEnd;end of directory
-	push hl
-	ld de, entryNameBuffer
-	call buildFilenameString
-	pop hl
-	pop de
-	push de
-	push hl
-	push bc
-	ld hl, entryNameBuffer
-	call strcmp
-	pop bc
-	jr z, entryMatch
-	pop hl
-	ld de, 32
-	add hl, de
-	djnz entryLoop
-
-
-entryEnd:
-	pop de ;clear the stack
-	or 1 ;reset zero flag
-	ret
-
-entryMatch:
-	pop iy ;pointer to entry
-	pop de ;clear the stack
-	ret
-
-
-entrySector:
-	.ds 4
-entryNameBuffer:
-	.ds 13
-.endf ;findDirEntry
-
-
-;*****************
-;Build filename string
-;Description: creates a 8.3 string from a directory entry
-;Inputs: dir entry at (hl)
-;Outputs: 8.3 filename string at (de)
-;Destroyed: a, bc
-buildFilenameString:
 	push de
 	;copy the first 8 chars of the dir entry
 	ld bc, 8
@@ -641,32 +724,33 @@ buildFilenameString:
 	ld (de), a
 
 	pop de
-buildFilenameTerminateName:
+terminateName:
 	ld a, (de)
 	cp ' '
 	inc de
-	jr nz, buildFilenameTerminateName
+	jr nz, terminateName
 	dec de
 
 	;de now points to the char after the name, hl to the extension of the entry
 	ld a, (hl)
 	cp ' '
-	jr z, buildFilenameEnd
+	jr z, end
 	ld a, '.'
 	ld (de), a
 	inc de
 
 	ld b, 3
-buildFilenameExtension:
+extension:
 	ld a, (hl)
 	cp ' '
-	jr z, buildFilenameEnd
+	jr z, end
 	ld (de), a
 	inc hl
 	inc de
-	djnz buildFilenameExtension
+	djnz extension
 
-buildFilenameEnd:
+end:
 	ld a, 0
 	ld (de), a
 	ret
+.endf

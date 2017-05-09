@@ -96,14 +96,14 @@ clearRamLoop:
 
 	ld a, e
 	ld (terminalFd), a
-	ld de, 0c000h
-	ld hl, 1
-	call k_read
+;	ld de, 0c000h
+;	ld hl, 1
+;	call k_read
 
-	ld a, (terminalFd)
-	ld de, 0c000h
-	ld hl, 1
-	call k_write
+;	ld a, (terminalFd)
+;	ld de, 0c000h
+;	ld hl, 1
+;	call k_write
 
 
 	call sd_init
@@ -115,12 +115,27 @@ clearRamLoop:
 	ld de, fat_fsDriver
 	call k_mount
 
+	ld de, testFileName
+	call k_open
+
+	ld a, e
+	push af
+	ld de, 0xc000
+	ld hl, 0x2000
+	call k_read
+
+	rst monitor
+
+
+
 	call cli
 
 ttyName:
 	.asciiz "0:TTY0"
 sdName:
 	.asciiz "0:SDA1"
+testFileName:
+	.asciiz "1:BIN/BASIC.BIN"
 
 
 
