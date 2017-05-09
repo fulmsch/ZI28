@@ -264,7 +264,7 @@ rootDirSizeLoop:
 openFile:
 	ld de, fat_open_pathBuffer1
 	;hl = (fat_open_path)
-	ld b, 12
+	ld b, 13
 copyFilenameLoop:
 	ld a, (hl)
 	cp '/'
@@ -278,6 +278,8 @@ copyFilenameLoop:
 	jr error ;filename too long
 
 copyFilenameCont:
+	xor a
+	ld (de), a
 	;(hl) = '/' or 0x00
 	ld (fat_open_path), hl
 
@@ -317,7 +319,7 @@ compareLoop:
 	pop de
 
 	;compare buffer 1 and 2
-	ld b, 12
+	ld b, 13
 	ld hl, fat_open_pathBuffer1
 	call strncmp
 	jr nz, compareLoop

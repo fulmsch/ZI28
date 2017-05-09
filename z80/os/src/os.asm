@@ -115,17 +115,15 @@ clearRamLoop:
 	ld de, fat_fsDriver
 	call k_mount
 
-	ld de, testFileName
-	call k_open
+;	ld de, testFileName
+;	call k_open
 
-	ld a, e
-	push af
-	ld de, 0xc000
-	ld hl, 0x2000
-	call k_read
 
-	rst monitor
-
+;	ld a, e
+;	push af
+;	ld de, 0xc000
+;	ld hl, 0x2000
+;	call k_read
 
 
 	call cli

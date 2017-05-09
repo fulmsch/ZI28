@@ -91,8 +91,8 @@
 
 ;fat_open
 #define fat_open_path           k_seek_end                  ;2 bytes
-#define fat_open_pathBuffer1    fat_open_path + 2           ;12 bytes (no \0)
-#define fat_open_pathBuffer2    fat_open_pathBuffer1 + 12   ;13 bytes (inc \0)
+#define fat_open_pathBuffer1    fat_open_path + 2           ;13 bytes
+#define fat_open_pathBuffer2    fat_open_pathBuffer1 + 13   ;13 bytes
 #define fat_open_dirEntryBuffer fat_open_pathBuffer2 + 13   ;32 bytes
 #define fat_open_end            fat_open_dirEntryBuffer + 32
 
