@@ -19,7 +19,7 @@ fat_fileDriver:
 ;	.dw fat_fctl
 
 .define fat_fileTableStartCluster fileTableData                 ;2 bytes
-.define fat_dirEntryAddr          fat_fileTableStartCluster + 2 ;4 bytes
+.define fat_fileTableDirEntryAddr fat_fileTableStartCluster + 2 ;4 bytes
 
 
 ;Boot sector contents             Offset|Length (in bytes)
@@ -220,7 +220,7 @@ rootDirSizeLoop:
 	;iy = table entry address
 
 	;open the root directory
-	;populate: driver, size, startcluster
+	;populate: driver, size, startcluster, dir entry address
 	;size = dataStart - rootDirStart
 	ld b, ixh
 	ld c, ixl
@@ -248,9 +248,11 @@ rootDirSizeLoop:
 	;(de) = size, (hl) = rootDirStart
 	call sub32 ;size = dataStart - rootDirStart = rootDirSize
 
-	ld hl, 5 ;fat_fileTableStartCluster - fileTableSize
+	;clear dirEntryAddr
+	ld hl, 7 ;fat_fileTableDirEntryAddr - fileTableSize
 	add hl, de
-	;(hl) = startCluster
+	call clear32
+
 	;set startCluster to 0 to indicate the rootDir
 	xor a
 	ld (ix + fat_fileTableStartCluster), a
@@ -260,6 +262,7 @@ rootDirSizeLoop:
 	;a = 0
 	cp (hl)
 	ret z ;root directory was requested
+
 
 openFile:
 	ld de, fat_open_pathBuffer1
@@ -275,7 +278,7 @@ copyFilenameLoop:
 	inc de
 	inc hl
 	djnz copyFilenameLoop
-	jr error ;filename too long
+	jp error ;filename too long
 
 copyFilenameCont:
 	xor a
@@ -287,7 +290,9 @@ compareLoop:
 	ld de, fat_open_dirEntryBuffer
 	ld bc, 32 ;count
 	push ix
+	push iy
 	call fat_read
+	pop iy
 	pop ix
 
 	;add count to offset
@@ -326,7 +331,33 @@ compareLoop:
 
 match:
 	;open the found file
-	;populate: offset, size, startcluster, TODO dirEntryAddr
+	;populate: offset, size, startcluster, dirEntryAddr
+
+	;set dirEntryAddr to current offset of underlying device
+	ld a, (iy + driveTableDevfd)
+	ld de, 0
+	ld h, SEEK_PCUR
+	push ix
+	push iy
+	call k_seek
+	pop iy
+	pop ix
+	;(de) = offset
+
+	ld b, ixh
+	ld c, ixl
+	ld hl, fat_fileTableDirEntryAddr
+	add hl, bc
+	ex de, hl
+	call ld32
+	;(de) = dirEntryAddr + 32
+	ld a, 32
+	ld hl, regA
+	call ld8
+	call sub32
+
+
+	;set offset to 0
 	ld b, ixh
 	ld c, ixl
 	ld hl, fileTableOffset
@@ -396,17 +427,15 @@ error:
 	;iy = table entry address
 
 	;check if root dir (cluster = 0)
-	ld hl, fat_fileTableStartCluster
-	ld d, ixh
-	ld e, ixl
-	add hl, de
-	ex de, hl
-	ld hl, regA
-	call clear32
-	call cp32
+	xor a
+	ld b, (ix + fat_fileTableStartCluster)
+	cp b
+	jr nz, notRootDir
+	ld b, (ix + fat_fileTableStartCluster + 1)
+	cp b
 	jp z, rootDir
 
-
+notRootDir:
 	ld a, (iy + fat_sectorsPerCluster)
 	ld h, a
 	sla h
