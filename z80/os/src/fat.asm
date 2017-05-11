@@ -208,7 +208,6 @@ rootDirSizeLoop:
 ;; Input:
 ;; : ix - table entry
 ;; : (de) - absolute path
-;; : a - mode (not yet implemented)
 ;;
 ;; Output:
 ;; : a - errno
@@ -320,7 +319,7 @@ compareLoop:
 	ld hl, fat_open_dirEntryBuffer
 	ld a, (hl)
 	cp 0x00 ;end of dir reached, no match
-	jr z, error
+	jp z, error
 	cp 0x2e ;dot entry (. or ..), gets ignored
 	jr z, compareLoop
 	cp 0xe5 ;deleted file
@@ -390,7 +389,7 @@ match:
 	ld hl, (fat_open_path)
 	xor a
 	cp (hl)
-	ret z
+	jr z, finish
 
 	inc hl
 	ld (fat_open_path), hl
@@ -401,6 +400,30 @@ match:
 	jr z, error ;not a directory
 	;TODO possibly optimize these jumps
 	jp openFile
+
+finish:
+	;check permission
+	ld b, (ix + fileTableMode)
+	bit M_WRITE, b
+	jr nz, fileType
+	ld a, (fat_open_dirEntryBuffer + 0x0b) ;attributes
+	bit FAT_ATTRIB_RDONLY, a
+	jr z, error ;write requested, file is read only
+
+fileType:
+	;a = file attributes, b = mode
+
+	and 1 << FAT_ATTRIB_DIR
+	ld a, 1 << M_REG
+	jr z, fileMode ;regular file
+	ld a, 1 << M_DIR
+
+fileMode:
+	;a = file type, b = mode
+	or b
+	ld (ix + fileTableMode), a
+	xor a
+	ret
 
 error:
 	ld a, 1

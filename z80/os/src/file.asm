@@ -2,16 +2,15 @@
 .list
 ;TODO consolidate error returns
 
-.define fileTableStatus      0                        ;1 byte
-.define fileTableDriveNumber fileTableStatus + 1      ;1 byte
+.define fileTableMode        0                        ;1 byte
+.define fileTableDriveNumber fileTableMode + 1      ;1 byte
 .define fileTableDriver      fileTableDriveNumber + 1 ;2 bytes
 .define fileTableAttributes  fileTableDriver + 2      ;1 byte
 .define fileTableOffset      fileTableAttributes + 1  ;4 bytes
 .define fileTableSize        fileTableOffset + 4      ;4 bytes
-.define fileTableMode        fileTableSize + 4        ;1 byte
                                                       ;-------
-                                                ;Total 14 bytes
-.define fileTableData        fileTableMode + 1  ;Max   18 bytes
+                                                ;Total 13 bytes
+.define fileTableData        fileTableSize + 4  ;Max   19 bytes
 
 ;.define fileTableDrive         fileTableMode + 1
 ;.define fileTableStartCluster  fileTableAttributes + 1
@@ -21,6 +20,19 @@
 .define file_write 2
 ;.define file_seek  4
 .define file_fctl   4
+
+;mode definition
+.define M_READ  0
+.define M_WRITE 1
+.define M_REG   2
+.define M_DIR   3
+.define M_CHAR  4
+.define M_BLOCK 5
+
+;flags for open
+.define O_RDONLY 0
+.define O_WRONLY 1
+.define O_RDWR   2
 
 .func getFileAddr:
 ;; Finds the file entry of a given fd
@@ -49,6 +61,27 @@
 ;;
 ;; Creates a new file table entry and returns the corresponding fd
 ;;
+;; Exactly one of the following flags must be set:
+;;
+;; * `O_RDONLY` : Open for reading only.
+;; * `O_WRONLY` : Open for writing only.
+;; * `O_RDWR` : Open for reading and writing.
+;;
+;; Additionally, zero or more of the following flags may be specified:
+;; (PLANNED)
+;;
+;; * `O_APPEND` : Before each write, the file offset is positioned at the
+;; end of the file.
+;; * `O_DIRECTORY` : Causes open to fail if the specified file is not a
+;; directory.
+;; * `O_TRUNC` : If the file exists and opened for writing, its size gets
+;; truncated to 0.
+;;
+;; Before calling the filesystem routine, the mode field gets populated with
+;; the requested access mode. The filesystem routine should return with an
+;; error if the required permissions are missing. On success it should bitwise
+;; OR the filetype with the mode.
+;;
 ;; Input:
 ;; : (de) - pathname
 ;; : a - mode
@@ -64,7 +97,6 @@
 ;        5=file too large
 
 ;TODO convert path to uppercase
-;TODO set offset to 0
 	ld (k_open_mode), a
 	ld (k_open_path), de
 
@@ -110,8 +142,6 @@ tableSpotFound:
 
 
 	;ix points to free table entry
-;	ld de, fileTableMode
-;	add hl, de
 
 	;search drive entry
 	ld a, (k_open_drive)
@@ -124,13 +154,7 @@ tableSpotFound:
 	inc hl
 	ld d, (hl)
 	ex de, hl ;(hl) = Fsdriver
-;	push hl
-;	pop ix
 
-
-;driveFound:
-;	ld l, (ix + driveTableFsdriver)
-;	ld h, (ix + driveTableFsdriver + 1)
 	and a
 	ld de, 0
 	sbc hl, de
@@ -141,10 +165,19 @@ tableSpotFound:
 	inc hl
 	ld d, (hl)
 	ex de, hl
-;	pop bc ;filetable entry addr
 
 	ld a, (k_open_mode)
+	ld b, a
+	bit O_RDONLY, b
+	jr z, skipWriteFlag
+	ld a, 1 << M_WRITE
+skipWriteFlag:
+	bit O_WRONLY, b
+	jr z, skipReadFlag
+	or 1 << M_READ
+skipReadFlag:
 	ld (ix + fileTableMode), a
+
 	ld a, (k_open_drive)
 	ld (ix + fileTableDriveNumber), a
 	xor a
@@ -153,20 +186,24 @@ tableSpotFound:
 	ld (ix + fileTableOffset + 2), a
 	ld (ix + fileTableOffset + 3), a
 
+	push ix
 	ld de, return
 	push de
 	ld de, (k_open_path)
 
-	;FIX jumps to pointer
 	jp (hl)
 
 return:
-	;TODO check for succesful call
+	pop ix
 	cp 0
-	ret nz
-	ld (ix + fileTableStatus), 1
+	jr z, success
+
+	;error, clear the file entry
+	ld (ix + fileTableMode), 0
+	ret
 
 
+success:
 	ld a, (k_open_fd)
 	ld e, a
 	xor a

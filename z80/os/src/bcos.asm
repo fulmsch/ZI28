@@ -46,6 +46,7 @@ _bcosStart:
 ;	call vfs_init
 	call fat_init
 	ld de, shellPath
+	ld a, 1 << O_RDWR
 	call k_open
 	ld a, e
 	ld de, 6000h

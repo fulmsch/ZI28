@@ -28,6 +28,7 @@
 	inc hl
 	ld d, (hl)
 
+	ld a, O_RDWR
 ;	call k_open
 ;	cp 0
 	pop af

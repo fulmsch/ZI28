@@ -227,6 +227,7 @@ programInPath:
 
 ;	ld de, programPath
 	ex de, hl
+	ld a, 1 << O_RDONLY
 	call k_open
 	cp 0
 	jr z, loadProgram
@@ -240,6 +241,7 @@ programInPath:
 fullPath:
 	;try to open file named &argv[0]
 	pop de ;contains pointer to first string
+	ld a, 1 << O_RDONLY
 	call k_open
 	cp 0
 	jr nz, noMatch

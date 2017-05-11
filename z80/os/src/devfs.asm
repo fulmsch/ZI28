@@ -209,8 +209,10 @@ fileFound:
 	pop de
 	ldir
 
-	;fill table spot
-	ld (ix + 0), 1
+	;store filetype TODO add distincion between char and block devs
+	ld a, (ix + fileTableMode)
+	or M_CHAR
+	ld (ix + fileTableMode), a
 
 	;operation succesful
 	xor a
