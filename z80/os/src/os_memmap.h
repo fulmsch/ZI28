@@ -93,8 +93,8 @@
 #define fat_open_path           k_seek_end                  ;2 bytes
 #define fat_open_pathBuffer1    fat_open_path + 2           ;13 bytes
 #define fat_open_pathBuffer2    fat_open_pathBuffer1 + 13   ;13 bytes
-#define fat_open_dirEntryBuffer fat_open_pathBuffer2 + 13   ;32 bytes
-#define fat_open_end            fat_open_dirEntryBuffer + 32
+#define fat_dirEntryBuffer      fat_open_pathBuffer2 + 13   ;32 bytes
+#define fat_open_end            fat_dirEntryBuffer + 32
 
 ;fat_read
 #define fat_read_remCount       fat_open_end

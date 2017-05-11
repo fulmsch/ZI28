@@ -3,7 +3,7 @@
 ;TODO consolidate error returns
 
 .define fileTableMode        0                        ;1 byte
-.define fileTableDriveNumber fileTableMode + 1      ;1 byte
+.define fileTableDriveNumber fileTableMode + 1        ;1 byte
 .define fileTableDriver      fileTableDriveNumber + 1 ;2 bytes
 .define fileTableAttributes  fileTableDriver + 2      ;1 byte
 .define fileTableOffset      fileTableAttributes + 1  ;4 bytes
@@ -12,9 +12,6 @@
                                                 ;Total 13 bytes
 .define fileTableData        fileTableSize + 4  ;Max   19 bytes
 
-;.define fileTableDrive         fileTableMode + 1
-;.define fileTableStartCluster  fileTableAttributes + 1
-;.define fileTableSize          fileTableStartCluster + 2
 
 .define file_read  0
 .define file_write 2

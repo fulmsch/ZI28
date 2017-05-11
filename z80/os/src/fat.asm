@@ -1,6 +1,5 @@
 ;; FAT-16 file system
 .list
-;TODO move all variables to ram
 
 fat_fsDriver:
 	.dw fat_init
@@ -92,7 +91,7 @@ fat_fileDriver:
 	;Calculate the sector of the second FAT
 	ld d, h
 	ld e, l
-	ld bc, 4 ;fat_fat2StartAddr - fat_fat1StartAddr
+	ld bc, fat_fat2StartAddr - (fat_fat1StartAddr)
 	add hl, bc
 	call clear32
 	push de ;fat_fat1StartAddr
@@ -122,7 +121,7 @@ fat_fileDriver:
 
 	ld d, h
 	ld e, l
-	ld bc, 4 ;fat_rootDirStartAddr - fat_fat2StartAddr
+	ld bc, fat_rootDirStartAddr - (fat_fat2StartAddr)
 	add hl, bc
 	ex de, hl
 	;hl = fat_fat2StartAddr
@@ -142,7 +141,7 @@ fat_fileDriver:
 
 	;Calculate the start of the data region
 	;hl = fat_rootDirStartAddr
-	ld de, 4 ;fat_dataStartAddr - fat_rootDirStartAddr
+	ld de, fat_dataStartAddr - (fat_rootDirStartAddr)
 	add hl, de
 	;hl = fat_dataStartAddr
 	call clear32
@@ -178,7 +177,7 @@ rootDirSizeLoop:
 	pop de ;fat_rootDirStartAddr
 	call add32
 
-	ld de, 4 ;fat_sectorsPerCluster - fat_dataStartAddr
+	ld de, fat_sectorsPerCluster - (fat_dataStartAddr)
 	add hl, de
 	;hl = fat_sectorsPerCluster
 	push hl
@@ -251,13 +250,13 @@ rootDirSizeLoop:
 
 	call ld32 ;size = dataStart
 
-	ld bc, -4 ;fat_dataStartAddr - fat_rootDirStartAddr
+	ld bc, fat_dataStartAddr - (fat_rootDirStartAddr)
 	add hl, bc
 	;(de) = size, (hl) = rootDirStart
 	call sub32 ;size = dataStart - rootDirStart = rootDirSize
 
 	;clear dirEntryAddr
-	ld hl, 7 ;fat_fileTableDirEntryAddr - fileTableSize
+	ld hl, fat_fileTableDirEntryAddr - (fileTableSize)
 	add hl, de
 	call clear32
 
@@ -295,7 +294,7 @@ copyFilenameCont:
 	ld (fat_open_path), hl
 
 compareLoop:
-	ld de, fat_open_dirEntryBuffer
+	ld de, fat_dirEntryBuffer
 	ld bc, 32 ;count
 	push ix
 	push iy
@@ -305,7 +304,7 @@ compareLoop:
 
 	;add count to offset
 	ld hl, regA
-	call ld16 ;load count into reg32
+	call ld16 ;load count into regA
 	ld d, h
 	ld e, l
 
@@ -316,7 +315,7 @@ compareLoop:
 	call add32
 
 	;TODO check for EOF
-	ld hl, fat_open_dirEntryBuffer
+	ld hl, fat_dirEntryBuffer
 	ld a, (hl)
 	cp 0x00 ;end of dir reached, no match
 	jp z, error
@@ -372,17 +371,17 @@ match:
 	add hl, bc
 	call clear32
 
-	ld bc, 4 ;fileTableSize - fileTableOffset
+	ld bc, fileTableSize - (fileTableOffset)
 	add hl, bc
 
 	ex de, hl
 	;(de) = fileTableSize
-	ld hl, fat_open_dirEntryBuffer + 0x1c
+	ld hl, fat_dirEntryBuffer + 0x1c
 	call ld32
 
-	ld a, (fat_open_dirEntryBuffer + 0x1a)
+	ld a, (fat_dirEntryBuffer + 0x1a)
 	ld (ix + fat_fileTableStartCluster), a
-	ld a, (fat_open_dirEntryBuffer + 0x1a + 1)
+	ld a, (fat_dirEntryBuffer + 0x1a + 1)
 	ld (ix + fat_fileTableStartCluster + 1), a
 
 
@@ -395,7 +394,7 @@ match:
 	ld (fat_open_path), hl
 
 	;to continue, file must be a directory
-	ld a, (fat_open_dirEntryBuffer + 0x0b) ;attributes
+	ld a, (fat_dirEntryBuffer + 0x0b) ;attributes
 	and 1 << FAT_ATTRIB_DIR
 	jr z, error ;not a directory
 	;TODO possibly optimize these jumps
@@ -406,7 +405,7 @@ finish:
 	ld b, (ix + fileTableMode)
 	bit M_WRITE, b
 	jr nz, fileType
-	ld a, (fat_open_dirEntryBuffer + 0x0b) ;attributes
+	ld a, (fat_dirEntryBuffer + 0x0b) ;attributes
 	bit FAT_ATTRIB_RDONLY, a
 	jr z, error ;write requested, file is read only
 
