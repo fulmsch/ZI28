@@ -21,6 +21,15 @@ fat_fileDriver:
 .define fat_fileTableStartCluster fileTableData                 ;2 bytes
 .define fat_fileTableDirEntryAddr fat_fileTableStartCluster + 2 ;4 bytes
 
+;file attributes
+.define FAT_ATTRIB_RDONLY  0
+.define FAT_ATTRIB_HIDDEN  1
+.define FAT_ATTRIB_SYSTEM  2
+.define FAT_ATTRIB_VOLLBL  3
+.define FAT_ATTRIB_DIR     4
+.define FAT_ATTRIB_ARCHIVE 5
+.define FAT_ATTRIB_DEVICE  6
+
 
 ;Boot sector contents             Offset|Length (in bytes)
 .define FAT_VBR_OEM_NAME             03h ;8
@@ -385,6 +394,12 @@ match:
 
 	inc hl
 	ld (fat_open_path), hl
+
+	;to continue, file must be a directory
+	ld a, (fat_open_dirEntryBuffer + 0x0b) ;attributes
+	and 1 << FAT_ATTRIB_DIR
+	jr z, error ;not a directory
+	;TODO possibly optimize these jumps
 	jp openFile
 
 error:
