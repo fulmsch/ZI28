@@ -327,8 +327,6 @@ compareLoop:
 	ld a, (hl)
 	cp 0x00 ;end of dir reached, no match
 	jp z, error
-	cp 0x2e ;dot entry (. or ..), gets ignored
-	jr z, compareLoop
 	cp 0xe5 ;deleted file
 	jr z, compareLoop
 
@@ -399,6 +397,8 @@ match:
 	jr z, finish
 
 	inc hl
+	cp (hl)
+	jr z, dirFinish
 	ld (fat_open_path), hl
 
 	;to continue, file must be a directory
@@ -407,6 +407,12 @@ match:
 	jr z, error ;not a directory
 	;TODO possibly optimize these jumps
 	jp openFile
+
+dirFinish:
+	;path ended in '/', must be a directory
+	ld a, (fat_dirEntryBuffer + 0x0b) ;attributes
+	and 1 << FAT_ATTRIB_DIR
+	jr z, error ;not a directory
 
 finish:
 	;check permission
