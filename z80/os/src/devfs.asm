@@ -12,6 +12,7 @@ devfs_fsDriver:
 	.dw devfs_init
 	.dw devfs_open
 	.dw devfs_close
+	.dw devfs_readdir
 
 .define dev_fileTableNumber fileTableData
 .define dev_fileTableData   dev_fileTableNumber + 1
@@ -211,7 +212,7 @@ fileFound:
 
 	;store filetype TODO add distincion between char and block devs
 	ld a, (ix + fileTableMode)
-	or M_CHAR
+	or 1 << M_CHAR
 	ld (ix + fileTableMode), a
 
 	;operation succesful
@@ -228,3 +229,15 @@ invalidFile:
 
 	ret
 .endf ;devfs_close
+
+
+.func devfs_readdir:
+
+	ret
+.endf
+
+
+.func devfs_fstat:
+
+	ret
+.endf

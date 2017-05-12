@@ -17,9 +17,10 @@
 .define driveTableFsdriver driveTableDevfd + 1
 .define driveTableFsdata   driveTableFsdriver + 2
 
-.define fs_init  0
-.define fs_open  2
-.define fs_close 4
+.define fs_init     0
+.define fs_open     2
+.define fs_close    4 ;not used yet
+.define fs_readdir  6
 
 .func getDriveAddr:
 ;; Finds the drive entry of a given drive number

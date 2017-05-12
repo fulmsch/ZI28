@@ -15,21 +15,10 @@
 
 .define file_read  0
 .define file_write 2
-;.define file_seek  4
-.define file_fctl   4
+.define file_fstat 4
+;.define file_fctl  4
 
-;mode definition
-.define M_READ  0
-.define M_WRITE 1
-.define M_REG   2
-.define M_DIR   3
-.define M_CHAR  4
-.define M_BLOCK 5
 
-;flags for open
-.define O_RDONLY 0
-.define O_WRONLY 1
-.define O_RDWR   2
 
 .func getFileAddr:
 ;; Finds the file entry of a given fd
@@ -43,7 +32,7 @@
 ;; : nc - no error
 ;;
 ;; See also:
-;; : [getTableAddr](drive.asm#getTableAddr)
+;; : [getTableAddr](drive.asm.html#getTableAddr)
 
 	ld hl, fileTable
 	ld de, fileTableEntrySize
@@ -166,11 +155,11 @@ tableSpotFound:
 	ld a, (k_open_mode)
 	ld b, a
 	bit O_RDONLY, b
-	jr z, skipWriteFlag
+	jr nz, skipWriteFlag
 	ld a, 1 << M_WRITE
 skipWriteFlag:
 	bit O_WRONLY, b
-	jr z, skipReadFlag
+	jr nz, skipReadFlag
 	or 1 << M_READ
 skipReadFlag:
 	ld (ix + fileTableMode), a
@@ -262,6 +251,145 @@ invalidFd:
 .endf ;k_close
 
 
+.func k_readdir:
+;; Get information about the next file in a directory.
+;;
+;; Input:
+;; : a - dirfd
+;; : (de) - stat
+;;
+;; Output:
+;; : a - errno
+
+	push af
+	push de
+
+	;check if fd exists
+	call getFileAddr
+	jr c, invalidFd
+	ld a, (hl)
+	cp 00h
+	jr z, invalidFd
+
+	push hl
+	pop ix
+
+	;check if dirfd is a directory
+	ld a, (ix + fileTableMode)
+	and 1 << M_DIR
+	jr z, error ;not a directory
+
+	;check for valid file driver
+	;get the drive table entry of the filesystem
+	ld a, (ix + fileTableDriveNumber)
+	call getDriveAddr
+	jp c, error ;drive number out of bounds
+	;(hl) = driveTableEntry
+	ld de, driveTableFsdriver
+	add hl, de
+	ld e, (hl)
+	inc hl
+	ld d, (hl)
+	;de = fsdriver
+	ld hl, 0
+	or a
+	sbc hl, de
+	jr z, error ;driver null pointer
+	ld hl, fs_readdir
+	add hl, de
+	ld e, (hl)
+	inc hl
+	ld d, (hl)
+	ex de, hl
+	;(hl) = routine
+
+	pop de ;stat
+	pop af ;fd
+
+	jp (hl)
+
+invalidFd:
+error:
+	pop de
+	pop de
+	ld a, 1
+	ret
+
+.endf
+
+
+.func k_stat:
+;; Get information about a file.
+;;
+;; Input:
+;; : (de) - filename
+;; : (hl) - stat
+;;
+;; Output:
+;; : a - errno
+
+	push hl
+	ld a, 1 << O_RDONLY
+	call k_open
+	cp 0
+	ld a, e
+	pop de ;stat
+	ret nz
+
+	push af
+	call k_fstat
+	pop af
+	jp k_close
+.endf
+
+
+.func k_fstat:
+;; Get information about an open file.
+;;
+;; Input:
+;; : a - fd
+;; : (de) - stat
+;;
+;; Output:
+;; : a - errno
+
+	push de ;buffer
+
+	;check if fd exists
+	call getFileAddr
+	jr c, error ;invalidFd
+	ld a, (hl)
+	cp 00h
+	jr z, error ;invalidFd
+
+	push hl
+	pop ix
+
+	;check for valid file driver
+	ld l, (ix + fileTableDriver)
+	ld h, (ix + fileTableDriver + 1)
+	and a
+	ld de, 0
+	sbc hl, de
+	jr z, error ;invalidDriver;NULL pointer
+	ld de, file_fstat
+	add hl, de
+	ld e, (hl)
+	inc hl
+	ld d, (hl)
+	ex de, hl
+
+	pop de ;buffer
+
+	jp (hl)
+
+error:
+	pop de
+	ld a, 1
+	ret
+.endf
+
+
 .func k_read:
 ;; Read from an open file
 ;;
@@ -279,6 +407,7 @@ invalidFd:
 ;        1=invalid file descriptor
 
 	;TODO limit count to size-offset
+	;TODO check permission
 
 	push de ;buffer
 	push hl ;count

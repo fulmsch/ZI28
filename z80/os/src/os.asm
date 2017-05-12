@@ -11,6 +11,7 @@
 .include "iomap.h"
 .include "os_memmap.h"
 .include "osCalls.h"
+.include "fcntl.h"
 
 
 ; Jump Table -------------------------------------------------
@@ -92,6 +93,7 @@ clearRamLoop:
 	call k_mount
 
 	ld de, ttyName
+	ld a, 1 << O_RDWR
 	call k_open
 
 	ld a, e
@@ -109,6 +111,7 @@ clearRamLoop:
 	call sd_init
 
 	ld de, sdName
+	ld a, 1 << O_RDWR
 	call k_open
 	ld h, e
 	ld a, 1
@@ -116,13 +119,28 @@ clearRamLoop:
 	call k_mount
 
 ;	ld de, testFileName
+;	ld hl, 0xc000
+;	call k_stat
+;	ld a, 1 << O_RDWR
 ;	call k_open
+;	ld a, e
+;	push af
+;	ld de, 0xc000
+;	call k_readdir
+;	pop af
+;	ld de, 0xc020
+;	call k_readdir
+;	call k_fstat
 
 
 ;	ld a, e
 ;	push af
 ;	ld de, 0xc000
-;	ld hl, 0x2000
+;	ld hl, 0x0020
+;	call k_read
+;	pop af
+;	ld de, 0xc020
+;	ld hl, 0x0020
 ;	call k_read
 
 

@@ -4,6 +4,8 @@
 fat_fsDriver:
 	.dw fat_init
 	.dw fat_open
+	.dw fat_close
+	.dw fat_readdir
 
 .define fat_fat1StartAddr     driveTableFsdata          ;4 bytes
 .define fat_fat2StartAddr     fat_fat1StartAddr + 4     ;4 bytes
@@ -15,6 +17,7 @@ fat_fsDriver:
 fat_fileDriver:
 	.dw fat_read
 	.dw 0x0000 ;fat_write
+	.dw fat_fstat
 ;	.dw fat_fctl
 
 .define fat_fileTableStartCluster fileTableData                 ;2 bytes
@@ -227,7 +230,7 @@ rootDirSizeLoop:
 	;iy = table entry address
 
 	;open the root directory
-	;populate: driver, size, startcluster, dir entry address
+	;populate: driver, size, startcluster, dir entry address, type
 	;size = dataStart - rootDirStart
 	ld b, ixh
 	ld c, ixl
@@ -259,6 +262,11 @@ rootDirSizeLoop:
 	ld hl, fat_fileTableDirEntryAddr - (fileTableSize)
 	add hl, de
 	call clear32
+
+	;set mode to dir
+	ld a, (ix + fileTableMode)
+	or 1 << M_DIR
+	ld (ix + fileTableMode), a
 
 	;set startCluster to 0 to indicate the rootDir
 	xor a
@@ -404,10 +412,10 @@ finish:
 	;check permission
 	ld b, (ix + fileTableMode)
 	bit M_WRITE, b
-	jr nz, fileType
+	jr z, fileType
 	ld a, (fat_dirEntryBuffer + 0x0b) ;attributes
 	bit FAT_ATTRIB_RDONLY, a
-	jr z, error ;write requested, file is read only
+	jr nz, error ;write requested, file is read only
 
 fileType:
 	;a = file attributes, b = mode
@@ -428,6 +436,145 @@ error:
 	ld a, 1
 	ret
 .endf ;fat_open
+
+.func fat_close:
+
+	ret
+.endf
+
+.func fat_readdir:
+;; Get information about the next file in a directory.
+;;
+;; Input:
+;; : a - dirfd
+;; : (de) - stat
+;;
+;; Output:
+;; : a - errno
+
+	push de
+	push af
+
+readLoop:
+	pop af
+	push af
+	ld de, fat_dirEntryBuffer
+	ld hl, 32
+	push de
+	call k_read
+	pop hl
+
+	;TODO check for EOF
+	;hl = fat_dirEntryBuffer
+	ld a, (hl)
+	cp 0x00 ;end of dir reached, no match
+	jp z, error
+	cp 0x2e ;dot entry (. or ..), gets ignored
+	jr z, readLoop
+	cp 0xe5 ;deleted file
+	jr z, readLoop
+	cp 0x20 ;empty filename
+	jr z, readLoop
+
+	pop af
+	pop de
+	jp fat_statFromEntry
+
+
+
+error:
+	pop af
+	pop de
+	ld a, 1
+	ret
+.endf
+
+.func fat_fstat:
+;; Get information about a file.
+;;
+;; Input:
+;; : ix - file entry addr
+;; : (de) - stat
+;;
+;; Output:
+;; : a - errno
+
+	;TODO handle root separately
+
+	push de
+	ld a, (ix + fileTableDriveNumber)
+	call getDriveAddr
+	jp c, error ;drive number out of bounds
+	;hl = drive entry
+
+	ld bc, driveTableDevfd
+	add hl, bc
+	ld a, (hl) ;a = devfd
+
+	ld d, ixh
+	ld e, ixl
+	ld hl, fat_fileTableDirEntryAddr
+	add hl, de
+	ex de, hl ;(de) = dir entry addr
+
+	ld h, SEEK_SET
+	push af
+	call k_lseek
+	pop af
+	;TODO error handling
+	
+	;load the directory entry
+	ld de, fat_dirEntryBuffer
+	ld hl, 32
+	call k_read
+	;TODO error handling
+	pop de
+	jp fat_statFromEntry
+
+error:
+	pop de
+	ld a, 1
+	ret
+.endf
+
+.func fat_statFromEntry:
+;; Creates a stat from a directory entry.
+;;
+;; Input:
+;; : (de) - stat
+	
+	ld hl, fat_dirEntryBuffer
+	;(de) = stat
+	push de
+	call fat_buildFilename
+	pop de
+
+	ld hl, fat_dirEntryBuffer + 0x0b ;attributes
+	ld b, (hl)
+	ld hl, STAT_ATTRIB
+	add hl, de ;(hl) = stat attrib
+
+	ld a, 1 << SP_READ
+	bit FAT_ATTRIB_RDONLY, b
+	jr nz, skipWrite
+	or 1 << SP_WRITE
+skipWrite:
+	bit FAT_ATTRIB_DIR, b
+	jr nz, dir
+	or 1 << ST_REG
+	jr writeAttrib
+dir:
+	or 1 << ST_DIR
+writeAttrib:
+	ld (hl), a
+
+	ld bc, STAT_SIZE - (STAT_ATTRIB)
+	add hl, bc
+	ex de, hl ;(de) = stat size
+	ld hl, fat_dirEntryBuffer + 0x1c ;size
+	call ld32
+	ret
+.endf
 
 .func fat_read:
 ;; Copy data from a file to memory
@@ -662,10 +809,12 @@ error:
 
 .func fat_write:
 
+	ret
 .endf ;fat_write
 
 .func fat_fctl:
 
+	ret
 .endf ;fat_fctl
 
 .func fat_nextCluster:
