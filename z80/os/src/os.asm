@@ -73,13 +73,11 @@
 
 _coldStart:
 	;clear ram TODO other banks
-	ld a, 0
-	ld hl, 2000h
-	ld bc, 0e000h
-clearRamLoop:
-	ld (hl), a
-	inc hl
-	djnz clearRamLoop
+	ld hl, 0x2000
+	ld de, 0x2001
+	ld bc, 0xdfff
+	ld (hl), 0x00
+	ldir
 
 	ld sp, sysStack
 
