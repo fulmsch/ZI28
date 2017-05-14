@@ -225,7 +225,7 @@ loop:
 ;; : hl - string pointer
 ;;
 ;; Destroyed:
-;; : hl
+;; : a, hl
 
 	ld a, (hl)
 	cp 0

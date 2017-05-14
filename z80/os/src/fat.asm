@@ -7,12 +7,13 @@ fat_fsDriver:
 	.dw fat_close
 	.dw fat_readdir
 
+;drive table
 .define fat_fat1StartAddr     driveTableFsdata          ;4 bytes
 .define fat_fat2StartAddr     fat_fat1StartAddr + 4     ;4 bytes
 .define fat_rootDirStartAddr  fat_fat2StartAddr + 4     ;4 bytes
 .define fat_dataStartAddr     fat_rootDirStartAddr + 4  ;4 bytes
 .define fat_sectorsPerCluster fat_dataStartAddr + 4     ;1 byte
-
+                                                 ;Total 17 bytes
 
 fat_fileDriver:
 	.dw fat_read
@@ -194,12 +195,13 @@ rootDirSizeLoop:
 	pop af
 
 	pop de ;fat_sectorsPerCluster
-	push af
-	push ix
+;	push af
+;	push ix
 	ld hl, 1
 	call k_read
-	pop ix
-	pop af
+;	pop ix
+;	pop af
+	xor a
 
 	ret
 .endf ;fat_init

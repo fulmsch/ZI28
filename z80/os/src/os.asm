@@ -89,7 +89,8 @@ clearRamLoop:
 	call setInput
 
 	ld de, devfs_fsDriver
-	ld a, 0
+	ld hl, devDriveName
+	xor a
 	call k_mount
 
 	ld de, ttyName
@@ -113,8 +114,8 @@ clearRamLoop:
 	ld de, sdName
 	ld a, 1 << O_RDWR
 	call k_open
-	ld h, e
-	ld a, 1
+	ld a, e
+	ld hl, drive1Name
 	ld de, fat_fsDriver
 	call k_mount
 
@@ -147,11 +148,15 @@ clearRamLoop:
 	call cli
 
 ttyName:
-	.asciiz "0:TTY0"
+	.asciiz ":DEV/TTY0"
 sdName:
-	.asciiz "0:SDA1"
+	.asciiz ":DEV/SDA1"
 testFileName:
-	.asciiz "1:BIN/BASIC.BIN"
+	.asciiz ":SD/BIN/BASIC.BIN"
+devDriveName:
+	.asciiz "DEV"
+drive1Name:
+	.asciiz "SD"
 
 
 

@@ -101,39 +101,118 @@ tableSearchLoop:
 	djnz tableSearchLoop
 
 	;no free spot found, return error
-	ld a, 1
+	ld a, 0xf0
 	ret
 
 tableSpotFound:
 	ld a, c
 	ld (k_open_fd), a
 
-	;path should begin with "n:", where 0 <= n <= 9
+
+	;First char | Path type
+	;--------------------------------------------------
+	; ':'       | Full (incl. drive)
+	; '/'       | Absolute (on current drive)
+	; else      | Relative to current working directory
+
+	;in any case, there need to be to strings, one for the drive label,
+	;the other for the path on that drive
+
+	;the current drive should be stored as a separate string
+	;if the path is relative or absolute, it will be pointed to
+
 	ld hl, (k_open_path)
-	inc hl
+	push hl
+	call strtup
+	pop hl
+
 	ld a, (hl)
-	dec hl
 	cp ':'
-	jr nz, invalidPath
-	ld a, (hl)
-	sub '0'
-	jp c, invalidPath
-	cp 10
-	jp nc, invalidPath
-	ld (k_open_drive), a
+	jr z, fullPath
+	cp '/'
+	jr z, absPath
+
+	;relative path
+	;TODO build ablute path
+	ld a, 0xf1
+	ret
+
+fullPath:
+	;TODO split path into drive and path
 	inc hl
+	ld d, h
+	ld e, l
+	;(de) = drive label
+	ld a, '/'
+fullPathSplitLoop:
 	inc hl
+	cp (hl)
+	jr nz, fullPathSplitLoop
+	inc hl
+	;(hl) = absolute path
 	ld (k_open_path), hl
+	jr findDrive
 
 
+absPath:
+	;TODO get the current drive
+	ld a, 0xf2
+	ret
 
-	;ix points to free table entry
 
-	;search drive entry
-	ld a, (k_open_drive)
-	call getDriveAddr
-	jr c, invalidDrive
+findDrive:
+	;(de) = drive label
+	ld c, driveTableEntries
+	ld hl, driveTable
 
+findDriveLoop:
+	push de ;drive label
+	push hl ;drive entry
+
+	ld b, 5
+findDriveCmpLoop:
+	ld a, 0x00
+	cp (hl)
+	jr z, findDriveCmpEnd
+	ld a, (de)
+	cp (hl)
+	jr nz, findDriveCmpFail
+	inc de
+	inc hl
+	djnz findDriveCmpLoop
+
+findDriveCmpFail:
+	pop hl ;drive entry
+	ld de, driveTableEntrySize
+	add hl, de
+	pop de ;drive label
+
+	dec c
+	jr nz, findDriveLoop
+
+	;drive not found
+	ld a, 0xf3
+	ret
+
+findDriveCmpEnd:
+	ld a, (de)
+	cp '/'
+	jr z, driveFound
+	cp 0x00
+	jr nz, findDriveCmpFail
+
+driveFound:
+	pop hl ;drive entry
+	pop de ;clear the stack
+	;(hl) = drive entry
+
+	;calculate the drive number
+	;c = driveTableEntries - driveNumber
+	;=> driveNumber = driveTableEntries - c
+	ld a, driveTableEntries
+	sub c
+	ld (k_open_drive), a
+	
 	ld de, driveTableFsdriver
 	add hl, de
 	ld e, (hl)
@@ -152,6 +231,7 @@ tableSpotFound:
 	ld d, (hl)
 	ex de, hl
 
+	;store requested permissions
 	ld a, (k_open_mode)
 	ld b, a
 	bit O_RDONLY, b
@@ -163,6 +243,7 @@ skipWriteFlag:
 	or 1 << M_READ
 skipReadFlag:
 	ld (ix + fileTableMode), a
+
 
 	ld a, (k_open_drive)
 	ld (ix + fileTableDriveNumber), a
@@ -197,10 +278,10 @@ success:
 
 
 invalidDrive:
-	ld a, 2
+	ld a, 0xf4
 	ret
 invalidPath:
-	ld a, 3
+	ld a, 0xf5
 	ret
 
 ;mode:

@@ -12,10 +12,12 @@
 
 ;	.resb driveTableEntrySize * driveTableEntries
 
-.define driveTableStatus   0
-.define driveTableDevfd    driveTableStatus + 1
-.define driveTableFsdriver driveTableDevfd + 1
-.define driveTableFsdata   driveTableFsdriver + 2
+.define driveTableLabel    0                          ;5 bytes
+.define driveTableDevfd    driveTableLabel + 5       ;1 byte
+.define driveTableFsdriver driveTableDevfd + 1        ;2 bytes
+                                                      ;-------
+                                                ;Total 8 bytes
+.define driveTableFsdata   driveTableFsdriver + 2 ;Max 24 bytes
 
 .define fs_init     0
 .define fs_open     2
@@ -51,27 +53,51 @@
 ;;
 ;; Input:
 ;; : de - fs driver
-;; : h - devfd
-;; : a - drive number
+;; : (hl) - drive label (max. 5 bytes)
+;; : a - devfd
+;old : h-devfd, a-drivenr
 ;;
 ;; Output:
 ;; : a - errno
 ; Errors: 0=no error
 ;         2=invalid drive number
 
-	push de
-	push hl
-	call getDriveAddr
-	jr c, invalidDrive
-	ld a, (hl)
-	cp 0
-	jr nz, invalidDrive
-	push hl
-	pop ix
-	;ix points to valid drive entry
+	push de ;driver
+	push hl ;label
+	push af ;devfd
+
+	ld ix, driveTable
+	ld b, driveTableEntries
+	ld de, driveTableEntrySize
+
+tableSearchLoop:
+	ld a, (ix + 0)
+	cp 0x00
+	jr z, tableSpotFound
+	add ix, de
+	djnz tableSearchLoop
+	;no free spot found, return error
 	pop hl
-	pop de
-	ld (ix + driveTableDevfd), h
+	pop hl
+	pop hl
+	ld a, 0xf5
+	ret
+
+
+tableSpotFound:
+	;ix points to valid drive entry
+	pop af ;devfd
+	ld (ix + driveTableDevfd), a
+
+	;copy the drive label
+	;TODO maybe add a null terminator if strlen = max strlen
+	ld b, 5
+	pop hl ;drive label
+	ld d, ixh
+	ld e, ixl
+	call strncpy
+
+	pop de ;driver
 	ld (ix + driveTableFsdriver), e
 	ld (ix + driveTableFsdriver + 1), d
 
@@ -82,14 +108,7 @@
 	ld d, (hl)
 	ex de, hl
 
-	ld de, return
-	push de
 	jp (hl)
-
-return:
-	ld a, 1
-	ld (ix + 0), a
-	ret
 
 
 invalidDrive:
