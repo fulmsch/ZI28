@@ -15,29 +15,25 @@
 	inc hl
 	ld d, (hl)
 	inc hl
+	;(de) = device name
 
-	ld a, (de)
-	sub '0'
-	jr c, invalidCall
-	cp 10
-	jr nc, invalidCall
-	;a = drive number
-	push af
-
-	ld e, (hl)
+	ld c, (hl)
 	inc hl
-	ld d, (hl)
+	ld b, (hl)
+	ld h, b
+	ld l, c
+	;(hl) = label
+	push hl
+	call strtup
 
-	ld a, O_RDWR
-;	call k_open
-;	cp 0
-	pop af
-;	jr nz, invalidCall
+	ld a, 1 << O_RDWR
+	call k_open
+	cp 0
+	pop hl ;(hl) = label
+	jr nz, invalidCall
 	;e = fd
 	;TODO check if device
-
-	ld h, e
-
+	ld a, e
 
 	ld de, fat_fsDriver
 	jp k_mount
@@ -47,5 +43,5 @@ invalidCall:
 	call printStr
 	ret
 invalidCallstr:
-	.asciiz "Usage: MOUNT <DRIVENR> <DEVICE>\r\n"
+	.asciiz "Usage: MOUNT <DEVICE> <LABEL>\r\n"
 .endf ;b_mount

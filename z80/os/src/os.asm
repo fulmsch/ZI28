@@ -109,15 +109,15 @@ clearRamLoop:
 ;	call k_write
 
 
-	call sd_init
+;	call sd_init
 
-	ld de, sdName
-	ld a, 1 << O_RDWR
-	call k_open
-	ld a, e
-	ld hl, drive1Name
-	ld de, fat_fsDriver
-	call k_mount
+;	ld de, sdName
+;	ld a, 1 << O_RDWR
+;	call k_open
+;	ld a, e
+;	ld hl, drive1Name
+;	ld de, fat_fsDriver
+;	call k_mount
 
 ;	ld de, testFileName
 ;	ld hl, 0xc000
