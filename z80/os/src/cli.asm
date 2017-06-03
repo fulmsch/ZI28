@@ -307,6 +307,7 @@ programExtension:
 	.db 00h
 
 ;Command strings
+chmainStr:  .asciiz "CHMAIN"
 echoStr:    .asciiz "ECHO"
 helpStr:    .asciiz "HELP"
 lsStr:      .asciiz "LS"
@@ -315,13 +316,15 @@ mountStr:   .asciiz "MOUNT"
 nullStr:    .db 00h
 
 dispatchTable:
-	.dw echoStr,  b_echo
-	.dw helpStr,  b_help
-	.dw lsStr,    b_ls
-	.dw monStr,   b_monitor
-	.dw mountStr, b_mount
+	.dw chmainStr, b_chmain
+	.dw echoStr,   b_echo
+	.dw helpStr,   b_help
+	.dw lsStr,     b_ls
+	.dw monStr,    b_monitor
+	.dw mountStr,  b_mount
 	.dw nullStr
 
+.include "builtins/chmain.asm"
 .include "builtins/echo.asm"
 .include "builtins/help.asm"
 .include "builtins/ls.asm"

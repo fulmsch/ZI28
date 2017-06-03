@@ -112,10 +112,11 @@ tableSpotFound:
 	;First char | Path type
 	;--------------------------------------------------
 	; ':'       | Full (incl. drive)
+	; ':/'      | Absolute (on main drive)
 	; '/'       | Absolute (on current drive)
 	; else      | Relative to current working directory
 
-	;in any case, there need to be to strings, one for the drive label,
+	;in any case, there need to be two strings, one for the drive label,
 	;the other for the path on that drive
 
 	;the current drive should be stored as a separate string
@@ -133,17 +134,18 @@ tableSpotFound:
 	jr z, absPath
 
 	;relative path
-	;TODO build ablute path
+	;TODO build absolute path
 	ld a, 0xf1
 	ret
 
 fullPath:
-	;TODO split path into drive and path
 	inc hl
 	ld d, h
 	ld e, l
 	;(de) = drive label
 	ld a, '/'
+	cp (hl)
+	jr z, mainDrivePath
 fullPathSplitLoop:
 	inc hl
 	cp (hl)
@@ -153,11 +155,18 @@ fullPathSplitLoop:
 	ld (k_open_path), hl
 	jr findDrive
 
+mainDrivePath:
+	inc hl
+	ld (k_open_path), hl
+	ld de, env_mainDrive
+	jr findDrive
+
 
 absPath:
-	;TODO get the current drive
-	ld a, 0xf2
-	ret
+	inc hl
+	ld (k_open_path), hl
+	ld de, env_workingDrive ;TODO implement working drive
+	jr findDrive ;TODO optimise
 
 
 findDrive:

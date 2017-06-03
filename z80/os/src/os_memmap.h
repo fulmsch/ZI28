@@ -34,21 +34,27 @@
 
 ;OS workspace
 #define osWorkspace             registerStack
-#define terminalFd              osWorkspace
 
 ;32-bit registers
-#define regA                    terminalFd + 1
+#define regA                    osWorkspace + 1
 #define reg32                   regA
 #define regB                    regA + 4
 #define regC                    regB + 4
 
 #define osWorkspaceEnd          regC + 4
 
+;Environment
+#define terminalFd              osWorkspaceEnd       ;1 byte
+#define env_mainDrive           terminalFd + 1       ;5 bytes
+#define env_workingDrive        env_mainDrive + 5    ;tbd
+#define env_workingPath         env_workingDrive + 0 ;tbd
+#define env_end                 env_workingPath + 0
+
 ;Device Fs
 #define devfsEntrySize          16
 #define devfsEntries            32
 
-#define devfsRoot               osWorkspaceEnd
+#define devfsRoot               env_end
 #define devfsRootTerminator     devfsRoot + devfsEntrySize * devfsEntries
 #define devfsRootEnd            devfsRootTerminator + 1
 
@@ -89,8 +95,13 @@
 #define k_seek_new              k_open_end
 #define k_seek_end              k_seek_new + 4
 
+;k_chmain
+#define k_chmain_pathColon      k_seek_end              ;1 byte
+#define k_chmain_pathBuffer     k_chmain_pathColon + 1  ;5 bytes
+#define k_chmain_end            k_chmain_pathBuffer + 5
+
 ;fat_open
-#define fat_open_path           k_seek_end                  ;2 bytes
+#define fat_open_path           k_chmain_end                ;2 bytes
 #define fat_open_pathBuffer1    fat_open_path + 2           ;13 bytes
 #define fat_open_pathBuffer2    fat_open_pathBuffer1 + 13   ;13 bytes
 #define fat_dirEntryBuffer      fat_open_pathBuffer2 + 13   ;32 bytes

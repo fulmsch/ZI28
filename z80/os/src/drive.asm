@@ -121,6 +121,55 @@ invalidDrive:
 
 k_umount:
 
+.func k_chmain:
+;; Change the main drive.
+;;
+;; The main drive can be accessed with a path starting with ":/".
+;; The OS will search system files on this drive.
+;;
+;; Input:
+;; : (de) - drive name
+;;
+;; Output:
+;; : a - errno
+
+	;TODO ensure that there cannot be any issues with strings that are too long
+
+	ex de, hl
+	ld de, k_chmain_pathBuffer
+	ld b, 5
+	;TODO maybe add a null terminator if strlen = max strlen
+	call strncpy
+	ld a, '/'
+	ld (de), a
+
+	ld hl, k_chmain_pathColon
+	ld (hl), ':'
+	;convert label to uppercase
+	call strtup
+
+	;try to open the drive
+	ld de, k_chmain_pathColon
+	ld a, 1 << O_RDONLY
+	call k_open
+	push af
+	ld a, e
+	call k_close
+	pop af
+
+	cp 0
+	jr nz, invalidDrive ;TODO make this work
+
+	;copy the drive label
+	ld b, 5
+	ld hl, k_chmain_pathBuffer
+	ld de, env_mainDrive
+	jp strncpy
+
+invalidDrive:
+	ld a, 1
+	ret
+.endf
 
 
 .func getTableAddr:
