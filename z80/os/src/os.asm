@@ -97,64 +97,34 @@ _coldStart:
 
 	ld a, e
 	ld (terminalFd), a
-;	ld de, 0c000h
-;	ld hl, 1
-;	call k_read
-
-;	ld a, (terminalFd)
-;	ld de, 0c000h
-;	ld hl, 1
-;	call k_write
 
 
-;	call sd_init
+	call sd_init ;TODO automatic init
 
-;	ld de, sdName
-;	ld a, 1 << O_RDWR
-;	call k_open
-;	ld a, e
-;	ld hl, drive1Name
-;	ld de, fat_fsDriver
-;	call k_mount
-
-;	ld de, testFileName
-;	ld hl, 0xc000
-;	call k_stat
-;	ld a, 1 << O_RDWR
-;	call k_open
-;	ld a, e
-;	push af
-;	ld de, 0xc000
-;	call k_readdir
-;	pop af
-;	ld de, 0xc020
-;	call k_readdir
-;	call k_fstat
-
-
-;	ld a, e
-;	push af
-;	ld de, 0xc000
-;	ld hl, 0x0020
-;	call k_read
-;	pop af
-;	ld de, 0xc020
-;	ld hl, 0x0020
-;	call k_read
+	;initialise main drive
+	ld de, osDevName ;TODO configurable name in eeprom
+	ld a, 1 << O_RDWR
+	call k_open
+	ld a, e
+	ld hl, osDriveName
+	ld de, fat_fsDriver
+	call k_mount
+	ld de, osDriveName
+	call k_chmain
 
 
 	call cli
 
 ttyName:
 	.asciiz ":DEV/TTY0"
-sdName:
+osDevName:
 	.asciiz ":DEV/SDA1"
 testFileName:
 	.asciiz ":SD/BIN/BASIC.BIN"
 devDriveName:
 	.asciiz "DEV"
-drive1Name:
-	.asciiz "SD"
+osDriveName:
+	.asciiz "OS"
 
 
 
