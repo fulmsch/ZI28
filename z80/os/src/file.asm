@@ -3,7 +3,8 @@
 ;TODO consolidate error returns
 
 .define fileTableMode        0                        ;1 byte
-.define fileTableDriveNumber fileTableMode + 1        ;1 byte
+.define fileTableRefCount    fileTableMode + 1        ;1 byte
+.define fileTableDriveNumber fileTableRefCount + 1    ;1 byte
 .define fileTableDriver      fileTableDriveNumber + 1 ;2 bytes
 .define fileTableAttributes  fileTableDriver + 2      ;1 byte
 .define fileTableOffset      fileTableAttributes + 1  ;4 bytes
@@ -34,11 +35,79 @@
 ;; See also:
 ;; : [getTableAddr](drive.asm.html#getTableAddr)
 
+	;TODO optimise by using an aligned table and bitshifts
+
 	ld hl, fileTable
 	ld de, fileTableEntrySize
 	ld b, fileTableEntries
 	jp getTableAddr
-.endf ;getFileAddr
+.endf
+
+
+.func fdToFileEntry:
+;; Finds the file entry of a given fd
+;;
+;; Input:
+;; : a - file descriptor
+;;
+;; Output:
+;; : hl - table entry address
+;; : carry - error
+;; : nc - no error
+
+
+	call getFdAddr
+	ret c
+	ld a, (hl)
+	;a = file table index
+	jp getFileAddr
+
+error:
+	scf
+	ret
+.endf
+
+.func getFdAddr:
+;; Get the address of a file descriptor
+;;
+;; Input:
+;; : a - fd
+;;
+;; Output:
+;; : hl - fd address
+;; : carry - error
+;; : nc - no error
+;;
+;; Destroyed:
+;; : a, hl, de
+
+	;check if fd in range
+	cp fdTableEntries
+	jr nc, error
+
+	push af
+
+	ld hl, activeProcess
+	ld a, AP_KERNEL
+	cp (hl)
+
+	ld hl, u_fdTable
+	jr nz, fdTableFound
+
+	ld hl, k_fdTable
+fdTableFound:
+	pop af
+	;a = fd
+	;hl = fd table base addr
+	ld d, 0
+	ld e, a
+	add hl, de ;this should reset the carry flag
+	ret
+
+error:
+	scf
+	ret
+.endf
 
 
 
@@ -86,7 +155,28 @@
 	ld (k_open_mode), a
 	ld (k_open_path), de
 
-	;search free table spot
+	;search free fd
+	xor a
+	ld c, a
+	call getFdAddr
+	ld a, 0xff
+	ld b, fdTableEntries
+fdSearchLoop:
+	cp (hl)
+	jr z, fdFound
+	inc c
+	inc hl
+	djnz fdSearchLoop
+
+	;no free fd
+	ld a, 0xe0 ;TODO errno
+	ret
+
+fdFound:
+	ld a, c
+	ld (k_open_fd), a
+
+	;search free file table spot
 	ld ix, fileTable
 	ld b, fileTableEntries
 	ld c, 0
@@ -101,12 +191,12 @@ tableSearchLoop:
 	djnz tableSearchLoop
 
 	;no free spot found, return error
-	ld a, 0xf0
+	ld a, 0xf0 ;TODO errno
 	ret
 
 tableSpotFound:
 	ld a, c
-	ld (k_open_fd), a
+	ld (k_open_fileIndex), a
 
 
 	;First char | Path type
@@ -280,8 +370,16 @@ return:
 
 
 success:
+	ld (ix + fileTableRefCount), 1
+	ld a, (k_open_fileIndex)
+	push af ;file index
 	ld a, (k_open_fd)
+	push af ;fd
+	call getFdAddr
+	pop af ;fd
 	ld e, a
+	pop af ;file index
+	ld (hl), a
 	xor a
 	ret
 
@@ -293,26 +391,13 @@ invalidPath:
 	ld a, 0xf5
 	ret
 
-;mode:
-;	.db 0
-;fd:
-;	.db 0
-;path:
-;	.dw 0
-;pathBuffer:
-;	.resb 13
-;sector:
-;	.resb 4
-;drive:
-;	.db 0
-
 .endf ;k_open
 
 
 .func k_close:
 ;; Close a file
 ;;
-;; Closes a file and makes its fd available again
+;; Closes a file descriptor. If the file has no more references, it gets closed too.
 ;;
 ;; Input:
 ;; : a - file descriptor
@@ -322,8 +407,16 @@ invalidPath:
 ;Errors: 0=no error
 ;        1=invalid file descriptor
 
-	call getFileAddr
+	call getFdAddr
 	jr c, invalidFd
+	ld a, (hl)
+	ld (hl), 0xff
+	call getFileAddr
+
+	inc hl
+	dec (hl)
+	ret nz ;more references to the file
+	dec hl
 
 	xor a
 	ld b, fileTableEntrySize
@@ -341,6 +434,83 @@ invalidFd:
 .endf ;k_close
 
 
+.func k_dup:
+;; Duplicate a file descriptor.
+;;
+;; If `new fd` is equal to 0xFF, the next free file descriptor will be used.
+;;
+;; Input:
+;; : a - new fd
+;; : b - old fd
+;;
+;; Output:
+;; : a - errno
+;; : e - new fd
+
+	ld hl, k_dup_oldFd
+	ld (hl), b
+
+	cp 0xff
+	jr nz, newSpecified
+	;search next free fd
+	xor a
+	ld c, a
+	call getFdAddr
+	ld a, 0xff
+	ld b, fdTableEntries
+fdSearchLoop:
+	cp (hl)
+	jr z, newFdFound
+	inc c
+	inc hl
+	djnz fdSearchLoop
+
+	jr error
+
+newFdFound:
+	ld a, c
+	ld (k_dup_newFd), a
+	jr copyFd
+
+newSpecified:
+	ld (k_dup_newFd), a
+	call getFdAddr
+	jr c, error
+	ld a, (hl)
+	cp 0xff
+	jr z, copyFd
+	call k_close
+
+copyFd:
+	ld a, (k_dup_newFd)
+	call getFdAddr
+	push hl
+	ld a, (k_dup_oldFd)
+	call getFdAddr
+	pop de
+	jr c, error
+	;de - new fd, hl - old fd
+	ld a, (hl)
+	ld (de), a
+
+	;inc reference count
+	ld a, (hl)
+	call getFileAddr
+	inc hl
+	inc (hl)
+
+	ld a, (k_dup_newFd)
+	ld e, a
+
+	xor a
+	ret
+
+error:
+	ld a, 1
+	ret
+.endf
+
+
 .func k_readdir:
 ;; Get information about the next file in a directory.
 ;;
@@ -355,7 +525,7 @@ invalidFd:
 	push de
 
 	;check if fd exists
-	call getFileAddr
+	call fdToFileEntry
 	jr c, invalidFd
 	ld a, (hl)
 	cp 00h
@@ -446,7 +616,7 @@ error:
 	push de ;buffer
 
 	;check if fd exists
-	call getFileAddr
+	call fdToFileEntry
 	jr c, error ;invalidFd
 	ld a, (hl)
 	cp 00h
@@ -505,7 +675,7 @@ error:
 ;	ld (count), hl
 
 	;check if fd exists
-	call getFileAddr
+	call fdToFileEntry
 	jr c, invalidFd
 	ld a, (hl)
 	cp 00h
@@ -610,7 +780,7 @@ zeroCount:
 	push hl ;count
 
 	;check if fd exists
-	call getFileAddr
+	call fdToFileEntry
 	jr c, invalidFd
 	ld a, (hl)
 	cp 00h
@@ -719,7 +889,7 @@ k_seek:
 	push de ;offset
 
 	;check if fd exists, get the address
-	call getFileAddr
+	call fdToFileEntry
 	pop de ;offset
 	pop bc ;b = whence
 	jp c, invalidFd

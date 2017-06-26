@@ -81,6 +81,16 @@ _coldStart:
 
 	ld sp, sysStack
 
+	;clear the fd tables (set everything to 0xff)
+	ld hl, k_fdTable
+	ld de, k_fdTable + 1
+	ld bc, fdTableEntries * 2 - 1
+	ld (hl), 0xff
+	ldir
+
+	ld a, AP_KERNEL
+	ld (activeProcess), a
+
 	;Set input and output to USB
 	xor a
 	call setOutput

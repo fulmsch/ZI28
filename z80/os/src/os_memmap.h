@@ -3,8 +3,6 @@
 #define sysStack   8000h
 #define monStack   4200h
 
-;#define sdBuffer   4200h
-
 ;BIOS memory map
 #define memBase    0000h
 
@@ -45,7 +43,10 @@
 
 ;Environment
 #define terminalFd              osWorkspaceEnd       ;1 byte
-#define env_mainDrive           terminalFd + 1       ;5 bytes
+#define activeProcess           terminalFd + 1       ;1 byte
+#define AP_KERNEL 0 ;active process
+#define AP_USER   1
+#define env_mainDrive           activeProcess + 1    ;5 bytes
 #define env_workingDrive        env_mainDrive + 5    ;tbd
 #define env_workingPath         env_workingDrive + 0 ;tbd
 #define env_end                 env_workingPath + 0
@@ -72,9 +73,15 @@
 #define fileTable               driveTableEnd
 #define fileTableEnd            fileTable + fileTableEntrySize * fileTableEntries
 
+;File descriptors
+#define fdTableEntries          32
+
+#define k_fdTable               fileTableEnd
+#define u_fdTable               k_fdTable + fdTableEntries
+#define fdTableEnd              u_fdTable + fdTableEntries
+
 ;Block driver
-#define block_buffer            fileTableEnd
-#define sdBuffer block_buffer ;legacy
+#define block_buffer            fdTableEnd
 #define block_curBlock          block_buffer + 512
 #define block_endBlock          block_curBlock + 4
 #define block_remCount          block_endBlock + 4
@@ -87,9 +94,15 @@
 ;k_open
 #define k_open_mode             block_end
 #define k_open_fd               k_open_mode + 1
-#define k_open_path             k_open_fd + 1
+#define k_open_fileIndex        k_open_fd + 1
+#define k_open_path             k_open_fileIndex + 1
 #define k_open_drive            k_open_path + 2
 #define k_open_end              k_open_drive + 1
+
+;k_dup
+#define k_dup_oldFd             k_open_end
+#define k_dup_newFd             k_dup_oldFd + 1
+#define k_dup_end               k_dup_newFd + 1
 
 ;k_seek
 #define k_seek_new              k_open_end
