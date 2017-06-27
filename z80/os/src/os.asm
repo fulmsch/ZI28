@@ -101,12 +101,20 @@ _coldStart:
 	xor a
 	call k_mount
 
+	;stdin
 	ld de, ttyName
-	ld a, 1 << O_RDWR
+	ld a, 1 << O_RDONLY
 	call k_open
 
-	ld a, e
-	ld (terminalFd), a
+	;stdout
+	ld de, ttyName
+	ld a, 1 << O_WRONLY
+	call k_open
+
+	;stderr
+	ld a, STDERR_FILENO
+	ld b, STDOUT_FILENO
+	call k_dup
 
 
 	call sd_init ;TODO automatic init

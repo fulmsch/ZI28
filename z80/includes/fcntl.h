@@ -1,3 +1,8 @@
+;TODO move to more appropriate header
+#define STDIN_FILENO  0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
+
 ;mode definition
 #define M_READ  0
 #define M_WRITE 1

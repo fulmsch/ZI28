@@ -250,7 +250,7 @@ loop:
 	ld h, b
 	ld l, c
 	pop de
-	ld a, (terminalFd)
+	ld a, STDOUT_FILENO
 	jp k_write
 ;	ld a, (hl)
 ;	cp 00h
