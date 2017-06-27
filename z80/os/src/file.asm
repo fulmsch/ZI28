@@ -511,6 +511,52 @@ error:
 .endf
 
 
+.func udup:
+;; Copy a kernel file descriptor to the user fd-table.
+;;
+;; Input:
+;; : a - user fd
+;; : b - kernel fd
+;;
+;; Output:
+;; : a - errno
+
+	;kernel has to be the active process
+	push af
+	ld a, b
+	call getFdAddr
+	jr c, error
+	;hl = old fd addr
+	ld a, AP_USER
+	ld (activeProcess), a
+	pop af ;new fd
+	push hl ;old fd addr
+	call getFdAddr
+	ld a, AP_KERNEL
+	ld (activeProcess), a
+	jr c, error
+	pop de ;old fd addr
+	;hl = new fd addr
+	ld a, (de)
+	ld (hl), a
+
+	;inc reference count
+	call getFileAddr
+	inc hl
+	inc (hl)
+
+	xor a
+	ret
+
+
+error:
+	pop af
+	ld a, 1
+	ret
+
+.endf
+
+
 .func k_readdir:
 ;; Get information about the next file in a directory.
 ;;
