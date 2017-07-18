@@ -13,15 +13,15 @@ prompt:
 ;	ld hl, promptPlaceholder
 ;	call printStr
 ;	ld a, ' '
-;	rst putc
+;	call putc
 	ld hl, promptStr
 	call printStr
 ;	ld a, '>'
-;	rst putc
+;	call putc
 ;	ld a, ':'
-;	rst putc
+;	call putc
 ;	ld a, ' '
-;	rst putc
+;	call putc
 	;call exit
 
 
@@ -30,7 +30,7 @@ prompt:
 handleChar:
 	;TODO navigation with arrow keys
 	xor a
-	rst getc
+	call getc
 	cp 08h
 	jr z, backspace
 	cp 0dh
@@ -41,7 +41,7 @@ handleChar:
 	cp 7fh
 	jr nc, handleChar
 	ld (hl), a
-	rst putc
+	call putc
 	;Check for buffer overflow
 	inc c
 	ld a, c
@@ -55,11 +55,11 @@ backspace:
 	cp 0
 	jr z, handleChar
 	ld a, 08h
-	rst putc
+	call putc
 	ld a, 20h
-	rst putc
+	call putc
 	ld a, 08h
-	rst putc
+	call putc
 	dec hl
 	dec c
 	jr handleChar
@@ -75,9 +75,9 @@ inputBufferOverflowStr:
 
 handleLine:
 	ld a, 0dh
-	rst putc
+	call putc
 	ld a, 0ah
-	rst putc
+	call putc
 	;TODO store history in file
 
 	ld (hl), 00h
@@ -167,9 +167,9 @@ commandDispatch:
 ;	inc de
 ;	call printStr
 ;	ld a, 0dh
-;	rst putc
+;	call putc
 ;	ld a, 0ah
-;	rst putc
+;	call putc
 ;	djnz argLoop
 
 	pop hl ;contains pointer to first string

@@ -10,7 +10,8 @@
 
 .include "iomap.h"
 .include "os_memmap.h"
-.include "osCalls.h"
+.include "unistd.h"
+.include "syscall.h"
 .include "fcntl.h"
 
 
@@ -24,11 +25,11 @@
 	.db     00h
 	jp      _putc        ;RST 08h
 	.db     00h
-	jp      _setOutput   ;CALL 0Ch
+	jp      00h          ;CALL 0Ch
 	.db     00h
 	jp      _getc        ;RST 10h
 	.db     00h
-	jp      _setInput    ;CALL 14h
+	jp      00h          ;CALL 14h
 	.db     00h
 	jp      00h          ;RST 18h
 	.db     00h
@@ -42,7 +43,7 @@
 	.db     00h
 	jp      00h          ;CALL 2Ch
 	.db     00h
-	jp      00h          ;RST 30h set bank
+	jp      _syscall     ;RST 30h
 	.db     00h
 	jp      00h          ;CALL 34h
 	.db     00h
@@ -55,15 +56,18 @@
 	jp      k_seek
 
 
-	.resw nmiEntry - $
+;	.resw nmiEntry - $
+.org nmiEntry
 
 	.dw ISR_keyboard
 
+.org 0x0100
+.include "syscall.asm" ;syscall table must be aligned to 256 bytes
+
+
 ; BIOS-Routines ----------------------------------------------
 
-.include "io.asm"
 .include "interrupt.asm"
-;.include "sd.asm"
 .include "drivers/ft240.asm"
 .include "string.asm"
 .include "math.asm"
@@ -90,11 +94,6 @@ _coldStart:
 
 	ld a, AP_KERNEL
 	ld (activeProcess), a
-
-	;Set input and output to USB
-	xor a
-	call setOutput
-	call setInput
 
 	ld de, devfs_fsDriver
 	ld hl, devDriveName

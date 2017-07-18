@@ -259,3 +259,50 @@ loop:
 ;	inc hl
 ;	jr printStr
 .endf ;printStr
+
+
+.func _putc:
+;; Print a single character to STDOUT.
+;;
+;; Input:
+;; : a - character
+
+	push af
+	push bc
+	push de
+	push hl
+
+	ld de, putc_buffer
+	ld (de), a
+	ld hl, 1
+	ld a, STDOUT_FILENO
+	call k_write
+
+	pop hl
+	pop de
+	pop bc
+	pop af
+	ret
+.endf
+
+.func _getc:
+;; Read a single character from STDIN.
+;;
+;; Output:
+;; : a - character
+
+	push bc
+	push de
+	push hl
+
+	ld a, STDIN_FILENO
+	ld de, getc_buffer
+	ld hl, 1
+	call k_read
+	ld a, (getc_buffer)
+
+	pop hl
+	pop de
+	pop bc
+	ret
+.endf

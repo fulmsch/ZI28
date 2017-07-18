@@ -39,7 +39,10 @@
 #define regB                    regA + 4
 #define regC                    regB + 4
 
-#define osWorkspaceEnd          regC + 4
+#define getc_buffer             regC + 4
+#define putc_buffer             getc_buffer + 1
+
+#define osWorkspaceEnd          putc_buffer + 1
 
 ;Environment
 #define terminalFd              osWorkspaceEnd       ;1 byte
