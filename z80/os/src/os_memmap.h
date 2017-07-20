@@ -131,8 +131,14 @@
 #define fat_read_clusterSize    fat_read_cluster + 2
 #define fat_read_end            fat_read_clusterSize + 2
 
+;exec
+#define exec_addr               0xc000 ;temporary for compatibility
+#define exec_stack              fat_read_end     ;2 bytes
+#define exec_fd                 exec_stack + 2   ;1 byte
+#define exec_end                exec_fd + 1
+
 ;cli
-#define cliWorkspace            fat_read_end
+#define cliWorkspace            exec_end
 
 #define inputBufferSize         128
 #define maxArgc                 32

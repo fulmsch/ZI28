@@ -152,6 +152,7 @@ osDriveName:
 .include "drive.asm"
 .include "file.asm"
 .include "block.asm"
+.include "process.asm"
 
 ; Filesystems
 .include "fat.asm"

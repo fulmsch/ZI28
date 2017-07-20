@@ -227,9 +227,6 @@ programInPath:
 
 ;	ld de, programPath
 	ex de, hl
-	ld a, 1 << O_RDONLY
-	call k_open
-	cp 0
 	jr z, loadProgram
 
 	;TODO check default file extension
@@ -241,32 +238,12 @@ programInPath:
 fullPath:
 	;try to open file named &argv[0]
 	pop de ;contains pointer to first string
-	ld a, 1 << O_RDONLY
-	call k_open
-	cp 0
-	jr nz, noMatch
 
 loadProgram:
 	;load file into memory
-	ld a, e ;file descriptor
-	push af
-	ld de, 0c000h
-	ld hl, 4000h
-	call k_read
+	call exec
 	cp 0
-	pop af
-	jr nz, noMatch
-
-	call k_close
-
-	;TODO pass argc and argv
-
-	ld de, reentry
-	push de
-	jp 0c000h
-
-reentry:
-	jp prompt
+	jp z, prompt
 
 noMatch:
 	ld hl, noMatchStr

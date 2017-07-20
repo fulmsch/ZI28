@@ -410,6 +410,9 @@ invalidPath:
 	call getFdAddr
 	jr c, invalidFd
 	ld a, (hl)
+	;check if fd exists
+	cp 0xff
+	jr z, invalidFd
 	ld (hl), 0xff
 	call getFileAddr
 
@@ -514,6 +517,8 @@ error:
 .func udup:
 ;; Copy a kernel file descriptor to the user fd-table.
 ;;
+;; If the user fd already exists, it will stay the same.
+;;
 ;; Input:
 ;; : a - user fd
 ;; : b - kernel fd
@@ -526,20 +531,27 @@ error:
 	ld a, b
 	call getFdAddr
 	jr c, error
-	;hl = old fd addr
+	;hl = kernel fd addr
 	ld a, AP_USER
 	ld (activeProcess), a
-	pop af ;new fd
-	push hl ;old fd addr
+	pop af ;user fd
+	push hl ;kernel fd addr
 	call getFdAddr
 	ld a, AP_KERNEL
 	ld (activeProcess), a
 	jr c, error
-	pop de ;old fd addr
-	;hl = new fd addr
+	pop de ;kernel fd addr
+	;hl = user fd addr
+
+	;check if user fd already exists
+	ld a, (hl)
+	cp 0xff
+	ld a, 0
+	ret nz
+
+	;copy fd
 	ld a, (de)
 	ld (hl), a
-
 	;inc reference count
 	call getFileAddr
 	inc hl
