@@ -3,7 +3,7 @@ UTILDIR = $(ROOTDIR)/util
 SRCDIR = src
 INCLUDEDIR = ../includes
 
-.PHONY: all clean docs
+.PHONY: all clean docs sim
 
 all: os.hex
 
@@ -15,3 +15,6 @@ os.hex: $(SRCDIR)/*.h $(SRCDIR)/*.asm $(SRCDIR)/*/*.asm $(INCLUDEDIR)/*.h
 	naken_asm -b src/os.asm -o os.obj -l -I $(INCLUDEDIR) -I src
 	#Generate a hex file
 	srec_cat os.obj -binary -o os.hex -intel
+
+sim:
+	zi28sim -r os.obj & sleep 0.5 && picocom /tmp/zi28sim --imap lfcrlf --omap delbs --send-cmd "ascii-xfr -snv" --receive-cmd "ascii-xfr -rne"
