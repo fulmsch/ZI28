@@ -10,6 +10,8 @@
 #include "emulator.h"
 #include "sd.h"
 
+char lastTtyChar = 0;
+
 void emulator_init() {
 	int ptm, pts;
 	char *ptsName;
@@ -77,7 +79,7 @@ void context_mem_write_callback(int param, ushort address, byte data) {
 }
 
 byte context_io_read_callback(int param, ushort address) {
-	int data=0xff;
+	char data=0xff;
 	int ret;
 	address = address & 0xff;
 
@@ -89,7 +91,14 @@ byte context_io_read_callback(int param, ushort address) {
 	} else {
 		switch (address) {
 			case 0x00:
-				read(pty[0].fd, &data, 1);
+				ret = poll(pty, 1, 0);
+				if ((ret > 0) && (pty[0].revents & POLLIN)) {
+					//new char available
+					read(pty[0].fd, &data, 1);
+					lastTtyChar = data;
+				} else {
+					data = lastTtyChar;
+				}
 				break;
 			case 0x01:
 				data = 0x02;
