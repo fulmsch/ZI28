@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>devfs.asm | ZI-28 Documentation</title>
+	<link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+	<h1>ZI-28 Documentation</h1>
+	<a href="index.html">&lt Back to index</a>
+
+	<h2>File: devfs.asm</h2>
+
+	<div>
+		<p>Device filesystem</p>
+	</div>
+
+		<div class="routines">
+		<h3>Routines</h3>
+					<div class="menuentry">
+			<div class="menutitle">
+				<a href=#devfs_init>devfs_init</a>
+			</div>
+			<div class="menudesc">
+				<p>Adds all permanently attached devices</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#devfs_addDev>devfs_addDev</a>
+			</div>
+			<div class="menudesc">
+				<p>Add a new device entry</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#devfs_addExpCard>devfs_addExpCard</a>
+			</div>
+			<div class="menudesc">
+				<p>Add an entry for an expansion card to the devfs and initialise the module. Should eventually also read the eeprom and handle driver loading somehow.</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#devfs_open>devfs_open</a>
+			</div>
+			<div class="menudesc">
+				<p>Open a device file</p>
+			</div>
+		</div>
+			
+					<div id="devfs_init" class="box">
+			<div class="boxheader">
+				<p>devfs_init</p>
+			</div>
+			<div class="boxcontent">
+				<p>Adds all permanently attached devices</p>
+			</div>
+		</div>
+							<div id="devfs_addDev" class="box">
+			<div class="boxheader">
+				<p>devfs_addDev</p>
+			</div>
+			<div class="boxcontent">
+				<p>Add a new device entry</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl) - name
+</dd>
+<dd>de - driver address
+</dd>
+<dd>a - number / port
+</dd>
+<dt>Output:</dt>
+<dd>carry - unable to create entry
+</dd>
+<dd>nc - no error
+</dd>
+<dd>hl - custom data start
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="devfs_addExpCard" class="box">
+			<div class="boxheader">
+				<p>devfs_addExpCard</p>
+			</div>
+			<div class="boxcontent">
+				<p>Add an entry for an expansion card to the devfs and initialise the module. Should eventually also read the eeprom and handle driver loading somehow.</p>
+<dl>
+<dt>Input:</dt>
+<dd>b - expansion slot number
+</dd>
+<dd>de - device driver (temporary)
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="devfs_open" class="box">
+			<div class="boxheader">
+				<p>devfs_open</p>
+			</div>
+			<div class="boxcontent">
+				<p>Open a device file</p>
+<dl>
+<dt>Input:</dt>
+<dd>ix - table entry
+</dd>
+<dd>(de) - absolute path
+</dd>
+<dd>a - mode
+</dd>
+<dt>Output:</dt>
+<dd>a - errno
+</dd>
+</dl>
+			</div>
+		</div>
+				</div>
+	
+
+
+<footer>
+</footer>
+
+
+</body>
+</html>
