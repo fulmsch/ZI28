@@ -8,7 +8,7 @@ ASMFILES = $(wildcard *.asm)
 
 OBJECTS = $(GENOBJECTS) $(ASMFILES:.asm=.o)
 
-all: dirs $(addprefix obj/z80/, $(OBJECTS)) $(addprefix obj/r2k/,$(OBJECTS)) $(addprefix obj/ixiy/,$(OBJECTS)) $(addprefix obj/$(TARGET)/,$(CUSTOBJECTS)) 
+all: dirs $(addprefix obj/z80/, $(OBJECTS)) $(addprefix obj/ixiy/,$(OBJECTS)) $(addprefix obj/$(TARGET)/,$(CUSTOBJECTS)) 
 
 obj/z80/%.o: %.c
 	zcc +test -mz80 $(CFLAGS) -o $@  $^
@@ -21,12 +21,6 @@ obj/ixiy/%.o: %.c
 
 obj/ixiy/%.o: %.asm
 	zcc +test -mz80 -Ca--IXIY -Cl--IXIY $(CFLAGS) -o $@  $^
-
-obj/r2k/%.o: %.c
-	zcc +rcmx000 $(CFLAGS) -o $@  $^
-
-obj/r2k/%.o: %.asm
-	zcc +rcmx000 $(CFLAGS) -Ca-DFORrcmx000 -o $@  $^
 
 obj/$(TARGET)/%.o: %.c
 	zcc +$(TARGET) $(CFLAGS) -o $@  $^

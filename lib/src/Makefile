@@ -103,14 +103,6 @@ debug.lib:
 	@echo ''
 	$(MAKE) -C debug 
 
-
-# ZSock API (wrappers to package calls) - dom
-net.lib:
-	@echo ''
-	@echo '--- Building Z88 ZSock Library ---'
-	@echo ''
-	$(MAKE) -C net 
-
 # Preempt multitasking library - dom
 preempt.lib:
 	@echo ''
@@ -123,38 +115,23 @@ clean:
 	$(MAKE) -C assert clean
 	$(MAKE) -C fcntl clean
 	$(MAKE) -C math/genmath clean
-	$(MAKE) -C graphics clean
+#	$(MAKE) -C graphics clean
 	$(MAKE) -C malloc clean
-	$(MAKE) -C net clean
-	$(MAKE) -C rs232 clean
 	$(MAKE) -C setjmp clean
 	$(MAKE) -C stdio clean
 	$(MAKE) -C stdlib clean
 	$(MAKE) -C strings clean
 	$(MAKE) -C regex clean
-	$(MAKE) -C time clean
 	$(MAKE) -C z80_crt0s clean
-	$(MAKE) -C zxvgs clean
 	$(MAKE) -C adt clean
 	$(MAKE) -C balloc clean
 	$(MAKE) -C im2 clean
 	$(MAKE) -C rect clean
 	$(MAKE) -C algorithm clean
 	$(MAKE) -C debug clean
-	$(MAKE) -C osca clean
-	$(MAKE) -C oz clean
 	$(MAKE) -C lib3d clean
-	$(MAKE) -C input clean	
-	$(MAKE) -C enterprise clean
-	$(MAKE) -C msx clean
-	$(MAKE) -C psg clean
-	$(MAKE) -C sos clean
 	$(MAKE) -C threading/preempt clean
-	$(MAKE) -C sprites/software/sp1 clean
-	$(MAKE) -C stdio_new clean
-	$(MAKE) -C sdcard clean
-	$(MAKE) -C games clean
-	$(MAKE) -C x1 clean
 	$(MAKE) -C math clean
 	$(MAKE) -C compress/zx7 clean
+	$(RM) $(OUTPUT_DIRECTORY)/*.lib
 	$(RM) *.lib
