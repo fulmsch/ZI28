@@ -12,28 +12,22 @@
 #ifndef __FCNTL_H__
 #define __FCNTL_H__
 
-#include <sys/compiler.h>
-#include <sys/types.h>
-
 
 #define O_RDONLY  0
 #define O_WRONLY  1
-#define O_APPEND  256
-
-#define SEEK_SET 0
-#define SEEK_CUR 1
-#define SEEK_END 2
-
-/* unsupported flags */
 #define O_RDWR    2
-#define O_ACCMODE 3
+#define O_APPEND  3 //unused
 
 
-/* O_BINARY has no significence */
-#define O_BINARY  0
+
+
+#ifndef __NAKEN_ASM
+#include <sys/compiler.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 
 typedef int mode_t;
-
 
 extern int __LIB__ open(const char *name, int flags, mode_t mode);
 extern int __LIB__ creat(const char *name, mode_t mode);
@@ -98,5 +92,6 @@ extern int  __LIB__ rnd_saveblock(char *name, size_t loadstart, size_t len);
 extern int  __LIB__ __FASTCALL__ rnd_erase(char *name) ;
 
 /* ********************************************************* */
+#endif /* __NAKEN_ASM */
 
 #endif /* _FCNTL_H */

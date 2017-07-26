@@ -9,46 +9,6 @@
 #undef __STDIO_BINARY      /* By default don't consider binary/text file differences */
 #undef __STDIO_CRLF        /* By default don't insert automatic linefeed in text mode */
 
-#ifdef __SPECTRUM__
-#include <spectrum.h>
-#endif
-
-#ifdef __LAMBDA__
-#include <zx81.h>
-#endif
-
-#ifdef __ZX81__
-#include <zx81.h>
-#endif
-
-#ifdef __ZX80__
-#include <zx81.h>
-#endif
-
-#ifdef __CPM__
-/* This will define __STDIO_BINARY, __STDIO_EOFMARKER and __STDIO_CRLF  */
-#include <cpm.h>
-#endif
-
-#ifdef __MSX__
-/* This will define __STDIO_BINARY, __STDIO_EOFMARKER and __STDIO_CRLF  */
-#include <cpm.h>
-#include <msx.h>
-#endif
-
-#ifdef __OSCA__
-/* This will define __STDIO_BINARY, __STDIO_EOFMARKER and __STDIO_CRLF  */
-#include <flos.h>
-#endif
-
-#ifdef __SOS__
-#include <sos.h>
-#endif
-
-#ifdef ZXVGS
-#include <zxvgs.h>
-#endif
-
 
 #ifdef AMALLOC
 #include <malloc.h>

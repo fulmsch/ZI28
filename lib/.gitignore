@@ -1,3 +1,4 @@
 !*.lst
 *.lib
 *.o
+*.def

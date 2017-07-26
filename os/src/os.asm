@@ -7,11 +7,14 @@
 
 .z80
 
+.define __NAKEN_ASM
+
 
 .include "iomap.h"
 .include "os_memmap.h"
 .include "unistd.h"
-.include "syscall.h"
+.include "sys/os.h"
+.include "sys/stat.h"
 .include "fcntl.h"
 
 

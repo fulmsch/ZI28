@@ -7,12 +7,25 @@
 #ifndef __UNISTD_H__
 #define __UNISTD_H__
 
+
+#define SEEK_SET  0
+#define SEEK_PCUR 1
+#define SEEK_NCUR 2
+#define SEEK_END  3
+#define SEEK_CUR  4 //unused
+
+#define STDIN_FILENO  0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
+
+
+#ifndef __NAKEN_ASM
 #include <sys/compiler.h>
 #include <sys/types.h>
 
 extern char *environ[];
 #define isatty(fd) fchkstd(fd)
 #define unlink(a) remove(a)
-
+#endif
 
 #endif
