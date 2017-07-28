@@ -8,11 +8,9 @@
 #define __UNISTD_H__
 
 
-#define SEEK_SET  0
-#define SEEK_PCUR 1
-#define SEEK_NCUR 2
-#define SEEK_END  3
-#define SEEK_CUR  4 //unused
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
 
 #define STDIN_FILENO  0
 #define STDOUT_FILENO 1

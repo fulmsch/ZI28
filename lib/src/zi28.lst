@@ -1,4 +1,5 @@
 @stdio/stdio.lst
 stdio/zi28/fgetc_cons
 stdio/zi28/fputc_cons
+@fcntl/fcntl.lst
 @z80.lst

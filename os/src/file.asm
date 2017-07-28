@@ -898,10 +898,10 @@ k_seek:
 ;;
 ;; The new offset is calculated according to whence as follows:
 ;;
-;; * `SEEK_SET` : from start of file
-;; * `SEEK_PCUR` : from current location in positive direction
-;; * `SEEK_NCUR` : from current location in negative direction
-;; * `SEEK_END` : from end of file in negative direction
+;; * `K_SEEK_SET` : from start of file
+;; * `K_SEEK_PCUR` : from current location in positive direction
+;; * `K_SEEK_NCUR` : from current location in negative direction
+;; * `K_SEEK_END` : from end of file in negative direction
 ;;
 ;; Input:
 ;; : a - file descriptor
@@ -925,10 +925,10 @@ k_seek:
 ;;
 ;; The new offset is calculated according to whence as follows:
 ;;
-;; * `SEEK_SET` : from start of file
-;; * `SEEK_PCUR` : from current location in positive direction
-;; * `SEEK_NCUR` : from current location in negative direction
-;; * `SEEK_END` : from end of file in negative direction
+;; * `K_SEEK_SET` : from start of file
+;; * `K_SEEK_PCUR` : from current location in positive direction
+;; * `K_SEEK_NCUR` : from current location in negative direction
+;; * `K_SEEK_END` : from end of file in negative direction
 ;;
 ;; Input:
 ;; : a - file descriptor
@@ -961,13 +961,13 @@ k_seek:
 
 	;check whence
 	ld a, b
-	cp SEEK_SET
+	cp K_SEEK_SET
 	jr z, set
-	cp SEEK_END
+	cp K_SEEK_END
 	jr z, end
-	cp SEEK_PCUR
+	cp K_SEEK_PCUR
 	jr z, pcur
-	cp SEEK_NCUR
+	cp K_SEEK_NCUR
 	jr nz, invalidWhence
 
 ncur:

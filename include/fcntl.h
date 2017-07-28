@@ -29,9 +29,10 @@
 
 typedef int mode_t;
 
-extern int __LIB__ open(const char *name, int flags, mode_t mode);
+//extern int __LIB__ open(const char *name, int flags, mode_t mode);
+extern int __LIB__ __CALLEE__ open(const char *name, int flags);
 extern int __LIB__ creat(const char *name, mode_t mode);
-extern int __LIB__ close(int fd);
+extern int __LIB__ __FASTCALL__ close(int fd);
 extern size_t __LIB__ read(int fd, void *ptr, size_t len);
 extern size_t __LIB__ write(int fd, const void *ptr, size_t len);
 extern long __LIB__ __SAVEFRAME__ lseek(int fd,long posn, int whence);

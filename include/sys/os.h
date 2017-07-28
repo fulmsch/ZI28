@@ -4,6 +4,7 @@
 #define syscall    0x0030
 #define monitor    0x0038
 
+//syscalls
 #define SYS_open      0
 #define SYS_close     1
 #define SYS_read      2
@@ -30,3 +31,9 @@
 #define STAT_ATTRIB 13 ;1 byte
 #define STAT_SIZE   14 ;4 bytes
 #define STAT_LEN    18
+
+//seek modes
+#define K_SEEK_SET  0
+#define K_SEEK_PCUR 1
+#define K_SEEK_NCUR 2
+#define K_SEEK_END  3

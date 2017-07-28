@@ -1,4 +1,4 @@
-SUBDIRS = cpc cpm dummy gen_rnd nc100 newbrain osca spectrum sprinter z88 zxvgs
+SUBDIRS = zi28
 CLEANDIRS = $(SUBDIRS:%=clean-%)
 
      

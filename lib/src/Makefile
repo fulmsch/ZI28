@@ -17,6 +17,7 @@ zi28_clib.lib:
 	$(MAKE) -C compress/zx7
 	$(MAKE) -C setjmp
 	$(MAKE) -C assert
+	$(MAKE) -C fcntl
 	TARGET=zi28 TYPE=z80 $(LIBLINKER) -DFORzi28 -DSTANDARDESCAPECHARS -x$(OUTPUT_DIRECTORY)/zi28_clib @$(LISTFILE_DIRECTORY)/zi28.lst
 
 # interesting algorithms - aralbrec

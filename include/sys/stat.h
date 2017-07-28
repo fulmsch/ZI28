@@ -14,10 +14,12 @@
 struct stat {
 	char st_name[13];
 	unsigned char st_attrib;
-	u32_t st_size;
+	long st_size;
 };
 
-extern int __LIB__ __SAVEFRAME__ stat(char *filename, struct stat *buf);
+extern int __LIB__ __CALLEE__ stat(char *filename, struct stat *buf);
+extern int __LIB__ __CALLEE__ fstat(int fd, struct stat *buf);
+extern int __LIB__ __CALLEE__ readdir(int dirfd, struct stat *buf);
 
 extern int __LIB__  mkdir(char *dirname);
 #define mkdir(a,b) mkdir(a)

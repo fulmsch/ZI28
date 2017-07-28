@@ -75,7 +75,7 @@ fat_fileDriver:
 	push af
 	push ix
 	ld de, FAT_VBR_RESERVED_SECTORS
-	ld h, SEEK_SET
+	ld h, K_SEEK_SET
 	call k_seek
 	pop ix
 	pop af
@@ -104,7 +104,7 @@ fat_fileDriver:
 	push af
 	push ix
 	ld de, FAT_VBR_SECTORS_PER_FAT
-	ld h, SEEK_SET
+	ld h, K_SEEK_SET
 	call k_seek
 	pop ix
 	pop af
@@ -154,7 +154,7 @@ fat_fileDriver:
 	push af
 	push ix
 	ld de, FAT_VBR_MAX_ROOT_DIR_ENTRIES
-	ld h, SEEK_SET
+	ld h, K_SEEK_SET
 	call k_seek
 	pop ix
 	pop af
@@ -189,7 +189,7 @@ rootDirSizeLoop:
 	push af
 	push ix
 	ld de, FAT_VBR_SECTORS_PER_CLUSTER
-	ld h, SEEK_SET
+	ld h, K_SEEK_SET
 	call k_seek
 	pop ix
 	pop af
@@ -351,7 +351,7 @@ match:
 	;set dirEntryAddr to current offset of underlying device
 	ld a, (iy + driveTableDevfd)
 	ld de, 0
-	ld h, SEEK_PCUR
+	ld h, K_SEEK_PCUR
 	push ix
 	push iy
 	call k_seek
@@ -525,7 +525,7 @@ error:
 	add hl, de
 	ex de, hl ;(de) = dir entry addr
 
-	ld h, SEEK_SET
+	ld h, K_SEEK_SET
 	push af
 	call k_lseek
 	pop af
@@ -581,6 +581,7 @@ writeAttrib:
 	ex de, hl ;(de) = stat size
 	ld hl, fat_dirEntryBuffer + 0x1c ;size
 	call ld32
+	xor a
 	ret
 .endf
 
@@ -715,7 +716,7 @@ relOffsLoop:
 
 	ld a, (iy + driveTableDevfd)
 
-	ld h, SEEK_SET
+	ld h, K_SEEK_SET
 	push ix
 	push af
 	call k_lseek
@@ -762,7 +763,7 @@ readCluster:
 	call ld16
 	call fat_clusterToAddr
 	ex de, hl
-	ld h, SEEK_SET
+	ld h, K_SEEK_SET
 	push ix
 	call k_lseek
 	pop ix
@@ -802,7 +803,7 @@ rootDir:
 	ex de, hl
 
 	;(de) = offset
-	ld h, SEEK_SET
+	ld h, K_SEEK_SET
 	push af
 	call k_lseek
 	pop af
@@ -857,7 +858,7 @@ error:
 	ex de, hl
 
 	push af
-	ld h, SEEK_SET
+	ld h, K_SEEK_SET
 	call k_lseek
 	pop af
 
