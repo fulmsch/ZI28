@@ -47,6 +47,10 @@ start:
 ;	call	crt0_init_bss
 ;	ld      (exitsp),sp
 
+; Open standard streams
+	EXTERN _stdstreams
+	call _stdstreams
+
 ; Entry to the user code
 	call    _main
 

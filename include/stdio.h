@@ -92,15 +92,12 @@ typedef struct filestr FILE;
 #define _IOSTRING     128
 
 
-/* Number of open files, this can be overridden by the crt0, but the 10 is the default for classic */
-#ifndef FOPEN_MAX
-extern void *_FOPEN_MAX;
-#define FOPEN_MAX &_FOPEN_MAX
-#endif
+/* If you change this then you also have to pad out {zcc}/lib/stdio_fp.asm,
+ * recompile the libs and fiddle with app_crt0.asm - best leave it!
+ */
+#define FOPEN_MAX       10
 
-
-extern struct filestr _sgoioblk[10]; 
-extern struct filestr _sgoioblk_end; 
+extern struct filestr _sgoioblk[FOPEN_MAX]; 
 
 
 #define stdin  &_sgoioblk[0]
@@ -191,6 +188,7 @@ extern int __LIB__ __SAVEFRAME__ fseek(FILE *fp, fpos_t offset, int whence);
 extern int __LIB__ __SAVEFRAME__ fread(void *ptr, size_t size, size_t num, FILE *);
 extern int __LIB__ fwrite(const void *ptr, size_t size, size_t num, FILE *);
 
+//extern void __LIB__ stdstreams();
 
 /* You shouldn't use gets. z88 gets() is limited to 255 characters */
 #ifdef __STDIO_CRLF

@@ -1,5 +1,9 @@
 fcntl/zi28/open
 fcntl/zi28/close
+fcntl/zi28/read
+fcntl/zi28/write
+fcntl/zi28/readbyte
+fcntl/zi28/writebyte
 fcntl/zi28/stat
 fcntl/zi28/fstat
 fcntl/zi28/readdir

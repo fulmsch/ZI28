@@ -1,9 +1,10 @@
 #include <fcntl.h>
 #include <sys/os.h>
 
-int open(char *name, int flags) {
+int open(char *name, int flags, mode_t mode) {
 	#asm
 	pop bc ;return address
+	pop hl ;mode, currently unused
 	pop hl ;flags
 	pop de ;filename
 	push bc ;return address

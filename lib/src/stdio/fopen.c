@@ -19,11 +19,11 @@ fopen(const char *name, const char *mode)
 {
         FILE    *fp;
 
-        for (fp= _sgoioblk; fp < _sgoioblk_end; ++fp) {
+        for (fp= _sgoioblk; fp < _sgoioblk + FOPEN_MAX; ++fp) {
                 if (fp->flags == 0 ) break;
 	}
 
-        if (fp >= _sgoioblk_end) {
+        if (fp >= _sgoioblk + FOPEN_MAX) {
 		return NULL; /* No free slots */
 	}
 
