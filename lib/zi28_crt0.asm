@@ -44,12 +44,8 @@ start:
 ;	ld	bc,RAM_Length-1
 ;	ld	(hl),0
 ;	ldir
-;	call	crt0_init_bss
-;	ld      (exitsp),sp
-
-; Open standard streams
-	EXTERN _stdstreams
-	call _stdstreams
+	call    crt0_init_bss
+	ld      (exitsp),sp
 
 ; Entry to the user code
 	call    _main
@@ -73,7 +69,7 @@ l_dcal:
 
         INCLUDE "crt0_runtime_selection.asm"
 
-	defc	__crt_org_bss = RAM_Start
+;	defc	__crt_org_bss = RAM_Start
         ; If we were given a model then use it
         IF DEFINED_CRT_MODEL
             defc __crt_model = CRT_MODEL

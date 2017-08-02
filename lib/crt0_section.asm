@@ -17,15 +17,21 @@ IF !DEFINED_nostreams
 	; Setup std* streams
         ld      hl,__sgoioblk
         ld      de,__sgoioblk+1
-        ld      bc,39
+        ld      bc,59
         ld      (hl),0
         ldir
+		ld      hl,__sgoioblk+0
+		ld      (hl),0  ;STDIN_FILENO
         ld      hl,__sgoioblk+2
-        ld      (hl),19 ;stdin
-        ld      hl,__sgoioblk+6
-        ld      (hl),21 ;stdout
-        ld      hl,__sgoioblk+10
-        ld      (hl),21 ;stderr
+        ld      (hl),3 ;stdin  _IOUSE | _IOREAD
+		ld      hl,__sgoioblk+6
+		ld      (hl),1  ;STDOUT_FILENO
+        ld      hl,__sgoioblk+8
+        ld      (hl),5 ;stdout _IOUSE | _IOWRITE
+		ld      hl,__sgoioblk+12
+		ld      (hl),2  ;STDERR_FILENO
+        ld      hl,__sgoioblk+14
+        ld      (hl),5 ;stderr _IOUSE | _IOWRITE
 ENDIF
 IF DEFINED_USING_amalloc
     EXTERN __tail
@@ -90,7 +96,7 @@ ENDIF
 		SECTION bss_crt
 IF !DEFINED_nostreams
 		PUBLIC	__sgoioblk
-__sgoioblk:      defs    40      ;stdio control block
+__sgoioblk:      defs    60      ;stdio control block
 ENDIF
 		PUBLIC	base_graphics
 		PUBLIC	exitsp
