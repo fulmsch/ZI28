@@ -85,3 +85,15 @@ stdio/obj/__printf_print_the_buffer
 stdio/obj/asm_printf
 stdio/obj/get_16bit_ap_parameter
 stdio/obj/__printf_print_to_buf
+stdio/obj/stdio_atou
+stdio/obj/stdio_basechar
+stdio/obj/stdio_buff2caps
+stdio/obj/stdio_free
+stdio/obj/stdio_idle
+stdio/obj/stdio_malloc
+stdio/obj/stdio_nextarg
+stdio/obj/stdio_staterestore
+stdio/obj/stdio_statesave
+stdio/obj/stdio_ultoa_any
+stdio/obj/stdio_utoa_any
+stdio/obj/stdio_varg

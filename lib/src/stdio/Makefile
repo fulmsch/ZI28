@@ -13,7 +13,7 @@ AFILES = $(filter-out asm_printf_core.asm, $(wildcard *.asm))
 OFILES = $(CFILES:.c=.o) $(AFILES:.asm=.o)
 
 
-all: dirs $(addprefix  obj/,$(OFILES)) $(addprefix obj/ixiy/,$(OFILES)) $(addprefix obj/stdesc/,$(OFILES))
+all: dirs general $(addprefix  obj/,$(OFILES)) $(addprefix obj/ixiy/,$(OFILES)) $(addprefix obj/stdesc/,$(OFILES))
 
 obj/ixiy/%.o: %.asm
 	zcc +test $(CFLAGS) -Ca--IXIY -Ca-I../ -c -o $@ $^
@@ -35,9 +35,13 @@ obj/stdesc/%.o: %.c
 
 
 
-.PHONY: dirs
+
+.PHONY: dirs general
 dirs:
 	@mkdir -p obj obj/net obj/net/zsock obj/ixiy obj/stdesc obj/r2k
+
+general:
+	$(MAKE) -C general
 
 
 

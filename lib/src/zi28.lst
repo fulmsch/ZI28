@@ -1,5 +1,4 @@
 @stdio/stdio.lst
-stdio/obj/stdstreams
 stdio/zi28/fgetc_cons
 stdio/zi28/fputc_cons
 @fcntl/fcntl.lst
