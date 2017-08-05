@@ -2,12 +2,12 @@
 #define __SYS_STAT_H__
 
 
-#define SP_READ  0 ;read permission
-#define SP_WRITE 1 ;write permission
-#define ST_REG   2 ;regular file
-#define ST_DIR   3 ;directory
-#define ST_CHAR  4 ;character device
-#define ST_BLOCK 5 ;block device
+#define SP_READ  0 //;read permission
+#define SP_WRITE 1 //;write permission
+#define ST_REG   2 //;regular file
+#define ST_DIR   3 //;directory
+#define ST_CHAR  4 //;character device
+#define ST_BLOCK 5 //;block device
 
 #ifndef __NAKEN_ASM
 

@@ -507,9 +507,14 @@ error:
 ;; Output:
 ;; : a - errno
 
-	;TODO handle root separately
 
 	push de
+	ld l, (ix + fat_fileTableStartCluster)
+	ld h, (ix + fat_fileTableStartCluster + 1)
+	ld de, 0
+	or a
+	sbc hl, de
+	jr z, rootDir
 	ld a, (ix + fileTableDriveNumber)
 	call getDriveAddr
 	jp c, error ;drive number out of bounds
@@ -538,6 +543,17 @@ error:
 	;TODO error handling
 	pop de
 	jp fat_statFromEntry
+
+rootDir:
+	pop de
+	xor a
+	ld (de), a ;name = null
+	ld hl, STAT_ATTRIB
+	add hl, de ;(hl) = stat attrib
+	;TODO permission of drive
+	ld (hl), 1 << ST_DIR | 1 << SP_WRITE | 1 << SP_READ
+	;a = 0
+	ret
 
 error:
 	pop de
