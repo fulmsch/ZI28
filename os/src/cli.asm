@@ -141,6 +141,12 @@ argOverflowStr:
 	.db 00h
 
 commandDispatch:
+	;terminate argv
+	xor a
+	ld (de), a
+	inc de
+	ld (de), a
+
 	ld a, (argc)
 	cp 00h
 	jp z, prompt
