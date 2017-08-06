@@ -26,8 +26,8 @@ extern int __LIB__  mkdir(char *dirname);
 
 #define S_ISREG(m)	((m) & (1 << ST_REG))
 #define S_ISDIR(m)	((m) & (1 << ST_DIR))
-#define S_ISCHR(m)	((m) & (1 << ST_CHR))
-#define S_ISBLK(m)	((m) & (1 << ST_BLK))
+#define S_ISCHR(m)	((m) & (1 << ST_CHAR))
+#define S_ISBLK(m)	((m) & (1 << ST_BLOCK))
 
 #endif
 #endif
