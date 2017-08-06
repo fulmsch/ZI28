@@ -38,25 +38,6 @@ IF DEFINED_USING_amalloc
 	ld	hl,__tail
 	ld	(_heap),hl
 ENDIF
-IF ( __crt_model & 1 )
-	; Just copy the DATA section
-	EXTERN	__ROMABLE_END_tail
-	EXTERN	__DATA_head
-	EXTERN	__DATA_END_tail
-	ld	hl,__ROMABLE_END_tail
-	ld	de,__DATA_head
-	ld	bc,__DATA_END_tail - __DATA_head
-	ldir
-ENDIF
-IF ( __crt_model & 2 )
-	; Decompress the DATA section
-	EXTERN	__ROMABLE_END_tail
-	EXTERN	__DATA_head
-	EXTERN	asm_dzx7_standard
-	ld	hl,__ROMABLE_END_tail
-	ld	de,__DATA_head
-	call    asm_dzx7_standard
-ENDIF
 	
 	; SDCC initialiation code gets placed here
 		SECTION code_crt_exit
@@ -78,14 +59,12 @@ ENDIF
 		SECTION rodata_clib
 		SECTION rodata_user
 		SECTION ROMABLE_END
-IF !__crt_model
         SECTION DATA
         SECTION smc_clib
 		SECTION data_crt
 		SECTION data_compiler
 		SECTION data_user
 		SECTION DATA_END
-ENDIF
 
 		SECTION BSS
 IF __crt_org_bss
@@ -125,14 +104,4 @@ IF __crt_org_bss_compiler_start
 ENDIF
 		SECTION bss_clib
 		SECTION bss_user
-IF __crt_model > 0
-        SECTION DATA
-		org	-1
-		defb	0		; we want this written out
-		SECTION smc_clib
-        SECTION data_crt
-        SECTION data_compiler
-        SECTION data_user
-        SECTION DATA_END
-ENDIF
 		SECTION BSS_END
