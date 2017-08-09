@@ -34,10 +34,17 @@
 
 	jp	start
 start:
+	;hl = **argv
+	;bc = argc
+	ex de, hl ;de = **argv
+
 	ld (__return_sp), sp
 ; Make room for the atexit() stack
 	ld	hl,Stack_Top-64
 	ld	sp,hl
+
+	push    bc ;argc
+	push    de ;argv
 ; Clear static memory
 ;	ld	hl,RAM_Start
 ;	ld	de,RAM_Start+1
@@ -49,6 +56,8 @@ start:
 
 ; Entry to the user code
 	call    _main
+	pop     bc ;kill argv
+	pop     bc ;kill argc
 
 cleanup:
 ;

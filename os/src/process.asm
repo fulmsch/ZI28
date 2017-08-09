@@ -58,6 +58,11 @@
 	;set new stack
 	ld sp, 0xc000
 
+	;command line arguments TODO just temporary
+	ld a, (argc)
+	ld c, a
+	ld b, 0
+	ld hl, argv
 
 	call exec_addr
 
