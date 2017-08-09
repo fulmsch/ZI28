@@ -82,21 +82,10 @@ error:
 ;; : a, hl, de
 
 	;check if fd in range
-	cp fdTableEntries
+	cp fdTableEntries*2
 	jr nc, error
 
-	push af
-
-	ld hl, activeProcess
-	ld a, AP_KERNEL
-	cp (hl)
-
-	ld hl, u_fdTable
-	jr nz, fdTableFound
-
 	ld hl, k_fdTable
-fdTableFound:
-	pop af
 	;a = fd
 	;hl = fd table base addr
 	ld d, 0
@@ -110,8 +99,20 @@ error:
 .endf
 
 
+.func u_open:
+	ld hl, u_fdTable
+	ld c, fdTableEntries
+	call open
+	; e -= fdTableEntries
+	push af
+	ld a, e
+	sub fdTableEntries
+	ld e, a
+	pop af
+	ret
+.endf
 
-.func k_open:
+k_open:
 ;; Open a file / device file
 ;;
 ;; Creates a new file table entry and returns the corresponding fd
@@ -151,14 +152,25 @@ error:
 ;        4=no matching file found
 ;        5=file too large
 
+	ld hl, k_fdTable
+	ld c, 0
+
+.func open:
+;; Input:
+;; : hl - base address of fd-table
+;; : c - base fd
+;; : (de) - pathname
+;; : a - mode
+;;
+;; Output:
+;; : e - file descriptor
+;; : a - errno
+
+
 ;TODO convert path to uppercase
 	ld (k_open_mode), a
 	ld (k_open_path), de
 
-	;search free fd
-	xor a
-	ld c, a
-	call getFdAddr
 	ld a, 0xff
 	ld b, fdTableEntries
 fdSearchLoop:
@@ -391,8 +403,11 @@ invalidPath:
 	ld a, 0xf5
 	ret
 
-.endf ;k_open
+.endf
 
+
+u_close:
+	add a, fdTableEntries
 
 .func k_close:
 ;; Close a file
@@ -437,7 +452,20 @@ invalidFd:
 .endf ;k_close
 
 
-.func k_dup:
+.func u_dup:
+	ld hl, u_fdTable
+	ld c, fdTableEntries
+	call dup
+	; e -= fdTableEntries
+	push af
+	ld a, e
+	sub fdTableEntries
+	ld e, a
+	pop af
+	ret
+.endf
+
+k_dup:
 ;; Duplicate a file descriptor.
 ;;
 ;; If `new fd` is equal to 0xFF, the next free file descriptor will be used.
@@ -450,15 +478,28 @@ invalidFd:
 ;; : a - errno
 ;; : e - new fd
 
-	ld hl, k_dup_oldFd
-	ld (hl), b
+	ld hl, k_fdTable
+	ld c, 0
+
+.func dup:
+;; Input:
+;; : a - new fd
+;; : b - old fd
+;; : hl - base address of fd-table
+;; : c - base fd
+;;
+;; Output:
+;; : a - errno
+;; : e - new fd
+
+	push af
+	ld a, b
+	ld (k_dup_oldFd), a
+	pop af
 
 	cp 0xff
 	jr nz, newSpecified
-	;search next free fd
-	xor a
-	ld c, a
-	call getFdAddr
+
 	ld a, 0xff
 	ld b, fdTableEntries
 fdSearchLoop:
@@ -526,19 +567,15 @@ error:
 ;; Output:
 ;; : a - errno
 
-	;kernel has to be the active process
 	push af
 	ld a, b
 	call getFdAddr
 	jr c, error
 	;hl = kernel fd addr
-	ld a, AP_USER
-	ld (activeProcess), a
 	pop af ;user fd
+	add a, fdTableEntries
 	push hl ;kernel fd addr
 	call getFdAddr
-	ld a, AP_KERNEL
-	ld (activeProcess), a
 	jr c, error
 	pop de ;kernel fd addr
 	;hl = user fd addr
@@ -568,6 +605,9 @@ error:
 
 .endf
 
+
+u_readdir:
+	add a, fdTableEntries
 
 .func k_readdir:
 ;; Get information about the next file in a directory.
@@ -636,6 +676,8 @@ error:
 .endf
 
 
+u_stat:
+
 .func k_stat:
 ;; Get information about a file.
 ;;
@@ -660,6 +702,9 @@ error:
 	jp k_close
 .endf
 
+
+u_fstat:
+	add a, fdTableEntries
 
 .func k_fstat:
 ;; Get information about an open file.
@@ -707,6 +752,9 @@ error:
 	ret
 .endf
 
+
+u_read:
+	add a, fdTableEntries
 
 .func k_read:
 ;; Read from an open file
@@ -817,6 +865,9 @@ zeroCount:
 .endf ;k_read
 
 
+u_write:
+	add a, fdTableEntries
+
 .func k_write:
 ;; Write to an open file
 ;;
@@ -892,6 +943,16 @@ zeroCount:
 	ret
 .endf ;k_write
 
+
+
+
+.func u_lseek:
+	add a, fdTableEntries
+	jp k_lseek
+.endf
+
+u_seek:
+	add a, fdTableEntries
 
 k_seek:
 ;; Change the file offset of an open file using a 16-bit offset.

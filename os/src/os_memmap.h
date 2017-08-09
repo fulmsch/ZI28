@@ -45,11 +45,7 @@
 #define osWorkspaceEnd          putc_buffer + 1
 
 ;Environment
-#define terminalFd              osWorkspaceEnd       ;1 byte
-#define activeProcess           terminalFd + 1       ;1 byte
-#define AP_KERNEL 0 ;active process
-#define AP_USER   1
-#define env_mainDrive           activeProcess + 1    ;5 bytes
+#define env_mainDrive           osWorkspaceEnd       ;5 bytes
 #define env_workingDrive        env_mainDrive + 5    ;tbd
 #define env_workingPath         env_workingDrive + 0 ;tbd
 #define env_end                 env_workingPath + 0

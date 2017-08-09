@@ -45,6 +45,9 @@
 .endf ;getDriverAddr
 
 
+u_mount:
+	add a, fdTableEntries
+
 .func k_mount:
 ;; Mount a drive file
 ;;
@@ -121,6 +124,8 @@ invalidDrive:
 
 k_umount:
 
+
+u_chmain:
 .func k_chmain:
 ;; Change the main drive.
 ;;

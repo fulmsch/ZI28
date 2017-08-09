@@ -58,8 +58,6 @@
 	;set new stack
 	ld sp, 0xc000
 
-	ld a, AP_USER
-	ld (activeProcess), a
 
 	call exec_addr
 
@@ -72,7 +70,7 @@ closeFilesLoop:
 	ld a, b
 	dec a
 	push bc
-	call k_close
+	call u_close
 	pop bc
 	djnz closeFilesLoop
 
@@ -82,9 +80,6 @@ closeFilesLoop:
 	ld bc, fdTableEntries - 1
 	ld (hl), 0xff
 	ldir
-
-	ld a, AP_KERNEL
-	ld (activeProcess), a
 
 	xor a
 	ret

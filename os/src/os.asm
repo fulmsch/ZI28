@@ -52,12 +52,6 @@
 	.db     00h
 	jp      _monitor     ;RST 38h
 
-	jp      k_open
-	jp      k_close
-	jp      k_read
-	jp      k_write
-	jp      k_seek
-
 
 ;	.resw nmiEntry - $
 .org nmiEntry
@@ -94,9 +88,6 @@ _coldStart:
 	ld bc, fdTableEntries * 2 - 1
 	ld (hl), 0xff
 	ldir
-
-	ld a, AP_KERNEL
-	ld (activeProcess), a
 
 	ld de, devfs_fsDriver
 	ld hl, devDriveName

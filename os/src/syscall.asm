@@ -3,18 +3,18 @@
 .z80
 
 syscallTable:
-	.dw k_open
-	.dw k_close
-	.dw k_read
-	.dw k_write
-	.dw k_seek
-	.dw k_lseek
-	.dw k_stat
-	.dw k_fstat
-	.dw k_readdir
-	.dw k_dup
-	.dw k_mount
-	.dw k_chmain
+	.dw u_open
+	.dw u_close
+	.dw u_read
+	.dw u_write
+	.dw u_seek
+	.dw u_lseek
+	.dw u_stat
+	.dw u_fstat
+	.dw u_readdir
+	.dw u_dup
+	.dw u_mount
+	.dw u_chmain
 
 syscallTableEnd:
 
@@ -25,7 +25,7 @@ syscallTableEnd:
 ;; Access a system function from a running program.
 ;;
 ;; Input:
-;; : c - Syscall number (defined in syscall.h)
+;; : c - Syscall number (defined in sys/os.h)
 ;; : a, de, hl - Arguments passed to syscall
 
 ;check for valid syscall number
