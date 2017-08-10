@@ -149,6 +149,7 @@ osDriveName:
 .include "process.asm"
 
 ; Filesystems
+.include "path.asm"
 .include "fat.asm"
 .include "devfs.asm"
 

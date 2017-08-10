@@ -1,0 +1,98 @@
+;;
+.list
+.z80
+
+.func realpath:
+;; Clean up a filepath by resolving any './', '../' and removing multiple
+;; slashes.
+;;
+;; Input:
+;; :(hl) - path
+
+; Rules:
+; Multiple slashes -> single slash
+; Remove './'
+; '../' -> remove previous directory, unless that is the root
+
+	;(hl) = read
+	;(de) = write
+	ld d, h
+	ld e, l
+
+	ld c, 0 ;used for protecting against underflow when backtracking
+
+regLoop:
+	;copy everything including first '/'
+	ld a, (hl)
+	ld (de), a
+	cp 0x00
+	ret z
+	inc c
+	inc de
+	inc hl
+	cp '/'
+	jr nz, regLoop
+
+	;hl points to first '/'
+	;skip to first char that's not a '/'
+slashLoop:
+	ld a, (hl)
+	inc hl
+	cp '/'
+	jr z, slashLoop
+
+	;hl points to second char after '/'
+	;a = first char after a group of '/'
+	cp '.'
+	dec hl
+	jr nz, regLoop ;continue copying
+	inc hl
+
+	;hl points to first char after first dot
+	ld a, (hl)
+	cp '/'
+	jr z, slashLoop ;a '/' has already been copied, ignore any further '/'
+
+	dec hl ;in case of a jump to regloop
+	cp 0x00
+	jr z, regLoop ;terminate the string and return
+	cp '.'
+	jr nz, regLoop ;regular filename starting with a dot
+	inc hl
+
+	inc hl
+	ld a, (hl)
+	cp 0x00
+	jr z, backtrack
+	cp '/' ;is there a '/' after '..'?
+	dec hl
+	dec hl
+	jr nz, regLoop ;regular filename starting with two dots
+	inc hl
+	inc hl
+
+backtrack:
+	;hl points to '/' after '..'
+	;move de back to the first char after the last '/' if we're not already in
+	;the root dir
+
+	dec c
+	jr z, rootdir ;reached root dir
+	dec de
+	;de now points to a '/'
+backtrackLoop:
+	dec de
+	dec c
+	ld a, (de)
+	cp '/'
+	jr nz, backtrackLoop
+
+	inc de ;de points to first char after '/'
+	inc c
+	jr slashLoop
+
+rootdir:
+	inc c
+	jr slashLoop
+
+.endf
