@@ -227,17 +227,8 @@ fullPathSplitLoop:
 	inc hl
 	;(hl) = absolute path
 	ld (k_open_path), hl
-	jr findDrive
 
 
-absPath:
-	inc hl
-	ld (k_open_path), hl
-;	ld de, env_workingDrive ;TODO implement working drive
-	jr findDrive ;TODO optimise
-
-
-findDrive:
 	;(de) = drive label
 	ld c, driveTableEntries
 	ld hl, driveTable
