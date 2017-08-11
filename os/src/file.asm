@@ -211,56 +211,23 @@ tableSpotFound:
 	ld (k_open_fileIndex), a
 
 
-	;First char | Path type
-	;--------------------------------------------------
-	; ':'       | Full (incl. drive)
-	; ':/'      | Absolute (on main drive)
-	; '/'       | Absolute (on current drive)
-	; else      | Relative to current working directory
-
-	;in any case, there need to be two strings, one for the drive label,
-	;the other for the path on that drive
-
-	;the current drive should be stored as a separate string
-	;if the path is relative or absolute, it will be pointed to
-
 	ld hl, (k_open_path)
-	push hl
-	call strtup
-	pop hl
+	call realpath
 
-	ld a, (hl)
-	cp ':'
-	jr z, fullPath
-	cp '/'
-	jr z, absPath
-
-	;relative path
-	;TODO build absolute path
-	ld a, 0xf1
-	ret
-
-fullPath:
 	inc hl
 	ld d, h
 	ld e, l
 	;(de) = drive label
+
 	ld a, '/'
-	cp (hl)
-	jr z, mainDrivePath
 fullPathSplitLoop:
 	inc hl
 	cp (hl)
 	jr nz, fullPathSplitLoop
+
 	inc hl
 	;(hl) = absolute path
 	ld (k_open_path), hl
-	jr findDrive
-
-mainDrivePath:
-	inc hl
-	ld (k_open_path), hl
-	ld de, env_mainDrive
 	jr findDrive
 
 
