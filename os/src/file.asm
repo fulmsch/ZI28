@@ -218,13 +218,18 @@ tableSpotFound:
 	ld e, l
 	;(de) = drive label
 
-	ld a, '/'
 fullPathSplitLoop:
 	inc hl
-	cp (hl)
+	ld a, (hl)
+	cp 0x00
+	jr z, rootDir
+	cp '/'
 	jr nz, fullPathSplitLoop
 
+	xor a
+	ld (hl), a ;terminate drive name
 	inc hl
+rootDir:
 	;(hl) = absolute path
 	ld (k_open_path), hl
 
@@ -237,17 +242,8 @@ findDriveLoop:
 	push de ;drive label
 	push hl ;drive entry
 
-	ld b, 5
-findDriveCmpLoop:
-	ld a, 0x00
-	cp (hl)
+	call strcmp
 	jr z, findDriveCmpEnd
-	ld a, (de)
-	cp (hl)
-	jr nz, findDriveCmpFail
-	inc de
-	inc hl
-	djnz findDriveCmpLoop
 
 findDriveCmpFail:
 	pop hl ;drive entry

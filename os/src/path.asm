@@ -6,10 +6,10 @@
 ;; Convert any path (relative or absolute) to a complete path.
 ;;
 ;; Input:
-;; :(hl) - path
+;; : (hl) - path
 ;;
 ;; Output:
-;; :(hl) - complete path
+;; : (hl) - complete path
 
 ; Rules:
 ; Multiple slashes -> single slash
@@ -27,7 +27,7 @@
 	;check if absolute
 	ld a, (hl)
 	cp '/'
-	jr z, absCurrentDrive
+	jp z, absCurrentDrive
 	cp ':'
 	jr nz, relative
 	inc hl
@@ -42,6 +42,8 @@
 fullLoop:
 	ld a, (hl)
 	ld (de), a
+	cp 0x00
+	jp z, return
 	cp '/'
 	jr z, cleanUpPath
 	inc hl
@@ -202,10 +204,10 @@ u_getcwd:
 ;; Return the current working directory
 ;;
 ;; Input:
-;; :(hl) - buffer
+;; : (hl) - buffer
 ;;
 ;; Output:
-;; :a - errno
+;; : a - errno
 
 	ex de, hl
 	ld hl, env_workingPath
@@ -220,7 +222,10 @@ u_chdir:
 ;; Change the current working directory
 ;;
 ;; Input:
-;; :(hl) - path
+;; : (hl) - path
+;;
+;; Output:
+;; : a - errno
 
 	push hl
 
