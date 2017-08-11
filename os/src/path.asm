@@ -33,7 +33,7 @@
 	inc hl
 	ld a, (hl)
 	cp '/'
-	jr z, absMainDrive
+	jp z, absMainDrive
 
 	dec hl
 
@@ -51,15 +51,13 @@ fullLoop:
 cleanUpPath:
 	;(hl) = read
 	;(de) = write
-	ld c, 0 ;used for protecting against underflow when backtracking
 
 regLoop:
 	;copy everything including first '/'
 	ld a, (hl)
 	ld (de), a
 	cp 0x00
-	jr z, return
-	inc c
+	jp z, return
 	inc de
 	inc hl
 	cp '/'
@@ -78,6 +76,8 @@ slashLoop:
 	cp '.'
 	dec hl
 	jr nz, regLoop ;continue copying
+
+relDotEntry:
 	inc hl
 
 	;hl points to first char after first dot
@@ -108,23 +108,27 @@ backtrack:
 	;move de back to the first char after the last '/' if we're not already in
 	;the root dir
 
-	dec c
-	jr z, rootdir ;reached root dir
 	dec de
 	;de now points to a '/'
 backtrackLoop:
 	dec de
-	dec c
 	ld a, (de)
+	cp ':'
+	jr z, rootdir
 	cp '/'
 	jr nz, backtrackLoop
 
 	inc de ;de points to first char after '/'
-	inc c
 	jr slashLoop
 
 rootdir:
-	inc c
+	;de points to ':'
+rootdirLoop:
+	inc de
+	ld a, (de)
+	cp '/'
+	jr nz, rootdirLoop
+	inc de
 	jr slashLoop
 
 
@@ -134,8 +138,23 @@ relative:
 	ld hl, env_workingPath
 	call strcpy
 	pop hl
+
 	;de points to null terminator after working dir
-	jr cleanUpPath
+	dec de
+	ld a, (de)
+	inc de
+	cp '/'
+	jr z, relSkipSlash
+
+	ld a, '/'
+	ld (de), a
+	inc de
+
+relSkipSlash:
+	ld a, (hl)
+	cp '.'
+	jr nz, cleanUpPath
+	jr relDotEntry
 
 
 absCurrentDrive:
@@ -166,7 +185,7 @@ absMainDrive:
 	call strcpy
 	dec de ;de now points to '/'
 	pop hl
-	jr cleanUpPath
+	jp cleanUpPath
 
 
 return:
@@ -213,8 +232,8 @@ u_chdir:
 
 	ld a, e
 	call k_close
-	pop hl
 
+	pop hl
 	call realpath
 	ld de, env_workingPath
 	call strcpy
