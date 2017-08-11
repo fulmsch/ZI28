@@ -18,7 +18,7 @@
 
 	;open file
 	;(de) = filename
-	ld a, 1 << O_RDONLY
+	ld a, O_RDONLY
 	call k_open
 	cp 0
 	ret nz ;error opening the file

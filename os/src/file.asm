@@ -312,13 +312,13 @@ driveFound:
 	;store requested permissions
 	ld a, (k_open_mode)
 	ld b, a
-	bit O_RDONLY, b
+	bit O_RDONLY_BIT, b
 	jr nz, skipWriteFlag
-	ld a, 1 << M_WRITE
+	ld a, M_WRITE
 skipWriteFlag:
-	bit O_WRONLY, b
+	bit O_WRONLY_BIT, b
 	jr nz, skipReadFlag
-	or 1 << M_READ
+	or M_READ
 skipReadFlag:
 	ld (ix + fileTableMode), a
 
@@ -601,7 +601,7 @@ u_readdir:
 
 	;check if dirfd is a directory
 	ld a, (ix + fileTableMode)
-	and 1 << M_DIR
+	and M_DIR
 	jr z, error ;not a directory
 
 	;check for valid file driver
@@ -656,7 +656,7 @@ u_stat:
 ;; : a - errno
 
 	push hl
-	ld a, 1 << O_RDONLY
+	ld a, O_RDONLY
 	call k_open
 	cp 0
 	ld a, e

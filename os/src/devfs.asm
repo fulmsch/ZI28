@@ -212,7 +212,7 @@ fileFound:
 
 	;store filetype TODO add distincion between char and block devs
 	ld a, (ix + fileTableMode)
-	or 1 << M_CHAR
+	or M_CHAR
 	ld (ix + fileTableMode), a
 
 	;operation succesful

@@ -155,7 +155,7 @@ u_chmain:
 
 	;try to open the drive
 	ld de, k_chmain_pathColon
-	ld a, 1 << O_RDONLY
+	ld a, O_RDONLY
 	call k_open
 	push af
 	ld a, e

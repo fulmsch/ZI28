@@ -26,7 +26,7 @@
 	push hl
 	call strtup
 
-	ld a, 1 << O_RDWR
+	ld a, O_RDWR
 	call k_open
 	cp 0
 	pop hl ;(hl) = label

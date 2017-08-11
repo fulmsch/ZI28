@@ -267,7 +267,7 @@ rootDirSizeLoop:
 
 	;set mode to dir
 	ld a, (ix + fileTableMode)
-	or 1 << M_DIR
+	or M_DIR
 	ld (ix + fileTableMode), a
 
 	;set startCluster to 0 to indicate the rootDir
@@ -419,7 +419,7 @@ dirFinish:
 finish:
 	;check permission
 	ld b, (ix + fileTableMode)
-	bit M_WRITE, b
+	bit M_WRITE_BIT, b
 	jr z, fileType
 	ld a, (fat_dirEntryBuffer + 0x0b) ;attributes
 	bit FAT_ATTRIB_RDONLY, a
@@ -429,9 +429,9 @@ fileType:
 	;a = file attributes, b = mode
 
 	and 1 << FAT_ATTRIB_DIR
-	ld a, 1 << M_REG
+	ld a, M_REG
 	jr z, fileMode ;regular file
-	ld a, 1 << M_DIR
+	ld a, M_DIR
 
 fileMode:
 	;a = file type, b = mode
@@ -551,7 +551,7 @@ rootDir:
 	ld hl, STAT_ATTRIB
 	add hl, de ;(hl) = stat attrib
 	;TODO permission of drive
-	ld (hl), 1 << ST_DIR | 1 << SP_WRITE | 1 << SP_READ
+	ld (hl), ST_DIR | SP_WRITE | SP_READ
 	;a = 0
 	ret
 
@@ -578,17 +578,17 @@ error:
 	ld hl, STAT_ATTRIB
 	add hl, de ;(hl) = stat attrib
 
-	ld a, 1 << SP_READ
+	ld a, SP_READ
 	bit FAT_ATTRIB_RDONLY, b
 	jr nz, skipWrite
-	or 1 << SP_WRITE
+	or SP_WRITE
 skipWrite:
 	bit FAT_ATTRIB_DIR, b
 	jr nz, dir
-	or 1 << ST_REG
+	or ST_REG
 	jr writeAttrib
 dir:
-	or 1 << ST_DIR
+	or ST_DIR
 writeAttrib:
 	ld (hl), a
 

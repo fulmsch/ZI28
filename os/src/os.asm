@@ -96,12 +96,12 @@ _coldStart:
 
 	;stdin
 	ld de, ttyName
-	ld a, 1 << O_RDONLY
+	ld a, O_RDONLY
 	call k_open
 
 	;stdout
 	ld de, ttyName
-	ld a, 1 << O_WRONLY
+	ld a, O_WRONLY
 	call k_open
 
 	;stderr
@@ -114,7 +114,7 @@ _coldStart:
 
 	;initialise main drive
 	ld de, osDevName ;TODO configurable name in eeprom
-	ld a, 1 << O_RDWR
+	ld a, O_RDWR
 	call k_open
 	ld a, e
 	ld hl, osDriveName

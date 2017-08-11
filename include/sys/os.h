@@ -19,12 +19,19 @@
 #define SYS_chmain   11
 
 //file mode definition
-#define M_READ  0
-#define M_WRITE 1
-#define M_REG   2
-#define M_DIR   3
-#define M_CHAR  4
-#define M_BLOCK 5
+#define M_READ  0x01
+#define M_WRITE 0x02
+#define M_REG   0x04
+#define M_DIR   0x08
+#define M_CHAR  0x10
+#define M_BLOCK 0x20
+
+#define M_READ_BIT  0
+#define M_WRITE_BIT 1
+#define M_REG_BIT   2
+#define M_DIR_BIT   3
+#define M_CHAR_BIT  4
+#define M_BLOCK_BIT 5
 
 //stat
 #define STAT_NAME    0 ;13 bytes

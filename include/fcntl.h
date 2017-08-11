@@ -13,10 +13,19 @@
 #define __FCNTL_H__
 
 
-#define O_RDONLY  0
-#define O_WRONLY  1
-#define O_RDWR    2
-#define O_APPEND  3 //unused
+#define O_RDONLY    0x01
+#define O_WRONLY    0x02
+#define O_RDWR      0x04
+#define O_APPEND    0x08 //unused
+#define O_DIRECTORY 0x10
+#define O_TRUNC     0x20 //unused
+
+#define O_RDONLY_BIT    0
+#define O_WRONLY_BIT    1
+#define O_RDWR_BIT      2
+#define O_APPEND_BIT    3 //unused
+#define O_DIRECTORY_BIT 4
+#define O_TRUNC_BIT     5 //unused
 
 
 
