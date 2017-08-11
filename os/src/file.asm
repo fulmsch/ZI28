@@ -311,6 +311,7 @@ driveFound:
 	;store requested permissions
 	ld a, (k_open_mode)
 	ld b, a
+	xor a
 	bit O_RDONLY_BIT, b
 	jr nz, skipWriteFlag
 	ld a, M_WRITE
@@ -340,12 +341,15 @@ skipReadFlag:
 return:
 	pop ix
 	cp 0
+	jr nz, error
+
+	ld a, (k_open_mode)
+	bit O_DIRECTORY_BIT, a
 	jr z, success
-
-	;error, clear the file entry
-	ld (ix + fileTableMode), 0
-	ret
-
+	;check if directory
+	ld a, (ix + fileTableMode)
+	bit M_DIR_BIT, a
+	jr z, error ;not a directory
 
 success:
 	ld (ix + fileTableRefCount), 1
@@ -359,6 +363,12 @@ success:
 	pop af ;file index
 	ld (hl), a
 	xor a
+	ret
+
+error:
+	;error, clear the file entry
+	ld (ix + fileTableMode), 0
+	ld a, 1
 	ret
 
 

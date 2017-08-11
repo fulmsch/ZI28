@@ -265,11 +265,6 @@ rootDirSizeLoop:
 	add hl, de
 	call clear32
 
-	;set mode to dir
-	ld a, (ix + fileTableMode)
-	or M_DIR
-	ld (ix + fileTableMode), a
-
 	;set startCluster to 0 to indicate the rootDir
 	xor a
 	ld (ix + fat_fileTableStartCluster), a
@@ -278,7 +273,15 @@ rootDirSizeLoop:
 	ld hl, (fat_open_path)
 	;a = 0
 	cp (hl)
-	ret z ;root directory was requested
+	jr nz, openFile
+
+	;root directory was requested
+	;set mode to dir
+	ld a, (ix + fileTableMode)
+	or M_DIR
+	ld (ix + fileTableMode), a
+	xor a
+	ret
 
 
 openFile:
@@ -418,10 +421,10 @@ dirFinish:
 
 finish:
 	;check permission
+	ld a, (fat_dirEntryBuffer + 0x0b) ;attributes
 	ld b, (ix + fileTableMode)
 	bit M_WRITE_BIT, b
 	jr z, fileType
-	ld a, (fat_dirEntryBuffer + 0x0b) ;attributes
 	bit FAT_ATTRIB_RDONLY, a
 	jr nz, error ;write requested, file is read only
 
