@@ -242,7 +242,17 @@ u_chdir:
 	call realpath
 	ld de, env_workingPath
 	call strcpy
+	;de points to dest null terminator
+	dec de
+	ld a, (de)
+	cp '/'
+	jr z, removeSlash
 	xor a
+	ret
+
+removeSlash:
+	xor a
+	ld (de), a
 	ret
 
 error:
