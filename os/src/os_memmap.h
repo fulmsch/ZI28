@@ -45,10 +45,9 @@
 #define osWorkspaceEnd          putc_buffer + 1
 
 ;Environment
-#define env_mainDrive           osWorkspaceEnd       ;5 bytes
-#define env_workingDrive        env_mainDrive + 5    ;tbd
-#define env_workingPath         env_workingDrive + 0 ;tbd
-#define env_end                 env_workingPath + 0
+#define env_mainDrive           osWorkspaceEnd             ;5 bytes
+#define env_workingPath         env_mainDrive + 5          ;PATH_MAX bytes
+#define env_end                 env_workingPath + PATH_MAX
 
 ;Device Fs
 #define devfsEntrySize          16
@@ -133,8 +132,12 @@
 #define exec_fd                 exec_stack + 2   ;1 byte
 #define exec_end                exec_fd + 1
 
+;realpath
+#define realpath_output         exec_end
+#define realpath_end            realpath_output + PATH_MAX
+
 ;cli
-#define cliWorkspace            exec_end
+#define cliWorkspace            realpath_end
 
 #define inputBufferSize         128
 #define maxArgc                 32

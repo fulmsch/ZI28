@@ -37,3 +37,5 @@
 #define K_SEEK_PCUR 1
 #define K_SEEK_NCUR 2
 #define K_SEEK_END  3
+
+#define PATH_MAX 64

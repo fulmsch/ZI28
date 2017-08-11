@@ -3,22 +3,54 @@
 .z80
 
 .func realpath:
-;; Clean up a filepath by resolving any './', '../' and removing multiple
-;; slashes.
+;; Convert any path (relative or absolute) to a complete path.
 ;;
 ;; Input:
 ;; :(hl) - path
+;;
+;; Output:
+;; :(hl) - complete path
 
 ; Rules:
 ; Multiple slashes -> single slash
 ; Remove './'
 ; '../' -> remove previous directory, unless that is the root
+; First char | Path type
+; --------------------------------------------------
+;  '/'       | Absolute (on current drive)
+;  ':/'      | Absolute (on main drive)
+;  ':'       | Full (incl. drive)
+;  else      | Relative to current working directory
 
+	ld de, realpath_output
+
+	;check if absolute
+	ld a, (hl)
+	cp '/'
+	jr z, absCurrentDrive
+	cp ':'
+	jr nz, relative
+	inc hl
+	ld a, (hl)
+	cp '/'
+	jr z, absMainDrive
+
+	dec hl
+
+	;Full path
+	;move to first '/'
+fullLoop:
+	ld a, (hl)
+	ld (de), a
+	cp '/'
+	jr z, cleanUpPath
+	inc hl
+	inc de
+	jr fullLoop
+
+cleanUpPath:
 	;(hl) = read
 	;(de) = write
-	ld d, h
-	ld e, l
-
 	ld c, 0 ;used for protecting against underflow when backtracking
 
 regLoop:
@@ -26,7 +58,7 @@ regLoop:
 	ld a, (hl)
 	ld (de), a
 	cp 0x00
-	ret z
+	jr z, return
 	inc c
 	inc de
 	inc hl
@@ -95,4 +127,52 @@ rootdir:
 	inc c
 	jr slashLoop
 
+
+relative:
+	;copy working directory, append path, clean up
+	push hl
+	ld hl, env_workingPath
+	call strcpy
+	pop hl
+	;de points to null terminator after working dir
+	jr cleanUpPath
+
+
+absCurrentDrive:
+	;copy current drive, append path, clean up
+	push hl
+	ld hl, env_workingPath - 1
+	dec de
+currentDriveLoop:
+	inc hl
+	inc de
+	ld a, (hl)
+	ld (de), a
+	cp 0x00
+	jr z, currentDriveLoopExit
+	cp '/'
+	jr nz, currentDriveLoop
+currentDriveLoopExit:
+
+	pop hl
+	;de points to '/' or 0, gets overwritten with '/' of absolute path
+	jr cleanUpPath
+
+
+absMainDrive:
+	;copy main drive, append path, clean up
+	push hl
+	ld hl, env_mainDrive
+	call strcpy
+	dec de ;de now points to '/'
+	pop hl
+	jr cleanUpPath
+
+
+return:
+	ld hl, realpath_output
+	push hl
+	call strtup
+	pop hl
+	ret
 .endf

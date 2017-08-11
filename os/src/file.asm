@@ -267,7 +267,7 @@ mainDrivePath:
 absPath:
 	inc hl
 	ld (k_open_path), hl
-	ld de, env_workingDrive ;TODO implement working drive
+;	ld de, env_workingDrive ;TODO implement working drive
 	jr findDrive ;TODO optimise
 
 

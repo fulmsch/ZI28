@@ -166,8 +166,8 @@ u_chmain:
 	jr nz, invalidDrive ;TODO make this work
 
 	;copy the drive label
-	ld b, 5
-	ld hl, k_chmain_pathBuffer
+	ld b, 6
+	ld hl, k_chmain_pathColon
 	ld de, env_mainDrive
 	jp strncpy
 
