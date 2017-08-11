@@ -6,8 +6,7 @@
 .define fileTableRefCount    fileTableMode + 1        ;1 byte
 .define fileTableDriveNumber fileTableRefCount + 1    ;1 byte
 .define fileTableDriver      fileTableDriveNumber + 1 ;2 bytes
-.define fileTableAttributes  fileTableDriver + 2      ;1 byte
-.define fileTableOffset      fileTableAttributes + 1  ;4 bytes
+.define fileTableOffset      fileTableDriver + 2      ;4 bytes
 .define fileTableSize        fileTableOffset + 4      ;4 bytes
                                                       ;-------
                                                 ;Total 13 bytes
