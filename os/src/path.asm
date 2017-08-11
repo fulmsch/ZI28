@@ -176,3 +176,53 @@ return:
 	pop hl
 	ret
 .endf
+
+
+u_getcwd:
+.func k_getcwd:
+;; Return the current working directory
+;;
+;; Input:
+;; :(hl) - buffer
+;;
+;; Output:
+;; :a - errno
+
+	ex de, hl
+	ld hl, env_workingPath
+	call strcpy
+	xor a
+	ret
+.endf
+
+
+u_chdir:
+.func k_chdir:
+;; Change the current working directory
+;;
+;; Input:
+;; :(hl) - path
+
+	push hl
+
+	ex de, hl
+	ld a, O_RDONLY | O_DIRECTORY
+	call k_open
+	cp 0
+	jr nz, error
+
+	ld a, e
+	call k_close
+	pop hl
+
+	call realpath
+	ld de, env_workingPath
+	call strcpy
+	xor a
+	ret
+
+error:
+	pop hl
+	ld a, 1
+	ret
+.endf

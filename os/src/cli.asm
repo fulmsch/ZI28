@@ -14,6 +14,11 @@ prompt:
 ;	call printStr
 ;	ld a, ' '
 ;	call putc
+	ld hl, pathBuffer
+	push hl
+	call k_getcwd
+	pop hl
+	call printStr
 	ld hl, promptStr
 	call printStr
 ;	ld a, '>'
@@ -182,15 +187,15 @@ commandDispatch:
 	push hl
 
 checkIfFullpath:
-;	;check if there is a / in the filename
-;	ld a, (hl)
-;	inc hl
-;
-;	cp '/'
-;	jr z, fullPath
-;
-;	cp 00h
-;	jr nz, checkIfFullpath
+	;check if there is a / in the filename
+	ld a, (hl)
+	inc hl
+
+	cp '/'
+	jr z, fullPath
+
+	cp 00h
+	jr nz, checkIfFullpath
 
 	ld bc, dispatchTable
 	pop hl ;contains pointer to first string
@@ -290,26 +295,29 @@ programExtension:
 	.db 00h
 
 ;Command strings
+chdirStr:   .asciiz "CD"
 chmainStr:  .asciiz "CHMAIN"
 echoStr:    .asciiz "ECHO"
 helpStr:    .asciiz "HELP"
-lsStr:      .asciiz "LS"
 monStr:     .asciiz "MONITOR"
 mountStr:   .asciiz "MOUNT"
+pwdStr:     .asciiz "PWD"
 nullStr:    .db 00h
 
 dispatchTable:
+	.dw chdirStr,  b_chdir
 	.dw chmainStr, b_chmain
 	.dw echoStr,   b_echo
 	.dw helpStr,   b_help
-	.dw lsStr,     b_ls
 	.dw monStr,    b_monitor
 	.dw mountStr,  b_mount
+	.dw pwdStr,    b_pwd
 	.dw nullStr
 
+.include "builtins/chdir.asm"
 .include "builtins/chmain.asm"
 .include "builtins/echo.asm"
 .include "builtins/help.asm"
-.include "builtins/ls.asm"
 .include "builtins/monitor.asm"
 .include "builtins/mount.asm"
+.include "builtins/pwd.asm"

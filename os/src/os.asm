@@ -122,6 +122,8 @@ _coldStart:
 	call k_mount
 	ld de, osDriveName
 	call k_chmain
+	ld hl, homeDir
+	call k_chdir
 
 
 	call cli
@@ -136,6 +138,8 @@ devDriveName:
 	.asciiz "DEV"
 osDriveName:
 	.asciiz "OS"
+homeDir:
+	.asciiz ":/"
 
 
 

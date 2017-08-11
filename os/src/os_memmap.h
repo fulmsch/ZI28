@@ -42,7 +42,9 @@
 #define getc_buffer             regC + 4
 #define putc_buffer             getc_buffer + 1
 
-#define osWorkspaceEnd          putc_buffer + 1
+#define pathBuffer              putc_buffer + 1
+
+#define osWorkspaceEnd          pathBuffer + PATH_MAX
 
 ;Environment
 #define env_mainDrive           osWorkspaceEnd             ;5 bytes
@@ -151,4 +153,3 @@
 
 #define cliProgramName          argvEnd
 #define cliProgramNameEnd       cliProgramName + 13
-
