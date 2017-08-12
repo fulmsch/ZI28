@@ -10,24 +10,17 @@
 .func cli:
 
 prompt:
-;	ld hl, promptPlaceholder
-;	call printStr
-;	ld a, ' '
-;	call putc
+	ld hl, promptStartStr
+	call printStr
+
 	ld hl, pathBuffer
 	push hl
 	call k_getcwd
 	pop hl
 	call printStr
-	ld hl, promptStr
+
+	ld hl, promptEndStr
 	call printStr
-;	ld a, '>'
-;	call putc
-;	ld a, ':'
-;	call putc
-;	ld a, ' '
-;	call putc
-	;call exit
 
 
 	ld hl, inputBuffer
@@ -276,6 +269,10 @@ promptStr:
 ;inputBuffer:
 ;	.resb inputBufferSize
 
+promptStartStr:
+	.asciiz "["
+promptEndStr:
+	.asciiz "]$ "
 .endf ;cli
 
 
