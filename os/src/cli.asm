@@ -68,8 +68,7 @@ inputBufferOverflow:
 	ret
 
 inputBufferOverflowStr:
-	.db "\r\nThe entered command is too long\r\n"
-	.db 00h
+	.asciiz "\r\nThe entered command is too long\r\n"
 
 handleLine:
 	ld a, 0dh
@@ -135,8 +134,7 @@ argOverflow:
 	jp prompt
 
 argOverflowStr:
-	.db "\r\nToo many arguments\r\n"
-	.db 00h
+	.asciiz "\r\nToo many arguments\r\n"
 
 commandDispatch:
 	;terminate argv
@@ -274,19 +272,7 @@ noMatch:
 	jp prompt
 
 noMatchStr:
-	.db "Command not recognised\r\n"
-	.db 00h
-
-promptStr:
-	.db " >: "
-	.db 00h
-
-;promptPlaceholder:
-;	.db "/"
-;	.db 00h
-
-;inputBuffer:
-;	.resb inputBufferSize
+	.asciiz "Command not recognised\r\n"
 
 promptStartStr:
 	.asciiz "["
@@ -294,11 +280,6 @@ promptEndStr:
 	.asciiz "]$ "
 .endf ;cli
 
-
-;argc:
-;	.db 0
-;argv:
-;	.resb maxArgc*2
 
 
 execPath:
