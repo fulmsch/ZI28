@@ -225,26 +225,45 @@ dispatchLoop:
 
 
 programInPath:
-;	;check path for programs
-;	ld de, cliProgramName
-;	call strcpy
+	;check path for programs
+	;(hl) = command
+	push hl
 
-;	ld de, programPath
-	ex de, hl
-	jr z, loadProgram
+	ld hl, execPath
+	ld de, cli_programName
+	call strcpy
 
-	;TODO check default file extension
+	pop hl
+	;de points to null terminator
+	call strcpy
 
+	;de points to null terminator
+	ld hl, cli_programName
+	push hl ;gets popped at fullPath
 
-	jr noMatch
+	;check whether a file extension has been specified
+	ld b, 4
+extLoop0:
+	dec de
+	ld a, (de)
+	cp '.'
+	jr z, fullPath
+	djnz extLoop0
 
+	;no extension, add default executable one
+extLoop1:
+	inc de
+	ld a, (de)
+	cp 0x00
+	jr nz, extLoop1
+
+	ld hl, execExtension
+	call strcpy
 
 fullPath:
 	;try to open file named &argv[0]
 	pop de ;contains pointer to first string
 
-loadProgram:
-	;load file into memory
 	call exec
 	cp 0
 	jp z, prompt
@@ -282,14 +301,10 @@ promptEndStr:
 ;	.resb maxArgc*2
 
 
-programPath:
-	.db "/BIN/"
-	;TODO fix this, broken because of rom
-;programName:
-;	.resb 13
-programExtension:
-	.db ".Z80"
-	.db 00h
+execPath:
+	.asciiz ":/BIN/"
+execExtension:
+	.asciiz ".EX8"
 
 ;Command strings
 chdirStr:   .asciiz "CD"

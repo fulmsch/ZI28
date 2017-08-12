@@ -151,5 +151,5 @@
 #define argv                    argc + 1
 #define argvEnd                 argv + maxArgc * 2
 
-#define cliProgramName          argvEnd
-#define cliProgramNameEnd       cliProgramName + 13
+#define cli_programName          argvEnd
+#define cli_programNameEnd       cli_programName + 13
