@@ -6,6 +6,7 @@ fat_fsDriver:
 	.dw fat_open
 	.dw fat_close
 	.dw fat_readdir
+	.dw fat_fstat
 
 ;drive table
 .define fat_fat1StartAddr     driveTableFsdata          ;4 bytes
@@ -18,8 +19,6 @@ fat_fsDriver:
 fat_fileDriver:
 	.dw fat_read
 	.dw 0x0000 ;fat_write
-	.dw fat_fstat
-;	.dw fat_fctl
 
 .define fat_fileTableStartCluster fileTableData                 ;2 bytes
 .define fat_fileTableDirEntryAddr fat_fileTableStartCluster + 2 ;4 bytes

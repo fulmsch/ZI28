@@ -15,7 +15,6 @@
 
 .define file_read  0
 .define file_write 2
-.define file_fstat 4
 ;.define file_fctl  4
 
 
@@ -679,40 +678,56 @@ u_fstat:
 ;; Output:
 ;; : a - errno
 
-	push de ;buffer
+
+	push af
+	push de
 
 	;check if fd exists
 	call fdToFileEntry
-	jr c, error ;invalidFd
+	jr c, invalidFd
 	ld a, (hl)
 	cp 00h
-	jr z, error ;invalidFd
+	jr z, invalidFd
 
 	push hl
 	pop ix
 
 	;check for valid file driver
-	ld l, (ix + fileTableDriver)
-	ld h, (ix + fileTableDriver + 1)
-	and a
-	ld de, 0
+	;get the drive table entry of the filesystem
+	ld a, (ix + fileTableDriveNumber)
+	call getDriveAddr
+	jp c, error ;drive number out of bounds
+	;(hl) = driveTableEntry
+	ld de, driveTableFsdriver
+	add hl, de
+	ld e, (hl)
+	inc hl
+	ld d, (hl)
+	;de = fsdriver
+	ld hl, 0
+	or a
 	sbc hl, de
-	jr z, error ;invalidDriver;NULL pointer
-	ld de, file_fstat
+	jr z, error ;driver null pointer
+	ld hl, fs_fstat
 	add hl, de
 	ld e, (hl)
 	inc hl
 	ld d, (hl)
 	ex de, hl
+	;(hl) = routine
 
-	pop de ;buffer
+	pop de ;stat
+	pop af ;fd
 
 	jp (hl)
 
+invalidFd:
 error:
+	pop de
 	pop de
 	ld a, 1
 	ret
+
 .endf
 
 

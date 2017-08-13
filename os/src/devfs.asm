@@ -13,6 +13,7 @@ devfs_fsDriver:
 	.dw devfs_open
 	.dw devfs_close
 	.dw devfs_readdir
+	.dw devfs_fstat
 
 .define dev_fileTableNumber fileTableData
 .define dev_fileTableData   dev_fileTableNumber + 1
