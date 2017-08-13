@@ -66,7 +66,7 @@ void console(const char* format, ...) {
 
 void updateRegisters() {
 	unsigned char *pReg = &context.R1.br.A;
-	char str[10];
+	char str[20];
 	for (int i = 0; i < 7; i++) {
 		sprintf(str, "%02X", *pReg);
 		gtk_entry_set_text(g_field_main[i], str);
