@@ -73,6 +73,8 @@ poll:
 	bit 0, a
 	jr nz, poll
 	ld a, (de)
+	cp '\n'
+	call z, newline
 	out (FT240_DATA_PORT), a
 	inc de
 	inc hl
@@ -81,4 +83,11 @@ poll:
 	jr nz, poll
 	ex de, hl
 	ret
+
+newline:
+	ld a, '\r'
+	out (FT240_DATA_PORT), a
+	ld a, '\n'
+	ret
+	
 .endf ;ft240_write

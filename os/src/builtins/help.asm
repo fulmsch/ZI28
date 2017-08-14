@@ -45,7 +45,7 @@ path:
 	ret
 
 helpMsg:
-	.asciiz: "The following commands are available:\r\n"
+	.asciiz: "The following commands are available:\n"
 pathMsg:
-	.asciiz: "\r\nAdditional programs will be searched in:\r\n "
+	.asciiz: "\nAdditional programs will be searched in:\n "
 .endf

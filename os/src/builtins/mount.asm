@@ -43,5 +43,5 @@ invalidCall:
 	call printStr
 	ret
 invalidCallstr:
-	.asciiz "Usage: MOUNT <DEVICE> <LABEL>\r\n"
+	.asciiz "Usage: MOUNT <DEVICE> <LABEL>\n"
 .endf ;b_mount

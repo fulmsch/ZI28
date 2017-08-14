@@ -68,11 +68,11 @@ inputBufferOverflow:
 	ret
 
 inputBufferOverflowStr:
-	.asciiz "\r\nThe entered command is too long\r\n"
+	.asciiz "\nThe entered command is too long\n"
 
 handleLine:
-	ld a, 0dh
-	call putc
+//	ld a, 0dh
+//	call putc
 	ld a, 0ah
 	call putc
 	;TODO store history in file
@@ -134,7 +134,7 @@ argOverflow:
 	jp prompt
 
 argOverflowStr:
-	.asciiz "\r\nToo many arguments\r\n"
+	.asciiz "\nToo many arguments\n"
 
 commandDispatch:
 	;terminate argv
@@ -235,28 +235,9 @@ programInPath:
 	;de points to null terminator
 	call strcpy
 
-	;de points to null terminator
-	ld hl, cli_programName
-	push hl ;gets popped at fullPath
-
-	;check whether a file extension has been specified
-	ld b, 4
-extLoop0:
-	dec de
-	ld a, (de)
-	cp '.'
-	jr z, fullPath
-	djnz extLoop0
-
-	;no extension, add default executable one
-extLoop1:
-	inc de
-	ld a, (de)
-	cp 0x00
-	jr nz, extLoop1
-
-	ld hl, execExtension
-	call strcpy
+	;TODO optimize
+	ld de, cli_programName
+	push de ;gets popped at fullPath
 
 fullPath:
 	;try to open file named &argv[0]
@@ -272,7 +253,7 @@ noMatch:
 	jp prompt
 
 noMatchStr:
-	.asciiz "Command not recognised\r\n"
+	.asciiz "Command not recognised\n"
 
 promptStartStr:
 	.asciiz "["

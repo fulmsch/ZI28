@@ -83,8 +83,6 @@ backspace:
 handleStr:
 	ld (hl), a
 	call putc
-	ld a, 0dh
-	call putc
 	ld a, 0ah
 	call putc
 
@@ -291,7 +289,7 @@ loadAbort:
 	jr loadEnd
 	
 loadAbortStr:
-	.db "\r\nLoading aborted\r\n", 00h 
+	.db "\nLoading aborted\n", 00h 
 
 
 execPrgm:
@@ -311,8 +309,6 @@ execPrgm:
 	ld l, e
 
 exec:	
-	ld a, 0dh
-	call putc
 	ld a, 0ah
 	call putc
 	
@@ -405,8 +401,6 @@ hexDump01:
 
 	
 	ld b, 10h
-	ld a, 0dh
-	call putc
 	ld a, 0ah
 	call putc
 
@@ -425,8 +419,6 @@ hexDumpContinue:
 	cp 0dh ;Enter, continue
 	jr nz, hexDumpContinue	
 	
-	ld a, 0dh
-	call putc
 	ld a, 0ah
 	call putc
 	jr hexDump00
@@ -460,7 +452,7 @@ num:
 	
 	
 hexDumpHeader:
-	.db "\r\n      00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\r\n\r\n"
+	.db "\n      00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n\n"
 	.db 00h
 
 write:
@@ -566,8 +558,6 @@ writeNext:
 	inc hl
 	ld (monInputBuffer + 2), hl
 	
-	ld a, 0dh
-	call putc
 	ld a, 0ah
 	call putc
 	jp writePrompt
@@ -575,14 +565,12 @@ writeNext:
 
 
 writeEnd:
-	ld a, 0dh
-	call putc
 	ld a, 0ah
 	call putc
 	jp prompt
 	
 writeErrorStr:
-	db " Error\r\n"
+	db " Error\n"
 	.db 00
 	
 writeOkStr:
@@ -603,8 +591,6 @@ ioIn:
 	in a, (c)
 	call printbyte
 	
-	ld a, 0dh
-	call putc
 	ld a, 0ah
 	call putc
 	
@@ -628,8 +614,6 @@ ioOut:
 	
 	out (c), a
 	
-	ld a, 0dh
-	call putc
 	ld a, 0ah
 	call putc
 	
@@ -653,8 +637,6 @@ bankSel:
 	
 	out (BANKSR), a
 	
-	ld a, 0dh
-	call putc
 	ld a, 0ah
 	call putc
 	
@@ -700,14 +682,12 @@ showRegisterLoop:
 	call putc
 	djnz showRegisterLoop
 
-	ld a, '\r'
-	call putc
 	ld a, '\n'
 	call putc
 	jp prompt
 
 registerStr:
-	.asciiz "\r\nAF    BC    DE    HL    IX    IY\r\n"
+	.asciiz "\nAF    BC    DE    HL    IX    IY\n"
 
 
 invalid:
@@ -854,43 +834,43 @@ nextArgLoop:
 ;	.db 00h
 
 welcomeStr:
-	.db "\r\nExecution paused at "
+	.db "\nExecution paused at "
 	.db 00h
 
 readyStr:
-	.db "\r\nMonitor ready\r\n"
-	.db "Type '?' for help\r\n"
+	.db "\nMonitor ready\n"
+	.db "Type '?' for help\n"
 	.db 00h
 
 helpStr:
-	.db "\r\n"
-	.db "C\t\tContinue execution of the program\r\n"
-	.db "L [ADDR]\tLoad an Intel-HEX file from USB\r\n"
-	.db "E [ADDR]\tExecute a program\r\n"
-	.db "J ADDR\t\tJump to a specific address\r\n"
-	.db "D ADDR\t\tDump 256 bytes of memory in hex format\r\n"
-	.db "W ADDR\t\tWrite to single bytes in memory\r\n"
-	.db "I PORT\t\tRead value from port\r\n"
-	.db "O PORT VAL\tWrite value to port\r\n"
-	.db "B BANK\t\tSelect memory bank 00-05\r\n"
-	.db "R\t\tShow and modify register contents\r\n"
+	.db "\n"
+	.db "C\t\tContinue execution of the program\n"
+	.db "L [ADDR]\tLoad an Intel-HEX file from USB\n"
+	.db "E [ADDR]\tExecute a program\n"
+	.db "J ADDR\t\tJump to a specific address\n"
+	.db "D ADDR\t\tDump 256 bytes of memory in hex format\n"
+	.db "W ADDR\t\tWrite to single bytes in memory\n"
+	.db "I PORT\t\tRead value from port\n"
+	.db "O PORT VAL\tWrite value to port\n"
+	.db "B BANK\t\tSelect memory bank 00-05\n"
+	.db "R\t\tShow and modify register contents\n"
 	.db 00h
 
 
 invalidStr:
-	.db "\r\nInvalid command\r\n"
-	.db "Type '?' for help\r\n"
+	.db "\nInvalid command\n"
+	.db "Type '?' for help\n"
 	.db 00h
 
 doneStr:
-	.db "\r\nDone\r\n"
+	.db "\nDone\n"
 	.db 00h
 
 loadStr:
-	.db "\r\nLoading program\r\n"
+	.db "\nLoading program\n"
 	.db 00h
 
 loadFinishedStr:
-	.db "h bytes transferred\r\n"
+	.db "h bytes transferred\n"
 	.db 00h
 .endf ;_monitor
