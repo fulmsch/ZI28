@@ -125,7 +125,7 @@ void context_io_write_callback(int param, ushort address, byte data) {
 	} else {
 		switch (address) {
 			case 0x00:
-				if (data != 0x0D) write(pty[0].fd, &data, 1);
+				write(pty[0].fd, &data, 1);
 				break;
 			default:
 				break;
