@@ -16,6 +16,44 @@
 ;; : a - errno
 ;; : hl - return code
 
+	push de
+	push hl
+
+	;advance de to end of filename
+extLoop3:
+	ld a, (de)
+	inc de
+	cp 0x00
+	jr nz, extLoop3
+
+	dec de
+	;de points to null terminator
+
+	;check whether a file extension has been specified
+	ld b, 4
+extLoop0:
+	dec de
+	ld a, (de)
+	cp '.'
+	jr z, openFile
+	cp '/'
+	jr z, extLoop1
+	djnz extLoop0
+
+	;no extension, add default executable one
+extLoop1:
+	inc de
+	ld a, (de)
+	cp 0x00
+	jr nz, extLoop1
+
+	ld hl, execExtension
+	call strcpy
+
+openFile:
+	pop hl
+	pop de
+
 	;open file
 	;(de) = filename
 	ld a, O_RDONLY
@@ -89,4 +127,7 @@ closeFilesLoop:
 	xor a
 	ret
 
+
+execExtension:
+	.asciiz ".EX8"
 .endf

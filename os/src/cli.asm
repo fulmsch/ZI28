@@ -265,8 +265,6 @@ promptEndStr:
 
 execPath:
 	.asciiz ":/BIN/"
-execExtension:
-	.asciiz ".EX8"
 
 ;Command strings
 chdirStr:   .asciiz "CD"
