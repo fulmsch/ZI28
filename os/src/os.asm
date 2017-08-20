@@ -125,8 +125,8 @@ _coldStart:
 	ld hl, homeDir
 	call k_chdir
 
-
-	call cli
+	call b_cls
+	jp cli
 
 ttyName:
 	.asciiz ":DEV/TTY0"

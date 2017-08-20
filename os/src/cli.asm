@@ -269,6 +269,7 @@ execPath:
 ;Command strings
 chdirStr:   .asciiz "CD"
 chmainStr:  .asciiz "CHMAIN"
+clsStr:     .asciiz "CLS"
 echoStr:    .asciiz "ECHO"
 helpStr:    .asciiz "HELP"
 monStr:     .asciiz "MONITOR"
@@ -279,6 +280,7 @@ nullStr:    .db 00h
 dispatchTable:
 	.dw chdirStr,  b_chdir
 	.dw chmainStr, b_chmain
+	.dw clsStr,    b_cls
 	.dw echoStr,   b_echo
 	.dw helpStr,   b_help
 	.dw monStr,    b_monitor
@@ -288,6 +290,7 @@ dispatchTable:
 
 .include "builtins/chdir.asm"
 .include "builtins/chmain.asm"
+.include "builtins/cls.asm"
 .include "builtins/echo.asm"
 .include "builtins/help.asm"
 .include "builtins/monitor.asm"
