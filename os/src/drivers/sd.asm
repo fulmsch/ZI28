@@ -53,10 +53,17 @@ poweronLoop:
 	ld a, SD_GO_IDLE_STATE
 	ld hl, reg32
 	call sd_sendCmd
-	ld b, 10
+
+	ld b, 8
 	ld e, 1
 	call sd_getResponse
 	jr c, error
+
+poll00:
+	;Doesn't work without these loops, but there are errors if this is in sd_sendCmd
+	call sd_transferByte
+	djnz poll00
+
 
 	ld d, 11
 operatingLoop:
@@ -66,25 +73,25 @@ operatingLoop:
 	ld a, SD_SEND_OP_COND
 	ld hl, reg32
 	call sd_sendCmd
+	ld b, 8
+	ld e, 0
+	call sd_getResponse
+	jr nc, operatingSuccess
+
+poll01:
+	call sd_transferByte
+	djnz poll01
 
 	call delay100
+	jr operatingLoop
 
-	ld b, 10
-operatingRespLoop:
-	call sd_transferByte
-	in a, (c)
-	cp 1
-	jr z, operatingLoop
-	cp 0
-	jr z, operatingSuccess
-	djnz operatingRespLoop
-	
-	;card doesn't go into operating state
-	jr error
 
 
 operatingSuccess:
-	;set blocksizet to 512 bytes
+	call sd_transferByte
+	djnz operatingSuccess
+
+	;set blocksize to 512 bytes
 	ld hl, reg32
 	ld de, 200h
 	call ld16
@@ -95,8 +102,13 @@ operatingSuccess:
 	call sd_getResponse
 	jr c, error
 
+poll02:
+	call sd_transferByte
+	djnz poll02
+
 	call sd_disable
-	or a
+
+	xor a
 	ret
 
 error:
@@ -281,14 +293,11 @@ argLoop:
 	call sd_transferByte
 	in a, (c)
 	cp e
-	jr z, success
+	ret z
 	djnz sd_getResponse
 
 timeout:
 	scf
-
-success:
-	ret
 .endf
 
 
