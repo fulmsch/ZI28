@@ -74,9 +74,9 @@
 
 _coldStart:
 	;clear ram TODO other banks
-	ld hl, 0x2000
-	ld de, 0x2001
-	ld bc, 0xdfff
+	ld hl, 0x4000
+	ld de, 0x4001
+	ld bc, 0xbfff
 	ld (hl), 0x00
 	ldir
 
