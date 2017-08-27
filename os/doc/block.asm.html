@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>block.asm | ZI-28 Documentation</title>
+	<link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+	<h1>ZI-28 Documentation</h1>
+	<a href="index.html">&lt Back to index</a>
+
+	<h2>File: block.asm</h2>
+
+	<div>
+		<p>Block device abstraction layer</p>
+<p>Translates random access into block based reads and writes.</p>
+	</div>
+
+		<div class="routines">
+		<h3>Routines</h3>
+					<div class="menuentry">
+			<div class="menutitle">
+				<a href=#block_read>block_read</a>
+			</div>
+			<div class="menudesc">
+				<p>Translate random access into block based read.</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#block_write>block_write</a>
+			</div>
+			<div class="menudesc">
+				<p>Translate random access into block based write.</p>
+			</div>
+		</div>
+			
+					<div id="block_read" class="box">
+			<div class="boxheader">
+				<p>block_read</p>
+			</div>
+			<div class="boxcontent">
+				<p>Translate random access into block based read.</p>
+<dl>
+<dt>Input:</dt>
+<dd>ix - file entry addr
+</dd>
+<dd>(de) - buffer
+</dd>
+<dd>bc - count
+</dd>
+<dd>(hl) - block device driver callback
+</dd>
+<dt>Output:</dt>
+<dd>de - count
+</dd>
+<dd>a - errno
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="block_write" class="box">
+			<div class="boxheader">
+				<p>block_write</p>
+			</div>
+			<div class="boxcontent">
+				<p>Translate random access into block based write.</p>
+<dl>
+<dt>Input:</dt>
+<dd>ix - file entry addr
+</dd>
+<dd>(de) - buffer
+</dd>
+<dd>bc - count
+</dd>
+<dd>(hl) - block device driver callback
+</dd>
+</dl>
+			</div>
+		</div>
+				</div>
+	
+
+
+<footer>
+</footer>
+
+
+</body>
+</html>

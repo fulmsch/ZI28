@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>math.asm | ZI-28 Documentation</title>
+	<link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+	<h1>ZI-28 Documentation</h1>
+	<a href="index.html">&lt Back to index</a>
+
+	<h2>File: math.asm</h2>
+
+	<div>
+		<p>Contains advanced math routines</p>
+<p>Based on: <a href="http://www.ticalc.org/pub/83/asm/source/routines/math32.inc" class="uri">http://www.ticalc.org/pub/83/asm/source/routines/math32.inc</a></p>
+	</div>
+
+		<div class="routines">
+		<h3>Routines</h3>
+					<div class="menuentry">
+			<div class="menutitle">
+				<a href=#add32>add32</a>
+			</div>
+			<div class="menudesc">
+				<p>Add two 32-bit numbers</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#adc32>adc32</a>
+			</div>
+			<div class="menudesc">
+				<p>Add two 32-bit numbers and the carry bit</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#sub32>sub32</a>
+			</div>
+			<div class="menudesc">
+				<p>Subtract two 32-bit numbers</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#sbc32>sbc32</a>
+			</div>
+			<div class="menudesc">
+				<p>Subtract two 32-bit numbers and the carry bit</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#inc32>inc32</a>
+			</div>
+			<div class="menudesc">
+				<p>Increment a 32-bit number by 1</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#dec32>dec32</a>
+			</div>
+			<div class="menudesc">
+				<p>Decrement a 32-bit number by 1</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#lshiftbyte32>lshiftbyte32</a>
+			</div>
+			<div class="menudesc">
+				<p>Shift a 32-bit number left by 1 byte</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#lshift9_32>lshift9_32</a>
+			</div>
+			<div class="menudesc">
+				<p>Shift a 32-bit number left by 9 bits</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#lshift32>lshift32</a>
+			</div>
+			<div class="menudesc">
+				<p>Shift a 32-bit number left by 1 bit</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#rshiftbyte32>rshiftbyte32</a>
+			</div>
+			<div class="menudesc">
+				<p>Shift a 32-bit number right by 1 byte</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#rshift9_32>rshift9_32</a>
+			</div>
+			<div class="menudesc">
+				<p>Shift a 32-bit number right by 9 bits</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#rshift32>rshift32</a>
+			</div>
+			<div class="menudesc">
+				<p>Shift a 32-bit number right by 1 bit</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#ld8>ld8</a>
+			</div>
+			<div class="menudesc">
+				<p>Load an 8-bit number into a 32-bit pointer</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#ld16>ld16</a>
+			</div>
+			<div class="menudesc">
+				<p>Load a 16-bit number into a 32-bit pointer</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#ld32>ld32</a>
+			</div>
+			<div class="menudesc">
+				<p>Copy a 32-bit number from (hl) to (de)</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#cp32>cp32</a>
+			</div>
+			<div class="menudesc">
+				<p>Compares two 32-bit numbers</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#clear32>clear32</a>
+			</div>
+			<div class="menudesc">
+				<p>Sets a 32-bit number to 0</p>
+			</div>
+		</div>
+			
+					<div id="add32" class="box">
+			<div class="boxheader">
+				<p>add32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Add two 32-bit numbers</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl), (de) - 32-bit numbers
+</dd>
+<dt>Output:</dt>
+<dd>(hl) = (hl) + (de)
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="adc32" class="box">
+			<div class="boxheader">
+				<p>adc32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Add two 32-bit numbers and the carry bit</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl), (de) - 32-bit numbers
+</dd>
+<dt>Output:</dt>
+<dd>(hl) = (hl) + (de) + cf
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="sub32" class="box">
+			<div class="boxheader">
+				<p>sub32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Subtract two 32-bit numbers</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl), (de) - 32-bit numbers
+</dd>
+<dt>Output:</dt>
+<dd>(de) = (de) - (hl)
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="sbc32" class="box">
+			<div class="boxheader">
+				<p>sbc32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Subtract two 32-bit numbers and the carry bit</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl), (de) - 32-bit numbers
+</dd>
+<dt>Output:</dt>
+<dd>(de) = (de) - (hl) - cf
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="inc32" class="box">
+			<div class="boxheader">
+				<p>inc32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Increment a 32-bit number by 1</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl) - 32-bit number
+</dd>
+<dt>Output:</dt>
+<dd>(hl) = (hl) + 1
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="dec32" class="box">
+			<div class="boxheader">
+				<p>dec32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Decrement a 32-bit number by 1</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl) - 32-bit number
+</dd>
+<dt>Output:</dt>
+<dd>(hl) = (hl) - 1
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="lshiftbyte32" class="box">
+			<div class="boxheader">
+				<p>lshiftbyte32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Shift a 32-bit number left by 1 byte</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl) - 32-bit number
+</dd>
+<dt>Output:</dt>
+<dd>(hl) = (hl) &lt;&lt; 8
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="lshift9_32" class="box">
+			<div class="boxheader">
+				<p>lshift9_32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Shift a 32-bit number left by 9 bits</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl) - 32-bit number
+</dd>
+<dt>Output:</dt>
+<dd>(hl) = (hl) &lt;&lt; 9
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="lshift32" class="box">
+			<div class="boxheader">
+				<p>lshift32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Shift a 32-bit number left by 1 bit</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl) - 32-bit number
+</dd>
+<dt>Output:</dt>
+<dd>(hl) = (hl) &lt;&lt; 1
+</dd>
+<dd>carry flag
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="rshiftbyte32" class="box">
+			<div class="boxheader">
+				<p>rshiftbyte32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Shift a 32-bit number right by 1 byte</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl) - 32-bit number
+</dd>
+<dt>Output:</dt>
+<dd>(hl) = (hl) &gt;&gt; 8
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="rshift9_32" class="box">
+			<div class="boxheader">
+				<p>rshift9_32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Shift a 32-bit number right by 9 bits</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl) - 32-bit number
+</dd>
+<dt>Output:</dt>
+<dd>(hl) = (hl) &gt;&gt; 9
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="rshift32" class="box">
+			<div class="boxheader">
+				<p>rshift32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Shift a 32-bit number right by 1 bit</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl) - 32-bit number
+</dd>
+<dt>Output:</dt>
+<dd>(hl) = (hl) &gt;&gt; 1
+</dd>
+<dd>carry flag
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="ld8" class="box">
+			<div class="boxheader">
+				<p>ld8</p>
+			</div>
+			<div class="boxcontent">
+				<p>Load an 8-bit number into a 32-bit pointer</p>
+<dl>
+<dt>Input:</dt>
+<dd>a - 8-bit number
+</dd>
+<dd>hl - 32-bit pointer
+</dd>
+<dt>Output:</dt>
+<dd>(hl) = a
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="ld16" class="box">
+			<div class="boxheader">
+				<p>ld16</p>
+			</div>
+			<div class="boxcontent">
+				<p>Load a 16-bit number into a 32-bit pointer</p>
+<dl>
+<dt>Input:</dt>
+<dd>de - 16-bit number
+</dd>
+<dd>hl - 32-bit pointer
+</dd>
+<dt>Output:</dt>
+<dd>(hl) = de
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="ld32" class="box">
+			<div class="boxheader">
+				<p>ld32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Copy a 32-bit number from (hl) to (de)</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl) - 32-bit number
+</dd>
+<dd>de - 32-bit pointer
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="cp32" class="box">
+			<div class="boxheader">
+				<p>cp32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Compares two 32-bit numbers</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl), (de) - 32-bit numbers
+</dd>
+<dt>Output:</dt>
+<dd>c - (hl)&lt;(de)
+</dd>
+<dd>nc - (hl)&gt;=(de)
+</dd>
+<dd>z - (hl)=(de)
+</dd>
+<dd>nz - (hl)!=(de)
+</dd>
+<dt>Destroyed:</dt>
+<dd>a, b, de, hl
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="clear32" class="box">
+			<div class="boxheader">
+				<p>clear32</p>
+			</div>
+			<div class="boxcontent">
+				<p>Sets a 32-bit number to 0</p>
+<dl>
+<dt>Input:</dt>
+<dd>(hl) - 32-bit number
+</dd>
+<dt>Output:</dt>
+<dd>(hl) = 0
+</dd>
+<dt>Destroyed:</dt>
+<dd>none
+</dd>
+</dl>
+			</div>
+		</div>
+				</div>
+	
+
+
+<footer>
+</footer>
+
+
+</body>
+</html>

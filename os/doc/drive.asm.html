@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>drive.asm | ZI-28 Documentation</title>
+	<link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+	<h1>ZI-28 Documentation</h1>
+	<a href="index.html">&lt Back to index</a>
+
+	<h2>File: drive.asm</h2>
+
+	<div>
+		<p>Contains routines for accessing drives</p>
+	</div>
+
+		<div class="routines">
+		<h3>Routines</h3>
+					<div class="menuentry">
+			<div class="menutitle">
+				<a href=#getDriveAddr>getDriveAddr</a>
+			</div>
+			<div class="menudesc">
+				<p>Finds the drive entry of a given drive number</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#k_mount>k_mount</a>
+			</div>
+			<div class="menudesc">
+				<p>Mount a drive file</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#k_chmain>k_chmain</a>
+			</div>
+			<div class="menudesc">
+				<p>Change the main drive.</p>
+			</div>
+		</div>
+							<div class="menuentry">
+			<div class="menutitle">
+				<a href=#getTableAddr>getTableAddr</a>
+			</div>
+			<div class="menudesc">
+				<p>Finds the file entry of a given fd</p>
+			</div>
+		</div>
+			
+					<div id="getDriveAddr" class="box">
+			<div class="boxheader">
+				<p>getDriveAddr</p>
+			</div>
+			<div class="boxcontent">
+				<p>Finds the drive entry of a given drive number</p>
+<dl>
+<dt>Input:</dt>
+<dd>a - drive number
+</dd>
+<dt>Output:</dt>
+<dd>hl - table entry address
+</dd>
+<dd>carry - out of bounds
+</dd>
+<dd>nc - no error
+</dd>
+<dt>See also:</dt>
+<dd><a href="#getTableAddr">getTableAddr</a>
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="k_mount" class="box">
+			<div class="boxheader">
+				<p>k_mount</p>
+			</div>
+			<div class="boxcontent">
+				<p>Mount a drive file</p>
+<p>Creates a new entry in the drive table and initialises the filesystem</p>
+<dl>
+<dt>Input:</dt>
+<dd>de - fs driver
+</dd>
+<dd>(hl) - drive label (max. 5 bytes)
+</dd>
+<dd>a - devfd
+</dd>
+<dt>Output:</dt>
+<dd>a - errno
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="k_chmain" class="box">
+			<div class="boxheader">
+				<p>k_chmain</p>
+			</div>
+			<div class="boxcontent">
+				<p>Change the main drive.</p>
+<p>The main drive can be accessed with a path starting with &quot;:/&quot;. The OS will search system files on this drive.</p>
+<dl>
+<dt>Input:</dt>
+<dd>(de) - drive name
+</dd>
+<dt>Output:</dt>
+<dd>a - errno
+</dd>
+</dl>
+			</div>
+		</div>
+							<div id="getTableAddr" class="box">
+			<div class="boxheader">
+				<p>getTableAddr</p>
+			</div>
+			<div class="boxcontent">
+				<p>Finds the file entry of a given fd</p>
+<dl>
+<dt>Input:</dt>
+<dd>hl - table start address
+</dd>
+<dd>de - entry size
+</dd>
+<dd>b - maximum number of entries
+</dd>
+<dd>a - index
+</dd>
+<dt>Output:</dt>
+<dd>hl - table entry address
+</dd>
+<dd>carry - out of bounds
+</dd>
+<dd>nc - no error
+</dd>
+</dl>
+			</div>
+		</div>
+				</div>
+	
+
+
+<footer>
+</footer>
+
+
+</body>
+</html>

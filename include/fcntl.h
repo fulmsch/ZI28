@@ -1,0 +1,107 @@
+/*
+ *      Small C+ Library
+ *
+ *      fnctl.h - low level file routines
+ *
+ *      djm 27/4/99
+ *
+ *	$Id: fcntl.h,v 1.21 2016-07-14 17:44:17 pauloscustodio Exp $
+ */
+
+
+#ifndef __FCNTL_H__
+#define __FCNTL_H__
+
+
+#define O_RDONLY    0x01
+#define O_WRONLY    0x02
+#define O_RDWR      0x04
+#define O_APPEND    0x08 //unused
+#define O_DIRECTORY 0x10
+#define O_TRUNC     0x20 //unused
+
+#define O_RDONLY_BIT    0
+#define O_WRONLY_BIT    1
+#define O_RDWR_BIT      2
+#define O_APPEND_BIT    3 //unused
+#define O_DIRECTORY_BIT 4
+#define O_TRUNC_BIT     5 //unused
+
+
+
+
+#ifndef __NAKEN_ASM
+#include <sys/compiler.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+
+typedef int mode_t;
+
+//extern int __LIB__ open(const char *name, int flags, mode_t mode);
+extern int __LIB__ __CALLEE__ open(const char *name, int flags, mode_t mode);
+extern int __LIB__ creat(const char *name, mode_t mode);
+extern int __LIB__ __FASTCALL__ close(int fd);
+extern size_t __LIB__ __CALLEE__ read(int fd, void *buf, size_t count);
+extern size_t __LIB__ __CALLEE__ write(int fd, const void *buf, size_t count);
+extern long __LIB__ __SAVEFRAME__ lseek(int fd,long posn, int whence);
+
+extern int __LIB__ __FASTCALL__ readbyte(int fd);
+extern int __LIB__ writebyte(int fd, int c);
+
+
+/* mkdir is defined in sys/stat.h */
+/* extern int __LIB__ mkdir(char *, int mode); */
+
+extern char __LIB__ *getcwd(char *buf, size_t maxlen);
+
+/* Following two only implemented for Sprinter ATM (20.11.2002) */
+extern int  __LIB__ rmdir(const char *);
+extern char __LIB__ *getwd(char *buf);
+
+
+
+
+/* ********************************************************* */
+
+/*
+* Default block size for "gendos.lib"
+* every single block (up to 36) is written in a separate file
+* the bigger RND_BLOCKSIZE, bigger can be the output file size,
+* but this comes at the cost of the malloc'd space for the internal buffer.
+* The current block size is kept in a control block (just the RND_FILE structure saved in a separate file),
+* so changing this value at runtime before creating a file is perfectly legal.
+
+In the target's CRT0 stubs the following lines must exist:
+
+PUBLIC _RND_BLOCKSIZE
+_RND_BLOCKSIZE:	defw	1000
+
+*/
+
+extern unsigned int   RND_BLOCKSIZE;
+
+/* Used in the generic random file access library only */
+/* file will be split into blocks */
+
+struct RND_FILE {
+	char    name_prefix;   /* block name, including prefix char */
+	char    name[15];         /* file name */
+	u16_t	blocksize;
+	unsigned char *blockptr;
+	long    size;             /* file size */
+	long    position;         /* current position in file */
+	u16_t	pos_in_block;
+	mode_t  mode;
+};
+
+
+/* The following three functions are target specific */
+extern int  __LIB__ rnd_loadblock(char *name, size_t loadstart, size_t len);
+extern int  __LIB__ rnd_saveblock(char *name, size_t loadstart, size_t len);
+extern int  __LIB__ __FASTCALL__ rnd_erase(char *name) ;
+
+/* ********************************************************* */
+#endif /* __NAKEN_ASM */
+
+#endif /* _FCNTL_H */
