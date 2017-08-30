@@ -275,6 +275,7 @@ helpStr:    .asciiz "HELP"
 monStr:     .asciiz "MONITOR"
 mountStr:   .asciiz "MOUNT"
 pwdStr:     .asciiz "PWD"
+testStr:    .asciiz "TEST"
 nullStr:    .db 00h
 
 dispatchTable:
@@ -286,6 +287,7 @@ dispatchTable:
 	.dw monStr,    b_monitor
 	.dw mountStr,  b_mount
 	.dw pwdStr,    b_pwd
+	.dw testStr,   b_test
 	.dw nullStr
 
 .include "builtins/chdir.asm"
@@ -296,3 +298,4 @@ dispatchTable:
 .include "builtins/monitor.asm"
 .include "builtins/mount.asm"
 .include "builtins/pwd.asm"
+.include "builtins/test.asm"

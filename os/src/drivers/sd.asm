@@ -35,7 +35,7 @@ sd_fileDriver:
 
 	ld c, 80h ;TODO proper addressing
 
-	ld hl, reg32
+	ld hl, regA
 	call clear32
 
 	call sd_disable
@@ -51,7 +51,7 @@ poweronLoop:
 	call sd_enable
 
 	ld a, SD_GO_IDLE_STATE
-	ld hl, reg32
+	ld hl, regA
 	call sd_sendCmd
 
 	ld b, 8
@@ -71,7 +71,7 @@ operatingLoop:
 	jr z, error ;timeout
 
 	ld a, SD_SEND_OP_COND
-	ld hl, reg32
+	ld hl, regA
 	call sd_sendCmd
 	ld b, 8
 	ld e, 0
@@ -92,7 +92,7 @@ operatingSuccess:
 	djnz operatingSuccess
 
 	;set blocksize to 512 bytes
-	ld hl, reg32
+	ld hl, regA
 	ld de, 200h
 	call ld16
 	ld a, SD_SET_BLOCKLEN
@@ -132,7 +132,8 @@ error:
 ; Errors: 0=no error
 	ld hl, sd_readBlock
 	jp block_read
-.endf ;sd_read
+
+.endf
 
 .func sd_readBlock:
 ;; Read a block from a SD-card
@@ -151,19 +152,19 @@ error:
 	;calculate start address from sector number
 	ld h, b
 	ld l, c
-	ld de, reg32
+	ld de, regA
 	call ld32
-	;(reg32) = sector number relative to partition start
+	;(regA) = sector number relative to partition start
 	ld d, ixh
 	ld e, ixl
 	ld hl, sd_fileTableStartSector
 	add hl, de ;(hl) = sector offset
-	ld de, reg32
+	ld de, regA
 	ex de, hl
-	call add32 ;(reg32) = absolute sector number
-	ld hl, reg32
+	call add32 ;(regA) = absolute sector number
+	ld hl, regA
 	call lshift9_32
-	;(reg32) = start address
+	;(regA) = start address
 
 
 	ld c, 80h ;TODO proper addressing
@@ -217,6 +218,8 @@ error:
 
 
 .func sd_write:
+;; Write to a SD-card
+;;
 ;; Input:
 ;; : ix - file entry addr
 ;; : (de) - buffer
@@ -227,10 +230,115 @@ error:
 ;; : a - errno
 
 ; Errors: 0=no error
+	ld hl,sd_writeBlock
+	jp block_write
 
+.endf
+
+.func sd_writeBlock:
+;; Write a block to a SD-card
+;;
+;; Input:
+;; : ix - file entry addr
+;; : (de) - buffer
+;; : (bc) - 32-bit block number
+;;
+;; Output:
+;; : de = count
+;; : a - errno
+
+	push de ;buffer
+
+	;calculate start address from sector number
+	ld h, b
+	ld l, c
+	ld de, regA
+	call ld32
+	;(regA) = sector number relative to partition start
+	ld d, ixh
+	ld e, ixl
+	ld hl, sd_fileTableStartSector
+	add hl, de ;(hl) = sector offset
+	ld de, regA
+	ex de, hl
+	call add32 ;(regA) = absolute sector number
+	ld hl, regA
+	call lshift9_32
+	;(regA) = start address
+
+
+	ld c, 80h ;TODO proper addressing
+
+	call sd_enable
+
+	ld a, SD_WRITE_BLOCK
+	call sd_sendCmd
+	ld b, 10
+	ld e, 0
+	call sd_getResponse
+	jr c, error
+
+	ld a, 0xff
+	out (c), a
+	call sd_transferByte ;at least 8 clock cycles before write
+
+	;send data packet
+	ld a, 0xfe ;data token for WRITE_BLOCK
+	out (c), a
+	call sd_transferByte
+
+	;send data block
+
+	pop hl
+	push hl ;to be cleared by error TODO
+
+	ld d, 0
+writeBlock1:
+	;write the first 256 bytes
+	outi
+	call sd_transferByte
+	dec d
+	jr nz, writeBlock1
+writeBlock2:
+	;write the second 256 bytes
+	outi
+	call sd_transferByte
+	dec d
+	jr nz, writeBlock2
+
+	;send CRC, which is ignored by the card
+	ld a, 0xff
+	out (c), a
+	call sd_transferByte
+
+	out (c), a
+	call sd_transferByte
+
+	;get data response
+	call sd_transferByte
+	in a, (c)
+	and 0x1f
+	cp 0x05 ;data accepted
+	jr nz, error
+
+	;wait until write is complete
+	;TODO should instead be done before every command
+	ld b, 100
+	ld e, 0xff
+	call sd_getResponse
+	jr c, error
+
+	call sd_disable
+	pop hl
+	xor a
 	ret
 
-.endf ;sd_write
+error:
+	pop af ;clear stack
+	call sd_disable
+	ld a, 1
+	ret
+.endf
 
 
 .func sd_sendCmd:
