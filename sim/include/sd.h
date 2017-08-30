@@ -5,12 +5,14 @@
 #include <stdio.h>
 
 enum command_t {
-	GO_IDLE_STATE = 0,
-	SEND_OP_COND = 1,
-	STOP_TRANSMISSION = 12,
-	SET_BLOCKLEN = 16,
-	READ_SINGLE_BLOCK = 17,
-	READ_MULTIPLE_BLOCK = 18
+	GO_IDLE_STATE        =  0,
+	SEND_OP_COND         =  1,
+	STOP_TRANSMISSION    = 12,
+	SET_BLOCKLEN         = 16,
+	READ_SINGLE_BLOCK    = 17,
+	READ_MULTIPLE_BLOCK  = 18,
+	WRITE_BLOCK          = 24,
+	WRITE_MULTIPLE_BLOCK = 25
 };
 
 struct SdCard {
@@ -24,11 +26,12 @@ struct SdCard {
 		IDLE,
 		COMMAND,
 		RESPONSE,
-		S_READ_RESPONSE,
+		S_READ_RESPONSE, //single block read
 		S_READ,
-		M_READ_RESPONSE,
+		M_READ_RESPONSE, //multiple block read
 		M_READ,
-		WRITE
+		S_WRITE_RESPONSE,
+		S_WRITE
 	} status;
 };
 

@@ -79,7 +79,25 @@ unsigned char SdCard_transfer(struct SdCard *card, unsigned char in) {
 					}
 				}
 				break;
-			case WRITE:
+			case S_WRITE_RESPONSE:
+				out = card->response;
+				card->status = S_WRITE;
+				card->count = 0;
+				break;
+			case S_WRITE:
+				if (card->count >= card->blockLen + 4) {
+					out = 0x05;
+					card->status = COMMAND;
+					card->count = 0;
+				} else if (card->count >= card->blockLen + 2) {
+					card->count++; //crc
+				} else if (card->count > 1) {
+					fputc(in, card->imgFile);
+					card->count++;
+				} else if (in == 0xfe || card->count == 0) {
+					//ignore first byte, look for data token
+					card->count++;
+				}
 				break;
 			default:
 				break;
@@ -131,6 +149,11 @@ void SdCard_parseCommand(struct SdCard *card) {
 			fseek(card->imgFile, argument, SEEK_SET);
 			card->response = 0x00;
 			card->status = M_READ_RESPONSE;
+			break;
+		case WRITE_BLOCK:
+			fseek(card->imgFile, argument, SEEK_SET);
+			card->response = 0x00;
+			card->status = S_WRITE_RESPONSE;
 			break;
 		default:
 			break;
