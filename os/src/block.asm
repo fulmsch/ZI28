@@ -26,126 +26,106 @@
 	ld de, 0
 	ld (block_totalCount), de
 
-	;get address of file offset
-	ld de, fileTableOffset
-	push ix
-	pop hl
-	add hl, de
-	push hl
-	;(hl) = file offset
 
-	;calculate current block
-	ld de, block_curBlock
-	call ld32
+	call block_init
+	call c, partialRead
 
-	ld hl, block_curBlock
-	call rshift9_32
-
-
-	;calculate final block
-	pop hl ;file offset
-	push hl ;file offset
-	ld de, block_endBlock
-	call ld32
-
-	ld de, (block_remCount)
-	dec de
-	ld hl, reg32
-	call ld16
+fullReadLoop:
+	cp 0 ;errno of prev command
+	ret nz
 
 	ld hl, block_endBlock
-	ld de, reg32
-	call add32
+	ld de, block_curBlock
+	call cp32
+	jr nc, lastBlock
 
-	call rshift9_32
-
-
-	;calculate offset relative to block start
-	pop de ;file offset
-	ld a, (de)
-	ld l, a
-	inc de
-	ld a, (de)
-	and 1
-	ld h, a
-	ld (block_relOffs), hl
+	call fullRead
+	jr fullReadLoop
 
 
-	;TODO store sector currently in buffer, check if same
+lastBlock:
+	ld de, end
+	push de ;return address
 
-readLoop:
-	ld de, return
+	ld hl, (block_remCount)
+	xor a
+	ld d, a
+	ld e, a
+	sbc hl, de
+	ret z ;jp to end
+	ld de, 512
+	sbc hl, de
+	jr nz, partialRead
+
+	jr fullRead
+
+end:
+	cp 0
+	ret nz
+
+	ld de, (block_totalCount)
+
+
+	;a is already 0
+	ret
+
+
+
+
+fullRead:
+;read an entire block from disk
+	ld de, fullReadReturn
+	push de ;return address
+	ld de, (block_memPtr)
+	ld bc, block_curBlock
+	ld hl, (block_readCallback)
+	jp (hl)
+
+fullReadReturn:
+	cp 0
+	ret nz
+
+	ld bc, 512
+	call block_nextBlock
+
+	xor a
+	ret
+
+
+
+
+partialRead:
+;read part of a block from disk, utilizing the block buffer
+
+	;read the entire block into the buffer
+	ld de, partialReadReturn
 	push de ;return address
 	ld de, block_buffer
 	ld bc, block_curBlock
 	ld hl, (block_readCallback)
 	jp (hl)
 
-return:
+partialReadReturn:
 	cp 0
-	jr nz, error
-	;TODO error checking
+	ret nz
 
-	ld hl, block_curBlock
-	ld de, block_endBlock
-	call cp32
-	jr z, end
-
-	ld hl, 512
-	ld de, (block_relOffs)
-	or a
-	sbc hl, de
-	ld b, h
-	ld c, l
+	;copy data to memory
+	call block_calcCopyPointers
 	push bc ;number of bytes to be copied
-
-	ld hl, block_buffer
-	add hl, de ;buffer + reloffs
-
-	ld de, (block_memPtr)
-
 	ldir
 
 	pop bc
-	ld hl, (block_totalCount)
-	add hl, bc
-	ld (block_totalCount), hl
 
-	ld hl, (block_memPtr)
-	add hl, bc
-	ld (block_memPtr), hl
-
-	ld hl, (block_remCount)
-	or a
-	sbc hl, bc
-	ld (block_remCount), hl
-
-	ld hl, block_curBlock
-	call inc32
+	call block_nextBlock
 
 	ld hl, 0
 	ld (block_relOffs), hl
 
-	jr readLoop
-
-end:
-;last block
-	ld hl, block_buffer
-	ld de, (block_relOffs)
-	add hl, de
-
-	ld de, (block_memPtr)
-	ld bc, (block_remCount)
-	push bc
-	ldir
-
-	pop de
-	ld hl, (block_totalCount)
-	add hl, de
-	ex de, hl
-
 	xor a
 	ret
+
+
+
 
 error:
 	ld de, (block_totalCount)
@@ -179,59 +159,11 @@ error:
 	ld de, 0
 	ld (block_totalCount), de
 
-	;get address of file offset
-	ld de, fileTableOffset
-	push ix
-	pop hl
-	add hl, de
-	push hl
-	;(hl) = file offset
 
-	;calculate current block
-	ld de, block_curBlock
-	call ld32
-
-	ld hl, block_curBlock
-	call rshift9_32
+	call block_init
+	call c, partialWrite
 
 
-	;calculate final block
-	pop hl ;file offset
-	push hl ;file offset
-	ld de, block_endBlock
-	call ld32
-
-	ld de, (block_remCount)
-	dec de
-	ld hl, reg32
-	call ld16
-
-	ld hl, block_endBlock
-	ld de, reg32
-	call add32
-
-	call rshift9_32
-
-
-	;calculate offset relative to block start
-	pop de ;file offset
-	ld a, (de)
-	ld l, a
-	inc de
-	ld a, (de)
-	and 1
-	ld h, a
-	ld (block_relOffs), hl
-
-	ld de, fullWriteLoop ;return address
-	push de
-	xor a
-	cp h
-	jr nz, partialWrite
-	cp l
-	jr nz, partialWrite
-
-	pop de
 	;while curBlock < endBlock
     ;while cp32(hl=curBlock, de=endBlock) == c
 fullWriteLoop:
@@ -267,9 +199,7 @@ end:
 	cp 0
 	ret nz
 
-	ld hl, (block_totalCount)
-	add hl, de
-	ex de, hl
+	ld de, (block_totalCount)
 
 	;a is already 0
 	ret
@@ -290,24 +220,8 @@ fullWriteReturn:
 	cp 0
 	ret nz
 
-	;TODO create subroutine for this?
 	ld bc, 512
-
-	ld hl, (block_totalCount)
-	add hl, bc
-	ld (block_totalCount), hl
-
-	ld hl, (block_memPtr)
-	add hl, bc
-	ld (block_memPtr), hl
-
-	ld hl, (block_remCount)
-	or a
-	sbc hl, bc
-	ld (block_remCount), hl
-
-	ld hl, block_curBlock
-	call inc32
+	call block_nextBlock
 
 	xor a
 	ret
@@ -331,18 +245,9 @@ partialWriteReadReturn:
 	ret nz
 
 	;copy data to be written into buffer
-	ld hl, 512
-	ld de, (block_relOffs)
-	or a
-	sbc hl, de
-	ld b, h
-	ld c, l
+	call block_calcCopyPointers
 	push bc ;number of bytes to be copied
 
-	ld hl, block_buffer
-	add hl, de ;buffer + reloffs
-
-	ld de, (block_memPtr)
 	ex de, hl
 
 	ldir
@@ -360,6 +265,93 @@ partialWriteReturn:
 	cp 0
 	ret nz
 
+	call block_nextBlock
+
+	ld hl, 0
+	ld (block_relOffs), hl
+
+	xor a
+	ret
+
+
+
+
+error:
+	ld de, (block_totalCount)
+	ret
+.endf ;block_write
+
+
+.func block_init:
+;; Calculate the current and final block, and the relative offset
+;;
+;; Output:
+;; : carry - start with a partial block
+;; : no carry - start with a full block
+
+	;get address of file offset
+	ld de, fileTableOffset
+	push ix
+	pop hl
+	add hl, de
+	push hl
+	;(hl) = file offset
+
+	;calculate current block
+	ld de, block_curBlock
+	call ld32
+
+	ld hl, block_curBlock
+	call rshift9_32
+
+
+	;calculate final block
+	pop hl ;file offset
+	push hl ;file offset
+	ld de, block_endBlock
+	call ld32
+
+	ld de, (block_remCount)
+	dec de
+	ld hl, reg32
+	call ld16
+
+	ld hl, block_endBlock
+	ld de, reg32
+	call add32
+
+	call rshift9_32
+
+
+	;calculate offset relative to block start
+	pop de ;file offset
+	ld a, (de)
+	ld l, a
+	inc de
+	ld a, (de)
+	and 1
+	ld h, a
+	ld (block_relOffs), hl
+
+
+	xor a
+	cp h
+	jr nz, partial
+	cp l
+	ret z
+
+partial:
+	scf
+	ret
+.endf
+
+
+.func block_nextBlock:
+;; Advance to next block
+;;
+;; Input:
+;; : bc - count
+
 	ld hl, (block_totalCount)
 	add hl, bc
 	ld (block_totalCount), hl
@@ -373,19 +365,38 @@ partialWriteReturn:
 	sbc hl, bc
 	ld (block_remCount), hl
 
-	ld hl, 0
-	ld (block_relOffs), hl
-
 	ld hl, block_curBlock
-	call inc32
+	jp inc32
+.endf
 
-	xor a
+
+;TODO give this a better name
+.func block_calcCopyPointers:
+;; Calculate the amount of bytes to be copied in a partial block operation
+;;
+;; Output:
+;; bc - count
+;; de - memory pointer
+;; hl - buffer pointer
+
+	ld hl, 512
+	ld de, (block_relOffs)
+	or a
+	sbc hl, de
+	push hl ;bytes to end of block
+	;check if block_remCount < hl
+	ld bc, (block_remCount)
+	sbc hl, bc
+	pop hl
+	jr nc, remCount ;only read remCount bytes
+	ld b, h
+	ld c, l
+
+remCount:
+	ld hl, block_buffer
+	add hl, de ;buffer + reloffs
+
+	ld de, (block_memPtr)
+
 	ret
-
-
-
-
-error:
-	ld de, (block_totalCount)
-	ret
-.endf ;block_write
+.endf

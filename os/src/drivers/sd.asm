@@ -233,7 +233,7 @@ error:
 ;; : a - errno
 
 ; Errors: 0=no error
-	ld hl,sd_blockCallback
+	ld hl, sd_blockCallback
 	jp block_write
 
 .endf
