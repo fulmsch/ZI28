@@ -420,10 +420,10 @@ rshift9_32:
 ;; : (hl), (de) - 32-bit numbers
 ;;
 ;; Output:
-;; : c - (hl)<(de)
-;; : nc - (hl)>=(de)
-;; : z - (hl)=(de)
-;; : nz - (hl)!=(de)
+;; : c  - (hl) >  (de)
+;; : nc - (hl) <= (de)
+;; : z  - (hl) == (de)
+;; : nz - (hl) != (de)
 ;;
 ;; Destroyed:
 ;; : a, b, de, hl
