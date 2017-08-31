@@ -15,6 +15,9 @@ sd_fileDriver:
 
 .define sd_fileTableStartSector dev_fileTableData
 
+sd_blockCallback:
+	.dw sd_readBlock
+	.dw sd_writeBlock
 
 ;SD command set
 .define SD_GO_IDLE_STATE      0 + 40h ;Software reset
@@ -130,7 +133,7 @@ error:
 ;; : a - errno
 
 ; Errors: 0=no error
-	ld hl, sd_readBlock
+	ld hl, sd_blockCallback
 	jp block_read
 
 .endf
@@ -230,7 +233,7 @@ error:
 ;; : a - errno
 
 ; Errors: 0=no error
-	ld hl,sd_writeBlock
+	ld hl,sd_blockCallback
 	jp block_write
 
 .endf

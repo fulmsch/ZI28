@@ -87,9 +87,10 @@
 #define block_remCount          block_endBlock + 4
 #define block_totalCount        block_remCount + 2
 #define block_relOffs           block_totalCount + 2
-#define block_callback          block_relOffs + 2
-#define block_dest              block_callback + 2
-#define block_end               block_dest + 2
+#define block_readCallback      block_relOffs + 2
+#define block_writeCallback     block_readCallback + 2
+#define block_memPtr            block_writeCallback + 2
+#define block_end               block_memPtr + 2
 
 ;k_open
 #define k_open_mode             block_end
