@@ -121,17 +121,17 @@
 #define fat_dirEntryBuffer      fat_open_pathBuffer2 + 13   ;32 bytes
 #define fat_open_end            fat_dirEntryBuffer + 32
 
-;fat_read
-#define fat_read_remCount       fat_open_end
-#define fat_read_totalCount     fat_read_remCount + 2
-#define fat_read_dest           fat_read_totalCount + 2
-#define fat_read_cluster        fat_read_dest + 2
-#define fat_read_clusterSize    fat_read_cluster + 2
-#define fat_read_end            fat_read_clusterSize + 2
+;fat_read/write
+#define fat_rw_remCount         fat_open_end
+#define fat_rw_totalCount       fat_rw_remCount + 2
+#define fat_rw_dest             fat_rw_totalCount + 2
+#define fat_rw_cluster          fat_rw_dest + 2
+#define fat_rw_clusterSize      fat_rw_cluster + 2
+#define fat_rw_end              fat_rw_clusterSize + 2
 
 ;exec
 #define exec_addr               0xc000 ;temporary for compatibility
-#define exec_stack              fat_read_end     ;2 bytes
+#define exec_stack              fat_rw_end       ;2 bytes
 #define exec_fd                 exec_stack + 2   ;1 byte
 #define exec_end                exec_fd + 1
 

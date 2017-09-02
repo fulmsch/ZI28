@@ -18,7 +18,7 @@ fat_fsDriver:
 
 fat_fileDriver:
 	.dw fat_read
-	.dw 0x0000 ;fat_write
+	.dw fat_write
 
 .define fat_fileTableStartCluster fileTableData                 ;2 bytes
 .define fat_fileTableDirEntryAddr fat_fileTableStartCluster + 2 ;4 bytes
@@ -203,7 +203,7 @@ rootDirSizeLoop:
 	xor a
 
 	ret
-.endf ;fat_init
+.endf
 
 .func fat_open:
 ;; Creates a new file table entry
@@ -445,7 +445,7 @@ fileMode:
 error:
 	ld a, 1
 	ret
-.endf ;fat_open
+.endf
 
 .func fat_close:
 
@@ -624,10 +624,10 @@ writeAttrib:
 	;                                          ;
 	;******************************************;
 
-	ld (fat_read_remCount), bc
-	ld (fat_read_dest), de
+	ld (fat_rw_remCount), bc
+	ld (fat_rw_dest), de
 	ld de, 0
-	ld (fat_read_totalCount), de
+	ld (fat_rw_totalCount), de
 
 	;get the drive table entry of the filesystem for clustersize, devfd, etc.
 	ld a, (ix + fileTableDriveNumber)
@@ -651,7 +651,7 @@ notRootDir:
 	ld h, a
 	sla h
 	ld l, 0
-	ld (fat_read_clusterSize), hl
+	ld (fat_rw_clusterSize), hl
 
 	;calculate the starting cluster of the read
 	;a = sectorsPerCluster
@@ -696,7 +696,7 @@ startClusterLoop:
 	ex de, hl
 startClusterFound:
 	;de = start cluster
-	ld (fat_read_cluster), de
+	ld (fat_rw_cluster), de
 
 
 	;calculate the address to start reading
@@ -742,21 +742,21 @@ relOffsLoop:
 	pop ix
 
 	pop bc ;relOffs
-	ld hl, (fat_read_clusterSize)
+	ld hl, (fat_rw_clusterSize)
 	or a
 	sbc hl, bc
 	push hl ;maximum count in first cluster
 
 readCluster:
-	ld hl, (fat_read_remCount)
-	ld de, (fat_read_clusterSize)
+	ld hl, (fat_rw_remCount)
+	ld de, (fat_rw_clusterSize)
 	or a
 	sbc hl, de
 	pop hl ;count
 	jr c, lastCluster
 
 	;read(clustersize - clusteroffs)
-	ld de, (fat_read_dest)
+	ld de, (fat_rw_dest)
 	push de
 	push ix
 	push af
@@ -765,17 +765,17 @@ readCluster:
 	pop ix
 	pop hl
 	add hl, de ;buffer += count
-	ld (fat_read_dest), hl
-	ld hl, (fat_read_totalCount)
+	ld (fat_rw_dest), hl
+	ld hl, (fat_rw_totalCount)
 	add hl, de ;totalCount += count
-	ld (fat_read_totalCount), hl
+	ld (fat_rw_totalCount), hl
 
-	ld hl, (fat_read_cluster)
+	ld hl, (fat_rw_cluster)
 	push ix
 	call fat_nextCluster
 	pop ix
 	jr c, error ;unexpected end of chain
-	ld (fat_read_cluster), hl
+	ld (fat_rw_cluster), hl
 	ex de, hl
 	ld hl, regA
 	call ld16
@@ -791,11 +791,11 @@ readCluster:
 
 lastCluster:
 	;read(remCount)
-	ld hl, (fat_read_remCount)
-	ld de, (fat_read_dest)
+	ld hl, (fat_rw_remCount)
+	ld de, (fat_rw_dest)
 
 	call k_read
-	ld hl, (fat_read_totalCount)
+	ld hl, (fat_rw_totalCount)
 	add hl, de ;totalCount += count
 	ex de, hl
 	;de = total count
@@ -826,23 +826,248 @@ rootDir:
 	call k_lseek
 	pop af
 
-	ld de, (fat_read_dest)
-	ld hl, (fat_read_remCount)
+	ld de, (fat_rw_dest)
+	ld hl, (fat_rw_remCount)
 	jp k_read
 
 error:
+	ld a, 1
 	ret
-.endf ;fat_read
+.endf
 
 .func fat_write:
+;; Copy data from memory to a file
+;;
+;; Input:
+;; : ix - file entry addr
+;; : (de) - buffer
+;; : bc - count
+;;
+;; Output:
+;; : a - errno
+;; : de - count
+
+	;*******************************************;
+	;                                           ;
+	;  TODO test and debug multi-cluster write  ;
+	;                                           ;
+	;*******************************************;
+
+	ld (fat_rw_remCount), bc
+	ld (fat_rw_dest), de
+	ld de, 0
+	ld (fat_rw_totalCount), de
+
+	;get the drive table entry of the filesystem for clustersize, devfd, etc.
+	ld a, (ix + fileTableDriveNumber)
+	call getDriveAddr
+	jp c, error ;drive number out of bounds
+	push hl
+	pop iy
+	;iy = table entry address
+
+	;check if root dir (cluster = 0)
+	xor a
+	ld b, (ix + fat_fileTableStartCluster)
+	cp b
+	jr nz, notRootDir
+	ld b, (ix + fat_fileTableStartCluster + 1)
+	cp b
+	jp z, rootDir
+
+notRootDir:
+	ld a, (iy + fat_sectorsPerCluster)
+	ld h, a
+	sla h
+	ld l, 0
+	ld (fat_rw_clusterSize), hl
+
+	;calculate the starting cluster of the write
+	;a = sectorsPerCluster
+	ld hl, fileTableOffset
+	ld d, ixh
+	ld e, ixl
+	add hl, de
+	ld de, regA
+	call ld32
+
+	ex de, hl
+	call rshiftbyte32
+clusterIndexLoop:
+	call rshift32
+	srl a
+	jr nc, clusterIndexLoop
+
+	;(regA) = index of cluster in chain (16-bit)
+
+	ld e, (ix + fat_fileTableStartCluster)
+	ld d, (ix + fat_fileTableStartCluster + 1)
+
+	ld bc, (regA)
+	;check if index is 0
+	or a
+	ld hl, 0x0000
+	sbc hl, bc
+	jr z, startClusterFound
+
+	ex de, hl
+	;hl = startCluster
+
+	ld a, (iy + driveTableDevfd)
+startClusterLoop:
+	push ix
+	call fat_nextCluster
+	pop ix
+	jp c, error ;the chain shouldn't end
+	dec c
+	jr nz, startClusterLoop
+	djnz startClusterLoop
+	ex de, hl
+startClusterFound:
+	;de = start cluster
+	ld (fat_rw_cluster), de
+
+
+	;calculate the address to start writing
+	ld hl, regA
+	call ld16
+	call fat_clusterToAddr
+
+	;calculate offset relative to the cluster
+	ld e, (ix + fileTableOffset)
+	ld d, (ix + fileTableOffset + 1)
+	;de = offset[15..0]
+	;relOffs = offs % (sectorsPerCluster * 512)
+	ld a, (iy + fat_sectorsPerCluster)
+	ld b, 0 ;bitmask
+relOffsLoop:
+	sla b
+	inc b
+	srl a
+	jr nc, relOffsLoop
+
+	and d
+	;de = relOffs
+	push de
+
+	ld hl, regB
+	call ld16
+	;(regB) = relOffs
+
+	ex de, hl
+	ld hl, regA
+	call add32
+	;(regA) = startAddr
+
+	ex de, hl ;de = regA
+
+	ld a, (iy + driveTableDevfd)
+
+	ld h, K_SEEK_SET
+	push ix
+	push af
+	call k_lseek
+	pop af
+	pop ix
+
+	pop bc ;relOffs
+	ld hl, (fat_rw_clusterSize)
+	or a
+	sbc hl, bc
+	push hl ;maximum count in first cluster
+
+writeCluster:
+	ld hl, (fat_rw_remCount)
+	ld de, (fat_rw_clusterSize)
+	or a
+	sbc hl, de
+	pop hl ;count
+	jr c, lastCluster
+
+	;write(clustersize - clusteroffs)
+	ld de, (fat_rw_dest)
+	push de
+	push ix
+	push af
+	call k_write
+	pop af
+	pop ix
+	pop hl
+	add hl, de ;buffer += count
+	ld (fat_rw_dest), hl
+	ld hl, (fat_rw_totalCount)
+	add hl, de ;totalCount += count
+	ld (fat_rw_totalCount), hl
+
+	ld hl, (fat_rw_cluster)
+	push ix
+	call fat_nextCluster
+	pop ix
+	jr c, error ;unexpected end of chain
+	ld (fat_rw_cluster), hl
+	ex de, hl
+	ld hl, regA
+	call ld16
+	call fat_clusterToAddr
+	ex de, hl
+	ld h, K_SEEK_SET
+	push ix
+	call k_lseek
+	pop ix
+	jr writeCluster
+	
+
+
+lastCluster:
+	;write(remCount)
+	ld hl, (fat_rw_remCount)
+	ld de, (fat_rw_dest)
+
+	call k_write
+	ld hl, (fat_rw_totalCount)
+	add hl, de ;totalCount += count
+	ex de, hl
+	;de = total count
 
 	ret
-.endf ;fat_write
+
+rootDir:
+	;lseek offset + rootDirStart
+	ld a, (iy + driveTableDevfd)
+	ld b, iyh
+	ld c, iyl
+	ld hl, fat_rootDirStartAddr
+	add hl, bc
+	ld de, regA
+	call ld32
+
+	ld b, ixh
+	ld c, ixl
+	ld hl, fileTableOffset
+	add hl, bc
+	ex de, hl
+	call add32
+	ex de, hl
+
+	;(de) = offset
+	ld h, K_SEEK_SET
+	push af
+	call k_lseek
+	pop af
+
+	ld de, (fat_rw_dest)
+	ld hl, (fat_rw_remCount)
+	jp k_write
+
+error:
+	ld a, 1
+	ret
+.endf
 
 .func fat_fctl:
 
 	ret
-.endf ;fat_fctl
+.endf
 
 .func fat_nextCluster:
 ;; Find the next cluster of a chain from the first FAT
