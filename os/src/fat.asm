@@ -264,6 +264,11 @@ rootDirSizeLoop:
 	add hl, de
 	call clear32
 
+	;set mode to dir
+	ld a, (ix + fileTableMode)
+	or M_DIR
+	ld (ix + fileTableMode), a
+
 	;set startCluster to 0 to indicate the rootDir
 	xor a
 	ld (ix + fat_fileTableStartCluster), a
@@ -275,10 +280,6 @@ rootDirSizeLoop:
 	jr nz, openFile
 
 	;root directory was requested
-	;set mode to dir
-	ld a, (ix + fileTableMode)
-	or M_DIR
-	ld (ix + fileTableMode), a
 	xor a
 	ret
 
@@ -422,6 +423,7 @@ finish:
 	;check permission
 	ld a, (fat_dirEntryBuffer + 0x0b) ;attributes
 	ld b, (ix + fileTableMode)
+	res M_DIR_BIT, b
 	bit M_WRITE_BIT, b
 	jr z, fileType
 	bit FAT_ATTRIB_RDONLY, a
@@ -637,6 +639,105 @@ writeAttrib:
 	pop iy
 	;iy = table entry address
 
+	ld a, (ix + fileTableMode)
+	bit M_DIR_BIT, a
+	jr nz, isDir
+
+	;regular file -> limit remCount to file size
+	;return de=0 if offset >= filesize
+
+	;add count to offset
+	ld de, (fat_rw_remCount)
+	ld hl, regA
+	call ld16
+
+	ld d, ixh
+	ld e, ixl
+	ld hl, fileTableSize
+	add hl, de
+	push hl ;size
+	ld de, fileTableOffset-(fileTableSize)
+	add hl, de
+	push hl ;offset
+	ex de, hl ;(de) = offset
+	ld hl, regA
+	call add32 ;regA = offset+count
+	;if (regA > size) count = size - offset
+	;c - hl > de
+	;de - size
+	;hl - regA
+	pop bc ;offset
+	pop de ;size
+	push de ;size
+	push bc ;offset
+	call cp32
+	pop bc ;offset
+	pop hl ;size
+	jr nc, notRootDir ;count does not need to be limited
+
+	;limit count to size - offset or 0xffff
+	;(de) = (de) - (hl)
+	;de = size->regA
+	;hl = offset
+	ld de, regA
+	call ld32 ;regA = size
+	ld h, b
+	ld l, c
+	call sub32 ;regA = size - offset
+
+.define ZERO_FLAG_BIT     0
+.define OVERFLOW_FLAG_BIT 1
+
+	ld b, 1 << ZERO_FLAG_BIT
+	ld a, (de)
+	ld l, a
+	cp 0
+	jr z, limitCount0
+	res ZERO_FLAG_BIT, b
+limitCount0:
+	inc de
+	ld a, (de)
+	ld h, a
+	cp 0
+	jr z, limitCount1
+	res ZERO_FLAG_BIT, b
+limitCount1:
+	inc de
+	ld a, (de)
+	cp 0
+	jr z, limitCount2
+	set OVERFLOW_FLAG_BIT, b
+limitCount2:
+	inc de
+	ld a, (de)
+	cp 0
+	jr z, limitCount3
+	set OVERFLOW_FLAG_BIT, b
+	bit 0, a
+	jr nz, zeroCount
+limitCount3:
+	bit OVERFLOW_FLAG_BIT, b
+	jr nz, limitCount4
+	bit ZERO_FLAG_BIT, b
+	jr nz, zeroCount
+
+	ld (fat_rw_remCount), hl
+	jr notRootDir
+
+limitCount4:
+	ld hl, 0xffff
+	ld (fat_rw_remCount), hl
+	jr notRootDir
+
+
+zeroCount:
+	xor a
+	ld d, a
+	ld e, a
+	ret
+
+
+isDir:
 	;check if root dir (cluster = 0)
 	xor a
 	ld b, (ix + fat_fileTableStartCluster)

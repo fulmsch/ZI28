@@ -735,7 +735,12 @@ u_read:
 	add a, fdTableEntries
 
 .func k_read:
-;; Read from an open file
+;; Attempts to read up to count bytes from a file descriptor into a buffer.
+;;
+;; On files that support seeking, the read operation commences at the file
+;; offset, and the file offset is incremented by the number of bytes read.
+;; If the file offset is at or past the end of file, no bytes are read, and
+;; read returns zero.
 ;;
 ;; Finds and calls the read routine of the corresponding file driver.
 ;;
