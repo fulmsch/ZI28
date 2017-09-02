@@ -324,13 +324,6 @@ writeBlock2:
 	cp 0x05 ;data accepted
 	jr nz, error
 
-	;wait until write is complete
-	;TODO should instead be done before every command
-	ld b, 100
-	ld e, 0xff
-	call sd_getResponse
-	jr c, error
-
 	call sd_disable
 	pop hl
 	xor a
@@ -358,6 +351,17 @@ error:
 ;;
 ;; Destroyed:
 ;; : a, b
+
+	ld d, a
+
+	;wait until the SD is not busy
+	;TODO test on hardware, possibly adjust timeout
+	ld b, 100
+	ld e, 0xff
+	call sd_getResponse
+	ret c
+
+	ld a, d
 
 	;point to msb
 	inc hl
