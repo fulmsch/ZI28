@@ -37,6 +37,10 @@ GtkEntry *g_field_break;
 //GtkButton *g_button_break_add, *g_button_break_rem_all;
 GtkTextBuffer *g_txt_console;
 
+HexDocument *hexdoc;
+GtkWidget *hexeditor;
+GtkPaned *g_paned_hexeditor;
+
 gint timeout_update(gpointer data);
 
 GtkWidget    *window;
@@ -92,6 +96,10 @@ void updateRegisters() {
 	for (int i = 0; i < 8; i++) {
 		gtk_entry_set_text(g_field_flags_main[i], (context.R1.br.F & (1 << i)) ? "1" : "0");
 	}
+
+//	hex_document_set_data(hexdoc, 0,
+//						  0x10000, 0, memory,
+//						  FALSE);
 }
 
 
@@ -206,6 +214,22 @@ int main(int argc, char **argv) {
 	g_view_console = GTK_TEXT_VIEW(gtk_builder_get_object(builder, "view_console"));
 	gtk_text_view_set_monospace(g_view_console, TRUE);
 	g_txt_console = gtk_text_view_get_buffer(GTK_TEXT_VIEW(g_view_console));
+
+
+	g_paned_hexeditor = GTK_PANED(gtk_builder_get_object(builder, "paned_hexeditor"));
+	hexdoc = hex_document_new();
+	hex_document_set_data(hexdoc, 0,
+								  0x10000, 0, memory,
+								  FALSE);
+	hexeditor = gtk_hex_new(hexdoc);
+	gtk_hex_show_offsets(GTK_HEX(hexeditor), TRUE);
+	gtk_paned_pack1(g_paned_hexeditor, hexeditor, TRUE, TRUE);
+	gtk_hex_set_geometry(GTK_HEX(hexeditor), 16, 8);
+	gtk_widget_set_hexpand(hexeditor, TRUE);
+	GtkRequisition minimum_size, natural_size;
+	gtk_widget_get_preferred_size(hexeditor, &minimum_size, &natural_size);
+	printf("Minimum size: %d, %d; Natural size: %d, %d\n", minimum_size.width, minimum_size.height, natural_size.width, natural_size.height);
+
 
 	g_object_unref(builder);
 
@@ -340,13 +364,14 @@ void on_menu_mem_ramRand_activate() {
 }
 
 void on_menu_mem_editor_activate() {
-	GtkWidget *memEditorWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	HexDocument *hexdoc = hex_document_new();
+//	GtkWidget *memEditorWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	hexdoc = hex_document_new();
 	hex_document_set_data(hexdoc, 0,
 								  0x10000, 0, memory,
 								  FALSE);
-	GtkWidget *hexeditor = gtk_hex_new(hexdoc);
+	hexeditor = gtk_hex_new(hexdoc);
 	gtk_hex_show_offsets(GTK_HEX(hexeditor), TRUE);
-	gtk_container_add(GTK_CONTAINER(memEditorWindow), hexeditor);
-	gtk_widget_show_all(memEditorWindow);
+	gtk_paned_pack1(g_paned_hexeditor, hexeditor, TRUE, FALSE);
+//	gtk_container_add(GTK_CONTAINER(memEditorWindow), hexeditor);
+//	gtk_widget_show_all(memEditorWindow);
 }
