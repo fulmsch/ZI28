@@ -126,15 +126,15 @@ loadAbort:
 	jr loadEnd
 
 loadStr:
-	.db "\r\nLoading\r\n"
+	.db "\nLoading\n"
 	.db 00h
 
 loadFinishedStr:
-	.db "Finished loading\r\n"
+	.db "Finished loading\n"
 	.db 00h
 
 loadAbortStr:
-	.db "Loading aborted\r\n"
+	.db "Loading aborted\n"
 	.db 00h
 
 
@@ -166,11 +166,11 @@ clearLoop:
 	jp prompt
 
 clearConfirmationStr:
-	.db "\r\nClear the entire buffer? [Y/N]\r\n"
+	.db "\nClear the entire buffer? [Y/N]\n"
 	.db 00h
 
 clearCompleteStr:
-	.db "\r\nThe buffer has been cleared\r\n"
+	.db "\nThe buffer has been cleared\n"
 	.db 00h
 
 
@@ -232,16 +232,16 @@ verifyCheckCancel:
 	jp prompt
 
 verifySelectStr:
-	.db "\r\nSelect source:\r\n"
-	.db "[B]uffer    [R]OM    [C]ancel\r\n"
+	.db "\nSelect source:\n"
+	.db "[B]uffer    [R]OM    [C]ancel\n"
 	.db 00h
 
 verifyStartStr:
-	.db "\r\nWaiting for start signal\r\n"
+	.db "\nWaiting for start signal\n"
 	.db 00h
 
 verifyCancelStr:
-	.db "Transfer canceled\r\n"
+	.db "Transfer canceled\n"
 	.db 00h
 
 
@@ -304,7 +304,7 @@ burnWait:
 	jp prompt
 
 burnConfirmationStr:
-	.db "\r\nBurn the contents of the buffer to the ROM? [Y/N]\r\n"
+	.db "\nBurn the contents of the buffer to the ROM? [Y/N]\n"
 	.db 00h
 
 
@@ -325,7 +325,7 @@ reset00:
 	jp 0000h
 
 resetConfirmationStr:
-	.db "\r\nReset the system? [Y/N]\r\n"
+	.db "\nReset the system? [Y/N]\n"
 	.db 00h
 
 
@@ -337,12 +337,12 @@ clearScreenStr:
 	.db 00h
 
 welcomeStr:
-	.db "RomUtil - Program to write to and verify the EEPROM\r\n"
-	.db "F. Ulmschneider 2016\r\n"
+	.db "RomUtil - Program to write to and verify the EEPROM\n"
+	.db "F. Ulmschneider 2016\n"
 	.db 00h
 
 promptStr:
-	.db "\r\n[L]oad    [C]lear    [V]erify    [B]urn    [R]eset\r\n"
+	.db "\n[L]oad    [C]lear    [V]erify    [B]urn    [R]eset\n"
 	.db 00h
 
 

@@ -17,4 +17,4 @@ os.hex: $(SRCDIR)/*.h $(SRCDIR)/*.asm $(SRCDIR)/*/*.asm $(INCLUDEDIR)/*.h
 	srec_cat os.obj -binary -o os.hex -intel
 
 sim:
-	zi28sim -r os.obj & sleep 0.5 && picocom /tmp/zi28sim --omap delbs --send-cmd "ascii-xfr -snv" --receive-cmd "ascii-xfr -rne"
+	zi28sim -r os.obj & sleep 0.5 && picocom /tmp/zi28sim --omap crcrlf,delbs --send-cmd "ascii-xfr -snvde" --receive-cmd "ascii-xfr -rne"

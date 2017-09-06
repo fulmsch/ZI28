@@ -31,7 +31,7 @@ handleChar:
 	call getc
 	cp 08h
 	jr z, backspace
-	cp 0dh
+	cp '\n'
 	jr z, handleLine
 	;Check if printable
 	cp 20h

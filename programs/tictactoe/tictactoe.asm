@@ -1,5 +1,5 @@
 .z80
-.include "biosCalls.h"
+.include "sys/os.h"
 
 .org 0c000h
 
@@ -105,8 +105,6 @@ resetBoardLoop:
 	
 
 drawBoard:
-	ld a, 0dh
-	rst putc
 	ld a, 0ah
 	rst putc
 
@@ -156,8 +154,6 @@ drawRow:
 	
 	call drawSymbol
 	
-	ld a, 0dh
-	rst putc
 	ld a, 0ah
 	rst putc
 	

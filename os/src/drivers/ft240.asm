@@ -35,12 +35,23 @@ poll:
 	bit 1, a
 	jr nz, poll
 	in a, (FT240_DATA_PORT)
+	cp 0x04 ;end of text
+	jr z, eof
+	cp '\r'
+	jr z, poll
 	ld (de), a
 	inc de
 	inc hl
 	djnz poll
 	dec c
 	jr nz, poll
+	ex de, hl
+	xor a
+	ret
+
+eof:
+	xor a
+	ld (de), a
 	ex de, hl
 	ret
 .endf ;ft240_read

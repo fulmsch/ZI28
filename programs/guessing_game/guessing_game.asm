@@ -1,7 +1,7 @@
 .z80
-.include "biosCalls.h"
+.include "sys/os.h"
 
-.org 0c000h
+.org 0xc000
 
 restart:
 	ld e, 0
@@ -15,8 +15,10 @@ number:
 	rst getc
 	cp 'q'
 	ret z
-	xor 30h
-	cp 0ah
+	cp 0x03 ;ctrl-c
+	ret z
+	xor 0x30
+	cp 0x0a
 	jr nc, invalidNumber
 	inc e
 	cp d
@@ -46,11 +48,9 @@ attemptsDisp:
 	ld hl, attempts
 	call print
 	ld a, e
-	or 30h
+	or 0x30
 	rst putc
-	ld a, 0dh
-	rst putc
-	ld a, 0ah
+	ld a, 0x0a
 	rst putc
 	jr number
 
@@ -60,22 +60,20 @@ win:
 	ld a, e
 	or 30h
 	rst putc
-	ld a, 0dh
-	rst putc
-	ld a, 0ah
+	ld a, 0x0a
 	rst putc
 	ld hl, newGamePromt
 	call print
 newGame:
 	xor a
 	call getc
-	cp 4eh
+	cp 0x4e
 	jr z, exit
-	cp 6eh
+	cp 0x6e
 	jr z, exit
-	cp 59h
+	cp 0x59
 	jr z, restart
-	cp 79h
+	cp 0x79
 	jp z, restart
 	ld hl, invalid
 	call print
@@ -130,7 +128,7 @@ shiftLoop:
 print:
 	ld a, (hl)
 	inc hl
-	cp 00h
+	cp 0x00
 	ret z
 	rst putc
 	jr print
@@ -140,28 +138,22 @@ print:
 
 
 numberPromt:
-	.db "Guess a number from 0 to 7:\r\n"
-	.db 0
+	.asciiz "Guess a number from 0 to 7:\n"
 
 newGamePromt:
-	.db "New Game? y/n\r\n"
-	.db 0
+	.asciiz "New Game? y/n\n"
 
 correct:
-	.db "Correct! "
-	.db 0
+	.asciiz "Correct! "
 
 tooHigh:
-	.db "Too high! "
-	.db 0
+	.asciiz "Too high! "
 
 tooLow:
-	.db "Too low! "
-	.db 0
+	.asciiz "Too low! "
 
 attempts:
-	.db "Attempts: "
-	.db 0
+	.asciiz "Attempts: "
 
-invalid: db "Invalid Entry!\r\n"
-	.db 0
+invalid: 
+	.asciiz "Invalid Entry!\n"
