@@ -1104,7 +1104,7 @@ writeCluster:
 	push ix
 	call fat_nextCluster
 	pop ix
-	jr c, error ;unexpected end of chain
+	jp c, error ;unexpected end of chain
 	ld (fat_rw_cluster), hl
 	ex de, hl
 	ld hl, regA
@@ -1124,11 +1124,67 @@ lastCluster:
 	ld hl, (fat_rw_remCount)
 	ld de, (fat_rw_dest)
 
+	push ix
 	call k_write
+	pop ix
+	cp 0
+	jp nz, error
 	ld hl, (fat_rw_totalCount)
 	add hl, de ;totalCount += count
+	push hl ;totalCount
 	ex de, hl
-	;de = total count
+	ld hl, regA
+	call ld16 ;regA = totalCount
+	ex de, hl ;de=regA
+
+	;offset += totalCount
+	;if (offset > size) size = offset
+	ld b, ixh
+	ld c, ixl
+	ld hl, fileTableOffset
+	add hl, bc ;hl = offset
+	call add32 ;offset = offset + totalCount
+	ld d, h
+	ld e, l ;hl = de = offset
+	ld bc, fileTableSize-(fileTableOffset)
+	add hl, bc ;hl = size
+	;de = offset, hl = size
+	push hl ;size
+	push de ;offset
+	call cp32
+	pop hl ;offset
+	pop de ;size
+	jr c, end
+
+	;offset >= size -> size = offset
+	call ld32
+	;TODO write new size to disk
+	push de
+	ld de, fat_fileTableDirEntryAddr-(fileTableOffset)
+	add hl, de ;hl=dirEntry
+	ex de, hl ;de=dirEntry
+	ld hl, regA
+	ld a, 0x1c
+	call ld8 ;hl=regA=1c
+	call add32 ;hl=regA=dirEntry->size
+	ex de, hl
+	ld h, K_SEEK_SET
+	ld a, (iy + driveTableDevfd)
+	call k_lseek
+	pop de
+	cp 0
+	jr nz, error
+
+	ld a, (iy + driveTableDevfd)
+	ld hl, 4
+	call k_write
+	cp 0
+	jr nz, error
+	
+
+end:
+	pop de ;totalCount
+	xor a
 
 	ret
 
