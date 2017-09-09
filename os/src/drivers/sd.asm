@@ -276,6 +276,7 @@ error:
 
 	ld a, SD_WRITE_BLOCK
 	call sd_sendCmd
+	jr c, error
 	ld b, 10
 	ld e, 0
 	call sd_getResponse
@@ -354,12 +355,13 @@ error:
 
 	ld d, a
 
+busyLoop:
 	;wait until the SD is not busy
-	;TODO test on hardware, possibly adjust timeout
-	ld b, 100
+	;TODO add timeout?
+	ld b, 0
 	ld e, 0xff
 	call sd_getResponse
-	ret c
+	jr c, busyLoop
 
 	ld a, d
 
