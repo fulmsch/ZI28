@@ -65,7 +65,7 @@ backspace:
 inputBufferOverflow:
 	ld hl, inputBufferOverflowStr
 	call printStr
-	ret
+	jr prompt
 
 inputBufferOverflowStr:
 	.asciiz "\nThe entered command is too long\n"
