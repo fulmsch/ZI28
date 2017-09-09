@@ -48,10 +48,10 @@ handleChar:
 	cp 08h
 	jr z, backspace
 
-	cp 0ah
-	jr z, handleChar
-	cp 0dh
+	cp 0x0a
 	jr z, handleStr
+	cp 0x0d
+	jr z, handleChar
 	call putc
 
 ;fix this hack when reworking the buffer system
@@ -88,13 +88,13 @@ handleStr:
 
 	ld hl, monInputBuffer
 	ld a, (hl)
-	cp 0dh
+	cp 0x0a
 	jp z, prompt ;no char entered
 
 	ld b, 00h
 	inc hl
 	ld a, (hl)
-	cp 0dh
+	cp 0x0a
 	jr z, handleStr02	;no arguments
 	cp ' '
 	jp nz, invalid
@@ -102,7 +102,7 @@ handleStr:
 handleStr00:
 	;get number of arguments
 	ld a, (hl)
-	cp 0dh
+	cp 0x0a
 	jr z, handleStr02
 	cp ' '
 	jr z, handleStr01
@@ -113,7 +113,7 @@ handleStr01:
 	ld a, (hl)
 	cp ' '
 	jr z, handleStr01
-	cp 0dh
+	cp 0x0a
 	jr z, handleStr02
 	inc b
 	jr handleStr00
@@ -268,7 +268,7 @@ loadExit:
 	call getc
 	cp 03h
 	jp z, loadAbort
-	cp 0dh
+	cp 0x0a
 	jr nz, loadExit
 	
 
@@ -416,7 +416,7 @@ hexDumpContinue:
 	
 	cp 03h ;CTRL-C, break
 	jp z, prompt
-	cp 0dh ;Enter, continue
+	cp 0x0a ;Enter, continue
 	jr nz, hexDumpContinue	
 	
 	ld a, 0ah
@@ -494,9 +494,9 @@ writeHandleChar:
 	jr z, writeBackspace
 	cp 03h
 	jr z, writeEnd
-	cp 0dh
+	cp 0x0d
 	jr z, writeHandleChar
-	cp 0ah
+	cp 0x0a
 	jr z, writeHandleStr
 	call putc
 	
