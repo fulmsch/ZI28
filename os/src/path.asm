@@ -87,9 +87,9 @@ relDotEntry:
 	cp '/'
 	jr z, slashLoop ;a '/' has already been copied, ignore any further '/'
 
-	dec hl ;in case of a jump to regloop
 	cp 0x00
 	jr z, regLoop ;terminate the string and return
+	dec hl ;in case of a jump to regloop
 	cp '.'
 	jr nz, regLoop ;regular filename starting with a dot
 	inc hl
