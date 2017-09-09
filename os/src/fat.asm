@@ -481,8 +481,6 @@ readLoop:
 	ld a, (hl)
 	cp 0x00 ;end of dir reached, no match
 	jp z, error
-	cp 0x2e ;dot entry (. or ..), gets ignored
-	jr z, readLoop
 	cp 0xe5 ;deleted file
 	jr z, readLoop
 	cp 0x20 ;empty filename
