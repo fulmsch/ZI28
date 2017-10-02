@@ -26,6 +26,8 @@
 
 GResource *resources_get_resource(void);
 
+int bflag = 0;
+
 int quit_req = 0;
 GtkTextView *g_view_console;
 GtkEntry *g_field_instruction;
@@ -56,12 +58,19 @@ void console(const char* format, ...) {
 	char buffer[100];
 
 	va_start(args, format);
-	vsprintf(buffer, format, args);
+	vsnprintf(buffer, 100, format, args);
 	va_end(args);
 
-	gtk_text_buffer_insert_at_cursor(g_txt_console, buffer, -1);
-	gtk_text_view_scroll_mark_onscreen (g_view_console,
-	                                    gtk_text_buffer_get_insert(g_txt_console));
+	if (bflag) {
+		printf("%s", buffer);
+	} else {
+		GtkTextIter endIter;
+		gtk_text_buffer_get_end_iter(g_txt_console, &endIter);
+		gtk_text_buffer_place_cursor(g_txt_console, &endIter);
+		gtk_text_buffer_insert_at_cursor(g_txt_console, buffer, -1);
+		gtk_text_view_scroll_mark_onscreen (g_view_console,
+		                                    gtk_text_buffer_get_insert(g_txt_console));
+	}
 }
 
 void updateRegisters() {
@@ -108,7 +117,6 @@ void clearRegisters() {
 int main(int argc, char **argv) {
 	int hflag = 0;
 	int rflag = 0;
-	int bflag = 0;
 	int c;
 	while ((c = getopt(argc, argv, "hr:b")) != -1) {
 		switch (c) {
