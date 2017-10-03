@@ -53,6 +53,17 @@ enum {
 	CONT
 } status;
 
+void cleanup() {
+	fclose(sd.imgFile);
+	remove("/tmp/zi28sim");
+}
+
+void sigHandler(int sig) {
+	if (sig == SIGINT || sig == SIGTERM) {
+		exit(0);
+	}
+}
+
 void console(const char* format, ...) {
 	va_list args;
 	char buffer[100];
@@ -118,6 +129,9 @@ int main(int argc, char **argv) {
 	int hflag = 0;
 	int rflag = 0;
 	int c;
+	atexit(cleanup);
+	signal(SIGINT, sigHandler);
+	signal(SIGTERM, sigHandler);
 	while ((c = getopt(argc, argv, "hr:b")) != -1) {
 		switch (c) {
 			case 'h':
@@ -163,9 +177,6 @@ int main(int argc, char **argv) {
 		while (1) {
 			Z80Execute(&context);
 		}
-		fclose(sd.imgFile);
-		remove("/tmp/zi28sim");
-		return 0;
 	}
 
 	g_resources_register(resources_get_resource());
@@ -222,9 +233,6 @@ int main(int argc, char **argv) {
 	g_timeout_add(10, timeout_update, NULL);
 
 	gtk_main();
-
-	fclose(sd.imgFile);
-	remove("/tmp/zi28sim");
 
 	return 0;
 }
