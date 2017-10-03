@@ -59,8 +59,12 @@ void cleanup() {
 }
 
 void sigHandler(int sig) {
-	if (sig == SIGINT || sig == SIGTERM) {
-		exit(0);
+	switch (sig) {
+		case SIGINT:
+		case SIGTERM:
+			exit(0);
+		case SIGABRT:
+			exit(1);
 	}
 }
 
@@ -132,6 +136,7 @@ int main(int argc, char **argv) {
 	atexit(cleanup);
 	signal(SIGINT, sigHandler);
 	signal(SIGTERM, sigHandler);
+	signal(SIGABRT, sigHandler);
 	while ((c = getopt(argc, argv, "hr:b")) != -1) {
 		switch (c) {
 			case 'h':
@@ -161,16 +166,15 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Error: No ROM-image specified\nUse '-h' for help\n");
 		return 1;
 	}
-//	if (!rflag) {
-//		fprintf(stderr, "Missing argument(s)\nUse '-h' for help\n");
-//		return 1;
-//	}
 
 
 	//Start z80lib
 	emulator_init();
 	if (romFile) {
-		emulator_loadRom(romFile);
+		if (emulator_loadRom(romFile)) {
+			printf("Could not open '%s'.\n", romFile);
+			if (bflag) exit(1);
+		}
 	}
 
 	if (bflag) {
@@ -325,8 +329,10 @@ void on_menu_mem_romLoad_activate() {
 	if (res == GTK_RESPONSE_ACCEPT) {
 		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
 		romFile = gtk_file_chooser_get_filename (chooser);
-		emulator_loadRom(romFile);
-		console("Loaded the contents of %s into ROM\n", romFile);
+		if (!emulator_loadRom(romFile))
+			console("Loaded the contents of '%s' into ROM.\n", romFile);
+		else
+			console("Could not open '%s'.\n", romFile);
 	}
 
 	gtk_widget_destroy (dialog);
@@ -334,10 +340,12 @@ void on_menu_mem_romLoad_activate() {
 
 void on_menu_mem_romReload_activate() {
 	if (romFile) {
-		emulator_loadRom(romFile);
-		console("ROM-File reloaded\n");
+		if (!emulator_loadRom(romFile))
+			console("Could not open '%s'.\n", romFile);
+		else
+			console("ROM-File reloaded.\n");
 	} else {
-		console("Warning: No ROM-file specified\n");
+		console("Warning: No ROM-file specified.\n");
 	}
 }
 
@@ -345,7 +353,7 @@ void on_menu_mem_ramClear_activate() {
 	for (int i = 0x4000; i < 0x10000; i++) {
 		memory[i] = 0;
 	}
-	console("RAM cleared\n");
+	console("RAM cleared.\n");
 }
 
 void on_menu_mem_ramRand_activate() {

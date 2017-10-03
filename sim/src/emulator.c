@@ -32,7 +32,7 @@ void emulator_init() {
 
 	if (!(sd.imgFile = fopen("/home/florian/sd.img", "r+"))) {
 		fprintf(stderr, "Error: can't open SD image file\n");
-		abort();
+		exit(1);
 	}
 	sd.status = IDLE;
 	sdModule.card = &sd;
@@ -43,10 +43,11 @@ void emulator_init() {
 	context.ioWrite = context_io_write_callback;
 }
 
-void emulator_loadRom(char *romFile) {
-	memFile = fopen(romFile, "rb");
+int emulator_loadRom(char *romFile) {
+	if(!(memFile = fopen(romFile, "rb"))) return -1;
 	fread(memory, 1, 0x10000, memFile);
 	fclose(memFile);
+	return 0;
 }
 
 void emulator_reset() {

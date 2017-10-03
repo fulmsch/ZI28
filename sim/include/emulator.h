@@ -11,7 +11,7 @@ struct pollfd pty[1];
 struct termios ptyTermios;
 
 void emulator_init(void);
-void emulator_loadRom(char *romFile);
+int emulator_loadRom(char *romFile);
 void emulator_reset(void);
 int emulator_runCycles(int n_cycles, int useBreakpoints);
 
