@@ -122,13 +122,12 @@ k_open:
 ;; * `O_RDWR` : Open for reading and writing.
 ;;
 ;; Additionally, zero or more of the following flags may be specified:
-;; (PLANNED)
 ;;
 ;; * `O_APPEND` : Before each write, the file offset is positioned at the
 ;; end of the file.
 ;; * `O_DIRECTORY` : Causes open to fail if the specified file is not a
 ;; directory.
-;; * `O_TRUNC` : If the file exists and opened for writing, its size gets
+;; * `O_TRUNC` : (Planned) If the file exists and opened for writing, its size gets
 ;; truncated to 0.
 ;;
 ;; Before calling the filesystem routine, the mode field gets populated with
@@ -306,6 +305,10 @@ skipWriteFlag:
 	jr nz, skipReadFlag
 	or M_READ
 skipReadFlag:
+	bit O_APPEND_BIT, b
+	jr z, skipAppendFlag
+	or M_APPEND
+skipAppendFlag:
 	ld (ix + fileTableMode), a
 
 
@@ -880,7 +883,20 @@ u_write:
 
 	push hl
 	pop ix
+	
+	;a still contains fileTable_mode
+	bit M_APPEND_BIT, a
+	jr z, skipAppend
+	;set offset to size hl size  de offset
+	ld de, fileTableOffset
+	add hl, de
+	ld d, h
+	ld e, l
+	ld bc, fileTableSize-(fileTableOffset)
+	add hl, bc
+	call ld32
 
+skipAppend:
 	;check for valid file driver
 	ld l, (ix + fileTableDriver)
 	ld h, (ix + fileTableDriver + 1)

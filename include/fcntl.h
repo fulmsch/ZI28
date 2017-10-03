@@ -16,7 +16,7 @@
 #define O_RDONLY    0x01
 #define O_WRONLY    0x02
 #define O_RDWR      0x04
-#define O_APPEND    0x08 //unused
+#define O_APPEND    0x08
 #define O_DIRECTORY 0x10
 #define O_TRUNC     0x20 //unused
 
