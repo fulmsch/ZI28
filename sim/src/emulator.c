@@ -31,7 +31,7 @@ void emulator_init() {
 	romProtect = 1;
 
 	if (!(sd.imgFile = fopen("/home/florian/sd.img", "r+"))) {
-		fprintf(stderr, "Error: can't open SD image file\n");
+		fprintf(stderr, "Error: can't open SD image file.\n");
 		exit(1);
 	}
 	sd.status = IDLE;

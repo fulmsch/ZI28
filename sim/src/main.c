@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <z80.h>
+#include <getopt.h>
 
 #include <gtkhex.h>
 
@@ -26,7 +27,7 @@
 
 GResource *resources_get_resource(void);
 
-int bflag = 0;
+int textMode_flag = 0;
 
 int quit_req = 0;
 GtkTextView *g_view_console;
@@ -53,8 +54,8 @@ enum {
 	CONT
 } status;
 
+
 void cleanup() {
-	fclose(sd.imgFile);
 	remove("/tmp/zi28sim");
 }
 
@@ -76,7 +77,7 @@ void console(const char* format, ...) {
 	vsnprintf(buffer, 100, format, args);
 	va_end(args);
 
-	if (bflag) {
+	if (textMode_flag) {
 		printf("%s", buffer);
 	} else {
 		GtkTextIter endIter;
@@ -130,54 +131,80 @@ void clearRegisters() {
 }
 
 int main(int argc, char **argv) {
-	int hflag = 0;
-	int rflag = 0;
+	int help_flag = 0;
+	int romFile_flag = 0;
+	int silent_flag = 0;
 	int c;
 	atexit(cleanup);
 	signal(SIGINT, sigHandler);
 	signal(SIGTERM, sigHandler);
 	signal(SIGABRT, sigHandler);
-	while ((c = getopt(argc, argv, "hr:b")) != -1) {
+	while (1) {
+		static struct option long_options[] = {
+			{"help",      no_argument,       0, 'h'},
+			{"text-mode", no_argument,       0, 't'},
+			{"rom-file",  required_argument, 0, 'r'},
+			{"silent",    no_argument,       0, 's'},
+			{0, 0, 0, 0}
+		};
+		int option_index = 0;
+		c = getopt_long(argc, argv, "htr:s",
+		                long_options, &option_index);
+
+		// End of options
+		if (c == -1) break;
+
 		switch (c) {
 			case 'h':
-				hflag = 1;
+				help_flag = 1;
+				break;
+			case 't':
+				textMode_flag = 1;
 				break;
 			case 'r':
-				rflag = 1;
+				romFile_flag = 1;
 				romFile = optarg;
 				break;
-			case 'b':
-				bflag = 1;
+			case 's':
+				silent_flag = 1;
 				break;
 			case '?':
-				fprintf(stderr, "Invalid invocation\nUse '-h' for help\n");
+				fprintf(stderr, "Invalid invocation.\nUse '--help' for help.\n");
 				return 1;
 			default:
 				return 1;
 		}
 	}
 
-	if (hflag) {
-		printf("Usage: zi28sim [options] -t terminal -r rom image\n");
+	if (help_flag) {
+		printf(
+			"Usage: zi28sim [options]\n"
+			"Options:\n"
+			" -h, --help       Display this help message.\n"
+			" -t, --text-mode  Launch without a graphical interface.\n"
+			" -r, --rom-file   Specify a binary file that is loaded into ROM.\n"
+			" -s, --silent     Don't write anything to stdout.\n"
+		);
 		return 0;
 	}
 
-	if (bflag && !rflag) {
-		fprintf(stderr, "Error: No ROM-image specified\nUse '-h' for help\n");
-		return 1;
+	if (silent_flag) {
+		freopen("/dev/null", "w", stdout);
 	}
 
 
 	//Start z80lib
 	emulator_init();
-	if (romFile) {
-		if (emulator_loadRom(romFile)) {
-			printf("Could not open '%s'.\n", romFile);
-			if (bflag) exit(1);
-		}
-	}
 
-	if (bflag) {
+	if (textMode_flag) {
+		if (!romFile_flag) {
+			fprintf(stderr, "Error: No ROM-image specified.\n");
+			exit(1);
+		}
+		if (emulator_loadRom(romFile)) {
+			fprintf(stderr, "Error: Could not open '%s'.\n", romFile);
+			exit(1);
+		}
 		while (1) {
 			Z80Execute(&context);
 		}
@@ -187,10 +214,12 @@ int main(int argc, char **argv) {
 
 	GtkBuilder *builder; 
 
-	gtk_init(&argc, &argv);
+	if (!gtk_init_check(&argc, &argv)) {
+		fprintf(stderr, "Error: Cannot open display.\n"
+		                "Try using '--text-mode'.\n");
+		exit(1);
+	}
 
-//	builder = gtk_builder_new();
-//	gtk_builder_add_from_file (builder, "glade/window_main.glade", NULL);
 
 	builder = gtk_builder_new_from_resource("/zi28sim/window_main.glade");
 
@@ -236,6 +265,12 @@ int main(int argc, char **argv) {
 
 	g_timeout_add(10, timeout_update, NULL);
 
+	if (romFile) {
+		if (emulator_loadRom(romFile)) {
+			console("Warning: Could not open '%s'.\n", romFile);
+		}
+	}
+
 	gtk_main();
 
 	return 0;
@@ -245,7 +280,7 @@ gint timeout_update(gpointer data) {
 	if (CONT == status) {
 		if (breakpointsEnabled) {
 			if (emulator_runCycles(80000, 1)) {
-				console("Break at 0x%04X\n", context.PC);
+				console("Break at 0x%04X.\n", context.PC);
 				status = PAUSE;
 			}
 		} else {
@@ -264,18 +299,17 @@ void on_Continue_clicked() {
 }
 
 void on_Pause_clicked() {
-	console("Paused at: 0x%04X\n", context.PC);
+	console("Paused at: 0x%04X.\n", context.PC);
 	status = PAUSE;
 };
 
 void on_Step_clicked() {
-	console("Step\n");
 	status = PAUSE;
 	emulator_runCycles(1, 1);
 }
 
 void on_Reset_clicked() {
-	console("Reset\n");
+	console("System reset.\n");
 	emulator_reset();
 }
 
@@ -290,12 +324,12 @@ void on_break_add_clicked() {
 	if ('\0'== *endptr ) {
 		if (!breakpoints[val]) {
 			breakpoints[val] = 1;
-			console("Added breakpoint at address 0x%04X\n", val);
+			console("Added breakpoint at address 0x%04X.\n", val);
 		} else {
-			console("There's already a breakpoint at address 0x%04X\n", val);
+			console("There's already a breakpoint at address 0x%04X.\n", val);
 		}
 	} else {
-		console("Invalid address\n");
+		console("Invalid address.\n");
 	}
 }
 
@@ -306,9 +340,9 @@ void on_break_rem_all_clicked() {
 void on_menu_mem_romProtect_toggled(GtkCheckMenuItem *check_menu_item) {
 	romProtect = gtk_check_menu_item_get_active(check_menu_item);
 	if (romProtect) {
-		console("ROM Write-Protection on\n");
+		console("ROM Write-Protection on.\n");
 	} else {
-		console("ROM Write-Protection off\n");
+		console("ROM Write-Protection off.\n");
 	}
 }
 
@@ -360,7 +394,7 @@ void on_menu_mem_ramRand_activate() {
 	for (int i = 0x4000; i < 0x10000; i++) {
 		memory[i] = rand();
 	}
-	console("RAM randomized\n");
+	console("RAM randomized.\n");
 }
 
 void on_menu_mem_editor_activate() {
