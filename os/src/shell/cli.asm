@@ -290,12 +290,12 @@ dispatchTable:
 	.dw testStr,   b_test
 	.dw nullStr
 
-.include "builtins/chdir.asm"
-.include "builtins/chmain.asm"
-.include "builtins/cls.asm"
-.include "builtins/echo.asm"
-.include "builtins/help.asm"
-.include "builtins/monitor.asm"
-.include "builtins/mount.asm"
-.include "builtins/pwd.asm"
-.include "builtins/test.asm"
+.include "shell/builtins/chdir.asm"
+.include "shell/builtins/chmain.asm"
+.include "shell/builtins/cls.asm"
+.include "shell/builtins/echo.asm"
+.include "shell/builtins/help.asm"
+.include "shell/builtins/monitor.asm"
+.include "shell/builtins/mount.asm"
+.include "shell/builtins/pwd.asm"
+.include "shell/builtins/test.asm"

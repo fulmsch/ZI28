@@ -16,6 +16,9 @@
 .include "sys/os.h"
 .include "sys/stat.h"
 .include "fcntl.h"
+.include "fs/vfs/vfs.h"
+.include "fs/fatfs/fatfs.h"
+.include "fs/devfs/devfs.h"
 
 
 ; Jump Table -------------------------------------------------
@@ -65,7 +68,6 @@
 ; BIOS-Routines ----------------------------------------------
 
 .include "interrupt.asm"
-.include "drivers/ft240.asm"
 .include "string.asm"
 .include "math.asm"
 
@@ -148,17 +150,17 @@ homeDir:
 .include "monitor.asm"
 
 .include "drive.asm"
-.include "file.asm"
 .include "block.asm"
 .include "process.asm"
 
 ; Filesystems
 .include "path.asm"
-.include "fat.asm"
-.include "devfs.asm"
+.include "fs/vfs/vfs.asm"
+.include "fs/fatfs/fatfs.asm"
+.include "fs/devfs/devfs.asm"
 
 ; Device drivers
 .include "drivers/sd.asm"
-.include "drivers/ramdisk.asm"
+.include "drivers/ft240.asm"
 
-.include "cli.asm"
+.include "shell/cli.asm"
