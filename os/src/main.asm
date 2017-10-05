@@ -164,3 +164,4 @@ homeDir:
 .include "drivers/ft240.asm"
 
 .include "shell/cli.asm"
+.include "gitversion.asm"
