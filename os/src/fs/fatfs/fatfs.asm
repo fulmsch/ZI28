@@ -20,6 +20,7 @@ fat_fileDriver:
 ;; Input:
 ;; : a - device fd
 ;; : hl - current cluster
+;; : (iy) - drive entry
 ;;
 ;; Output:
 ;; : hl - next cluster
@@ -35,8 +36,8 @@ fat_fileDriver:
 	call ld16
 	push hl
 
-	ld d, ixh
-	ld e, ixl
+	ld d, iyh
+	ld e, iyl
 	ld hl, fat_fat1StartAddr
 	add hl, de
 	ex de, hl
