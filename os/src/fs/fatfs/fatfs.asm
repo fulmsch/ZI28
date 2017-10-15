@@ -14,20 +14,53 @@ fat_fileDriver:
 	.dw fat_write
 
 
-.func fat_nextCluster:
-;; Find the next cluster of a chain from the first FAT
+.func fat_findFreeCluster:
+;; Find the first free cluster of the first FAT.
+;;
+;; Starts searching at fat_firstFreeCluster and stores the next free cluster
+;; there. TODO: wrap around when the end of the FAT is reached.
 ;;
 ;; Input:
-;; : a - device fd
-;; : hl - current cluster
 ;; : (iy) - drive entry
 ;;
 ;; Output:
-;; : hl - next cluster
-;; : carry - the current cluster is the last of the chain
+;; : de - free cluster
+;; : carry - error
+
+	ld e, (iy + fat_firstFreeCluster)
+	ld d, (iy + fat_firstFreeCluster + 1)
+
+loop:
+	push de
+	call fat_getClusterValue
+	pop de
+	ret c
+	inc de
+	xor a
+	cp (hl)
+	jr nz, loop
+	inc hl
+	cp (hl)
+	jr nz, loop
+
+	dec de
+	;de is a free cluster
+	ld (iy + fat_firstFreeCluster), e
+	ld (iy + fat_firstFreeCluster + 1), d
+	;carry is cleared from cp
+	ret
+.endf
+
+.func fat_getClusterValue:
+;; Read the value of a cluster entry from the first FAT.
 ;;
-;; Preserved:
-;; : a
+;; Input:
+;; : (iy) - drive entry
+;; : hl - cluster number
+;;
+;; Output:
+;; : (hl) = regA - value
+;; : carry - error
 
 	add hl, hl ;double the cluster number to get its offset in the FAT
 	ex de, hl
@@ -46,6 +79,7 @@ fat_fileDriver:
 	call add32 ;clusterOffs + fat1StartAddr
 	ex de, hl
 
+	ld a, (iy + driveTableDevfd)
 	push af
 	ld h, K_SEEK_SET
 	call k_lseek
@@ -53,9 +87,152 @@ fat_fileDriver:
 
 	ld de, regA
 	ld hl, 2 ;count
-	push af
 	call k_read
-	;TODO error checking
+	cp 0
+	ret z
+	scf
+	ret
+.endf
+
+.func fat_setClusterValue:
+;; Set the value of a cluster in both FATs.
+;;
+;; Input:
+;; : hl - cluster
+;; : de - new value
+;; : (iy) - drive entry
+;;
+;; Output:
+;; : carry - error
+
+	push hl
+	ld hl, regC
+	call ld16
+	pop hl
+
+	add hl, hl ;double the cluster number to get its offset in the FAT
+	ex de, hl
+	ld hl, regA
+	call clear32
+	call ld16
+	ld de, regB
+	call ld32
+
+	ld d, iyh
+	ld e, iyl
+	ld hl, fat_fat1StartAddr
+	add hl, de
+	ex de, hl
+	;(de) = fat1StartAddr
+	ld hl, regA
+	call add32 ;clusterOffs + fat1StartAddr
+	ld hl, fat_fat2StartAddr - (fat_fat1StartAddr)
+	add hl, de
+	ex de, hl
+	;(de) = fat2StartAddr
+	ld hl, regB
+	call add32
+
+	ld a, (iy + driveTableDevfd)
+	;write to FAT 1
+	ld de, regA
+	push af
+	ld h, K_SEEK_SET
+	call k_lseek
+	pop af
+
+	ld de, regC
+	ld hl, 2 ;count
+	push af
+	call k_write
+	cp 0
+	jr nz, error
+	pop af
+
+	;write to FAT 2
+	ld de, regB
+	push af
+	ld h, K_SEEK_SET
+	call k_lseek
+	pop af
+
+	ld de, regC
+	ld hl, 2 ;count
+	call k_write
+	cp 0
+	ret z
+	scf
+	ret
+
+error:
+	pop af
+	scf
+	ret
+.endf
+
+.func fat_addCluster:
+;; Add a cluster to both FATs.
+;;
+;; Input:
+;; : hl - cluster or 0 for empty files
+;; : (iy) - drive entry
+;;
+;; Output:
+;; : hl - added cluster
+;; : carry - error
+
+; int addCluster(int i) {
+; 	f = findFreeCluster();
+; 	setCluster(f, 0xffff);
+; 	if (i != 0) {
+; 		//possibly seek to end of cluster chain
+; 		setCluster(i, f);
+; 	}
+; 	i points to f, which contains 0xffff
+; 	return f;
+; }
+
+	push hl
+	call fat_findFreeCluster
+	jr c, error
+	ex de, hl
+	;hl = first free cluster
+	push hl
+	ld de, 0xffff
+	call fat_setClusterValue
+	pop hl ;f
+	pop de ;i
+	ret c
+
+	xor a
+	cp h
+	jr nz, appendCluster
+	cp l
+	ret z ;carry is reset
+
+appendCluster:
+	ex de, hl
+	jp fat_setClusterValue
+
+error:
+	pop hl
+	scf
+	ret
+.endf
+
+.func fat_nextCluster:
+;; Find the next cluster of a chain from the first FAT
+;;
+;; Input:
+;; : hl - current cluster
+;; : (iy) - drive entry
+;;
+;; Output:
+;; : hl - next cluster
+;; : carry - the current cluster is the last of the chain
+
+	call fat_getClusterValue
+	ret c
 
 	;check if fat entry is end of chain
 	ld hl, (regA)
@@ -67,7 +244,6 @@ fat_fileDriver:
 	cp h
 	jr z, checkFF
 validCluster:
-	pop af
 	or a
 	ret
 
@@ -76,7 +252,6 @@ check00:
 	cp l
 	jr c, validCluster
 eoc:
-	pop af
 	scf
 	ret
 

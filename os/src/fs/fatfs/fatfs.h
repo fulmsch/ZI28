@@ -4,7 +4,8 @@
 .define fat_rootDirStartAddr  fat_fat2StartAddr + 4     ;4 bytes
 .define fat_dataStartAddr     fat_rootDirStartAddr + 4  ;4 bytes
 .define fat_sectorsPerCluster fat_dataStartAddr + 4     ;1 byte
-                                                 ;Total 17 bytes
+.define fat_firstFreeCluster  fat_sectorsPerCluster + 2 ;2 bytes
+                                                 ;Total 19 bytes
 
 
 .define fat_fileTableStartCluster fileTableData                 ;2 bytes

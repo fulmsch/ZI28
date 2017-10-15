@@ -148,6 +148,10 @@ rootDirSizeLoop:
 	call k_read
 ;	pop ix
 ;	pop af
+
+	push ix
+	pop iy
+	call fat_nextCluster
 	xor a
 
 	ret

@@ -180,7 +180,6 @@ clusterIndexLoop:
 	ex de, hl
 	;hl = startCluster
 
-	ld a, (iy + driveTableDevfd)
 startClusterLoop:
 	push ix
 	call fat_nextCluster
@@ -253,11 +252,10 @@ readCluster:
 
 	;read(clustersize - clusteroffs)
 	ld de, (fat_rw_dest)
+	ld a, (iy + driveTableDevfd)
 	push de
 	push ix
-	push af
 	call k_read
-	pop af
 	pop ix
 	pop hl
 	add hl, de ;buffer += count
@@ -278,6 +276,7 @@ readCluster:
 	call fat_clusterToAddr
 	ex de, hl
 	ld h, K_SEEK_SET
+	ld a, (iy + driveTableDevfd)
 	push ix
 	call k_lseek
 	pop ix
