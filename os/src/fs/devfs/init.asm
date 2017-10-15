@@ -19,8 +19,14 @@
 	ld a, 1
 	call devfs_addDev
 	call clear32
-	ld a, 89h
-	call ld8
+
+;sd.img on laptop
+	ld de, 0x0800
+	call ld16
+
+;;sd.img on desktop
+;	ld a, 89h
+;	call ld8
 
 	xor a
 	ret

@@ -13,7 +13,7 @@
 ;	.resb driveTableEntrySize * driveTableEntries
 
 .define driveTableLabel    0                          ;5 bytes
-.define driveTableDevfd    driveTableLabel + 5       ;1 byte
+.define driveTableDevfd    driveTableLabel + 5        ;1 byte
 .define driveTableFsdriver driveTableDevfd + 1        ;2 bytes
                                                       ;-------
                                                 ;Total 8 bytes
