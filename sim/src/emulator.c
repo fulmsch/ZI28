@@ -45,7 +45,7 @@ void emulator_init() {
 
 int emulator_loadRom(char *romFile) {
 	if(!(memFile = fopen(romFile, "rb"))) return -1;
-	fread(memory, 1, 0x10000, memFile);
+	fread(memory, 1, 0x4000, memFile);
 	fclose(memFile);
 	return 0;
 }
@@ -77,7 +77,7 @@ byte context_mem_read_callback(int param, ushort address) {
 }
 
 void context_mem_write_callback(int param, ushort address, byte data) {
-	if (address > 0x1FFF || !romProtect) {
+	if (address > 0x3FFF || !romProtect) {
 		memory[address] = data;
 	}
 }
