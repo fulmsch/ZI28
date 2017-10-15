@@ -52,6 +52,7 @@ syscallTableEnd:
 	ret
 
 error:
+	pop af
 	ld a, 0xff
 	ret
 .endf
