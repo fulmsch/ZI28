@@ -31,16 +31,63 @@
 	pop iy
 	;iy = table entry address
 
-	;check if root dir (cluster = 0)
+	;check if cluster = 0
 	xor a
 	ld b, (ix + fat_fileTableStartCluster)
 	cp b
-	jr nz, notRootDir
+	jr nz, notZeroCluster
 	ld b, (ix + fat_fileTableStartCluster + 1)
 	cp b
-	jp z, rootDir
+	jp nz, notZeroCluster
 
-notRootDir:
+	;check if root dir (filetype = dir)
+	ld a, (ix + fileTableMode)
+	bit M_DIR_BIT, a
+	jp nz, rootDir
+
+	;allocate the first cluster
+	ld hl, 0x0000
+	call fat_addCluster
+	ex de, hl
+	;de = new cluster
+	ld hl, regB
+	call ld16
+	;(regB) = new cluster
+
+	ld hl, regA
+	ld a, 0x1a
+	call ld8
+
+	ld d, ixh
+	ld e, ixl
+	ld hl, fat_fileTableDirEntryAddr
+	add hl, de
+	ex de, hl
+	ld hl, regA
+	call add32
+	ex de, hl
+	;(de) = dirEntryAddr
+
+	ld a, (iy + driveTableDevfd)
+	ld h, SEEK_SET
+	push af
+	call k_lseek
+	pop af
+
+	ld de, regA
+	ld hl, 2
+	call k_write
+	;TODO error handling
+
+	ld hl, regA
+	ld a, (hl)
+	ld (ix + fat_fileTableStartCluster), a
+	inc hl
+	ld a, (hl)
+	ld (ix + fat_fileTableStartCluster + 1), a
+
+
+notZeroCluster:
 	ld a, (iy + fat_sectorsPerCluster)
 	ld h, a
 	sla h
