@@ -48,13 +48,12 @@
 	;allocate the first cluster
 	ld hl, 0x0000
 	call fat_addCluster
-	ex de, hl
-	;de = new cluster
-	ld hl, regB
-	call ld16
-	;(regB) = new cluster
+	jp c, error
 
-	ld hl, regA
+	;update directory entry
+	ld (fat_rw_cluster), hl ;new cluster
+
+	ld hl, regB
 	ld a, 0x1a
 	call ld8
 
@@ -63,7 +62,7 @@
 	ld hl, fat_fileTableDirEntryAddr
 	add hl, de
 	ex de, hl
-	ld hl, regA
+	ld hl, regB
 	call add32
 	ex de, hl
 	;(de) = dirEntryAddr
@@ -74,12 +73,14 @@
 	call k_lseek
 	pop af
 
-	ld de, regA
+	ld de, fat_rw_cluster
 	ld hl, 2
+	push ix
 	call k_write
+	pop ix
 	;TODO error handling
 
-	ld hl, regA
+	ld hl, fat_rw_cluster
 	ld a, (hl)
 	ld (ix + fat_fileTableStartCluster), a
 	inc hl

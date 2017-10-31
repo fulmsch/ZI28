@@ -10,6 +10,10 @@
 	;TODO fix this crap
 
 
+	ld de, 0x0002
+	ld (ix + fat_firstFreeCluster), e
+	ld (ix + fat_firstFreeCluster + 1), d
+
 	;Store the sector of the first FAT
 	ld d, ixh
 	ld e, ixl
@@ -149,10 +153,10 @@ rootDirSizeLoop:
 ;	pop ix
 ;	pop af
 
-	push ix
-	pop iy
-	call fat_nextCluster
-	xor a
+;	push ix
+;	pop iy
+;	call fat_nextCluster
+;	xor a
 
 	ret
 .endf

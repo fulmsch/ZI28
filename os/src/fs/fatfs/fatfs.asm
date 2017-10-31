@@ -31,16 +31,16 @@ fat_fileDriver:
 	ld d, (iy + fat_firstFreeCluster + 1)
 
 loop:
-	push de
+	ex de, hl
+	push hl
 	call fat_getClusterValue
 	pop de
 	ret c
 	inc de
 	xor a
-	cp (hl)
+	cp h
 	jr nz, loop
-	inc hl
-	cp (hl)
+	cp l
 	jr nz, loop
 
 	dec de
@@ -59,13 +59,12 @@ loop:
 ;; : hl - cluster number
 ;;
 ;; Output:
-;; : (hl) = regA - value
+;; : hl - value
 ;; : carry - error
 
 	add hl, hl ;double the cluster number to get its offset in the FAT
 	ex de, hl
 	ld hl, regA
-	call clear32
 	call ld16
 	push hl
 
@@ -85,9 +84,12 @@ loop:
 	call k_lseek
 	pop af
 
-	ld de, regA
+	ld de, fat_clusterValue
 	ld hl, 2 ;count
+	push ix
 	call k_read
+	pop ix
+	ld hl, (fat_clusterValue)
 	cp 0
 	ret z
 	scf
@@ -105,18 +107,14 @@ loop:
 ;; Output:
 ;; : carry - error
 
-	push hl
-	ld hl, regC
-	call ld16
-	pop hl
+	ld (fat_clusterValue), de
 
 	add hl, hl ;double the cluster number to get its offset in the FAT
 	ex de, hl
-	ld hl, regA
-	call clear32
-	call ld16
-	ld de, regB
-	call ld32
+	ld hl, fat_clusterValueOffset1
+	call ld16 ;cluster offset
+	ld de, fat_clusterValueOffset2
+	call ld32 ;regB = cluster offset
 
 	ld d, iyh
 	ld e, iyl
@@ -124,41 +122,45 @@ loop:
 	add hl, de
 	ex de, hl
 	;(de) = fat1StartAddr
-	ld hl, regA
+	ld hl, fat_clusterValueOffset1
 	call add32 ;clusterOffs + fat1StartAddr
 	ld hl, fat_fat2StartAddr - (fat_fat1StartAddr)
 	add hl, de
 	ex de, hl
 	;(de) = fat2StartAddr
-	ld hl, regB
-	call add32
+	ld hl, fat_clusterValueOffset2
+	call add32 ;clusterOffs + fat2StartAddr
 
 	ld a, (iy + driveTableDevfd)
 	;write to FAT 1
-	ld de, regA
+	ld de, fat_clusterValueOffset1
 	push af
 	ld h, K_SEEK_SET
 	call k_lseek
 	pop af
 
-	ld de, regC
+	ld de, fat_clusterValue
 	ld hl, 2 ;count
 	push af
+	push ix
 	call k_write
+	pop ix
 	cp 0
 	jr nz, error
 	pop af
 
 	;write to FAT 2
-	ld de, regB
+	ld de, fat_clusterValueOffset2
 	push af
 	ld h, K_SEEK_SET
 	call k_lseek
 	pop af
 
-	ld de, regC
+	ld de, fat_clusterValue
 	ld hl, 2 ;count
+	push ix
 	call k_write
+	pop ix
 	cp 0
 	ret z
 	scf
@@ -181,33 +183,33 @@ error:
 ;; : hl - added cluster
 ;; : carry - error
 
-; int addCluster(int i) {
-; 	f = findFreeCluster();
-; 	setCluster(f, 0xffff);
-; 	if (i != 0) {
+; int addCluster(int base) {
+; 	new = findFreeCluster();
+; 	setCluster(new, 0xffff);
+; 	if (base != 0) {
 ; 		//possibly seek to end of cluster chain
-; 		setCluster(i, f);
+; 		setCluster(base, new);
 ; 	}
-; 	i points to f, which contains 0xffff
-; 	return f;
+; 	base points to new, which contains 0xffff
+; 	return new;
 ; }
 
-	push hl
+	push hl ;base
 	call fat_findFreeCluster
 	jr c, error
 	ex de, hl
 	;hl = first free cluster
-	push hl
+	push hl ;new
 	ld de, 0xffff
 	call fat_setClusterValue
-	pop hl ;f
-	pop de ;i
+	pop hl ;new
+	pop de ;base
 	ret c
 
 	xor a
-	cp h
+	cp d
 	jr nz, appendCluster
-	cp l
+	cp e
 	ret z ;carry is reset
 
 appendCluster:
@@ -235,8 +237,6 @@ error:
 	ret c
 
 	;check if fat entry is end of chain
-	ld hl, (regA)
-
 	xor a
 	cp h
 	jr z, check00

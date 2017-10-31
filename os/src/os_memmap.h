@@ -114,8 +114,13 @@
 #define k_chmain_pathBuffer     k_chmain_pathColon + 1  ;5 bytes
 #define k_chmain_end            k_chmain_pathBuffer + 5
 
+;fat
+#define fat_clusterValue        k_chmain_end                ;2 bytes
+#define fat_clusterValueOffset1 fat_clusterValue + 2        ;4 bytes
+#define fat_clusterValueOffset2 fat_clusterValueOffset1 + 4 ;4 bytes
+
 ;fat_open
-#define fat_open_path           k_chmain_end                ;2 bytes
+#define fat_open_path           fat_clusterValueOffset2 + 4 ;2 bytes
 #define fat_open_pathBuffer1    fat_open_path + 2           ;13 bytes
 #define fat_open_pathBuffer2    fat_open_pathBuffer1 + 13   ;13 bytes
 #define fat_dirEntryBuffer      fat_open_pathBuffer2 + 13   ;32 bytes
