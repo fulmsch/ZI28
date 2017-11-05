@@ -24,12 +24,12 @@ FILE *freopen(const char *name, const char *mode, FILE *fp)
 			flags=_IOREAD | _IOUSE| _IOTEXT;
 			break;
 		case 'w':
-			access=O_WRONLY;
-                	flags = _IOWRITE | _IOUSE | _IOTEXT;
+			access=O_WRONLY | O_CREAT | O_TRUNC;
+			flags = _IOWRITE | _IOUSE | _IOTEXT;
 			break;
 		case 'a':
-			access=O_APPEND;
-                	flags = _IOWRITE | _IOUSE | _IOTEXT;
+			access=O_APPEND | O_CREAT | O_APPEND;
+			flags = _IOWRITE | _IOUSE | _IOTEXT;
 			break;
 		default:
 			return (FILE *)NULL;
@@ -45,7 +45,8 @@ FILE *freopen(const char *name, const char *mode, FILE *fp)
 	{
 
 		// Others, pass int mode
-		fd=open(name,access,flags);
+		//fd=open(name,access,flags);
+		fd=open(name,access,0);
 
 		fp2=fp;
 		if (fd == - 1 ) return (FILE *)NULL;

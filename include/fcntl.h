@@ -19,13 +19,17 @@
 #define O_APPEND    0x08
 #define O_DIRECTORY 0x10
 #define O_TRUNC     0x20 //unused
+#define O_CREAT     0x40
+#define O_EXCL      0x80
 
 #define O_RDONLY_BIT    0
 #define O_WRONLY_BIT    1
 #define O_RDWR_BIT      2
-#define O_APPEND_BIT    3 //unused
+#define O_APPEND_BIT    3
 #define O_DIRECTORY_BIT 4
 #define O_TRUNC_BIT     5 //unused
+#define O_CREAT_BIT     6
+#define O_EXCL_BIT      7
 
 
 

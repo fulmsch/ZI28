@@ -30,17 +30,20 @@ k_open:
 ;; end of the file.
 ;; * `O_DIRECTORY` : Causes open to fail if the specified file is not a
 ;; directory.
-;; * `O_TRUNC` : (Planned) If the file exists and opened for writing, its size gets
+;; * `O_TRUNC` : (Planned) If the file exists and is opened for writing, its size gets
 ;; truncated to 0.
+;; * `O_CREAT` : (Planned) If the file doesn't exist, create it.
+;; * `O_EXCL` : (Planned) If used in conjunction with O_CREAT, this call only
+;; succeeds if the file doesn't already exist.
 ;;
 ;; Before calling the filesystem routine, the mode field gets populated with
-;; the requested access mode. The filesystem routine should return with an
+;; the requested access flags. The filesystem routine should return with an
 ;; error if the required permissions are missing. On success it should bitwise
 ;; OR the filetype with the mode.
 ;;
 ;; Input:
 ;; : (de) - pathname
-;; : a - mode
+;; : a - flags
 ;;
 ;; Output:
 ;; : e - file descriptor
@@ -60,7 +63,7 @@ k_open:
 ;; : hl - base address of fd-table
 ;; : c - base fd
 ;; : (de) - pathname
-;; : a - mode
+;; : a - flags
 ;;
 ;; Output:
 ;; : e - file descriptor
@@ -227,6 +230,7 @@ skipAppendFlag:
 	ld de, return
 	push de
 	ld de, (k_open_path)
+	ld a, (k_open_mode)
 
 	jp (hl)
 
