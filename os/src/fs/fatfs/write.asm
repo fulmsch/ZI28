@@ -260,6 +260,11 @@ lastCluster:
 	ld e, l ;hl = de = offset
 	ld bc, fileTableSize-(fileTableOffset)
 	add hl, bc ;hl = size
+
+	;only increase size for regular files
+	ld a, (ix + fileTableMode)
+	bit M_REG_BIT, a
+	jr z, end
 	;de = offset, hl = size
 	push hl ;size
 	push de ;offset
