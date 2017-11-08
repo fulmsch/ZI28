@@ -2,6 +2,7 @@ programs/basic/
 sim/src/resources.c
 sim/zi28sim
 os/src/gitversion.asm
+bootloader/src/gitversion.asm
 
 *.hex
 *.obj
