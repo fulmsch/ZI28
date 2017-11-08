@@ -37,35 +37,38 @@ void emulator_init() {
 	sd.status = IDLE;
 	sdModule.card = &sd;
 
-	context.memRead = context_mem_read_callback;
-	context.memWrite = context_mem_write_callback;
-	context.ioRead = context_io_read_callback;
-	context.ioWrite = context_io_write_callback;
+	zi28.context.memRead = context_mem_read_callback;
+	zi28.context.memWrite = context_mem_write_callback;
+	zi28.context.ioRead = context_io_read_callback;
+	zi28.context.ioWrite = context_io_write_callback;
+	emulator_reset();
 }
 
 int emulator_loadRom(char *romFile) {
 	if(!(memFile = fopen(romFile, "rb"))) return -1;
-	fread(memory, 1, 0x4000, memFile);
+	fread(zi28.rom, 1, 0x8000, memFile);
 	fclose(memFile);
 	return 0;
 }
 
 void emulator_reset() {
-	Z80RESET(&context);
+	Z80RESET(&zi28.context);
+
+	zi28.bankReg = 0;
 }
 
 int emulator_runCycles(int n_cycles, int useBreakpoints) {
-	context.tstates = 0;
+	zi28.context.tstates = 0;
 	if (useBreakpoints) {
-		while (context.tstates < n_cycles) {
-			Z80Execute(&context);
-			if (breakpoints[context.PC]) {
+		while (zi28.context.tstates < n_cycles) {
+			Z80Execute(&zi28.context);
+			if (breakpoints[zi28.context.PC]) {
 				return 1;
 			}
 		}
 	} else {
-		while (context.tstates < n_cycles) {
-			Z80Execute(&context);
+		while (zi28.context.tstates < n_cycles) {
+			Z80Execute(&zi28.context);
 		}
 	}
 	return 0;
@@ -73,12 +76,30 @@ int emulator_runCycles(int n_cycles, int useBreakpoints) {
 
 
 byte context_mem_read_callback(int param, ushort address) {
-	return memory[address];
+	if (address < 0x4000) {
+		//rom
+		return zi28.rom[address + zi28.romBank * 0x4000];
+	} else if (address >= 0xc000) {
+		//banked ram
+		return zi28.ram[address + 0x4000 + zi28.ramBank * 0x2000];
+	} else {
+		//regular ram
+		return zi28.ram[address - 0x4000];
+	}
 }
 
 void context_mem_write_callback(int param, ushort address, byte data) {
-	if (address > 0x3FFF || !romProtect) {
-		memory[address] = data;
+	if (address < 0x4000) {
+		//rom
+		if (!romProtect) {
+			zi28.rom[address + zi28.romBank * 0x2000] = data;
+		}
+	} else if (address >= 0xc000) {
+		//banked ram
+		zi28.ram[address + 0x4000 + zi28.ramBank * 0x2000] = data;
+	} else {
+		//regular ram
+		zi28.ram[address - 0x4000] = data;
 	}
 }
 
@@ -130,6 +151,9 @@ void context_io_write_callback(int param, ushort address, byte data) {
 		switch (address) {
 			case 0x00:
 				write(pty[0].fd, &data, 1);
+				break;
+			case 0x02:
+				zi28.bankReg = data;
 				break;
 			default:
 				break;

@@ -2,9 +2,21 @@
 #define EMULATOR_H
 
 FILE *memFile;
-byte memory[0x10000];
+
+struct {
+	unsigned char rom[0x8000];
+	unsigned char ram[0x20000];
+	Z80Context context;
+	union {
+		unsigned char bankReg;
+		struct {
+			unsigned char ramBank: 3;
+			unsigned char romBank: 1;
+		};
+	};
+} zi28;
+
 int breakpoints[0x10000];
-Z80Context context;
 struct SdCard sd;
 struct SdModule sdModule;
 struct pollfd pty[1];

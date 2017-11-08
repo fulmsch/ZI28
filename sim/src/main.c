@@ -90,7 +90,7 @@ void console(const char* format, ...) {
 }
 
 void updateRegisters() {
-	unsigned char *pReg = &context.R1.br.A;
+	unsigned char *pReg = &zi28.context.R1.br.A;
 	char str[20];
 	for (int i = 0; i < 7; i++) {
 		sprintf(str, "%02X", *pReg);
@@ -98,24 +98,24 @@ void updateRegisters() {
 		pReg++;
 	}
 
-	sprintf(str, "%04X", context.R1.wr.IX);
+	sprintf(str, "%04X", zi28.context.R1.wr.IX);
 	gtk_entry_set_text(g_field_reg_ix, str);
 
-	sprintf(str, "%04X", context.R1.wr.IY);
+	sprintf(str, "%04X", zi28.context.R1.wr.IY);
 	gtk_entry_set_text(g_field_reg_iy, str);
 
-	sprintf(str, "%04X", context.R1.wr.SP);
+	sprintf(str, "%04X", zi28.context.R1.wr.SP);
 	gtk_entry_set_text(g_field_reg_sp, str);
 
-	sprintf(str, "%04X", context.PC);
+	sprintf(str, "%04X", zi28.context.PC);
 	gtk_entry_set_text(g_field_reg_pc, str);
 
-	Z80Debug(&context, NULL, str);
+	Z80Debug(&zi28.context, NULL, str);
 	gtk_entry_set_text(g_field_instruction, str);
 
 	//Flags
 	for (int i = 0; i < 8; i++) {
-		gtk_entry_set_text(g_field_flags_main[i], (context.R1.br.F & (1 << i)) ? "1" : "0");
+		gtk_entry_set_text(g_field_flags_main[i], (zi28.context.R1.br.F & (1 << i)) ? "1" : "0");
 	}
 }
 
@@ -206,7 +206,7 @@ int main(int argc, char **argv) {
 			exit(1);
 		}
 		while (1) {
-			Z80Execute(&context);
+			Z80Execute(&zi28.context);
 		}
 	}
 
@@ -280,7 +280,7 @@ gint timeout_update(gpointer data) {
 	if (CONT == status) {
 		if (breakpointsEnabled) {
 			if (emulator_runCycles(80000, 1)) {
-				console("Break at 0x%04X.\n", context.PC);
+				console("Break at 0x%04X.\n", zi28.context.PC);
 				status = PAUSE;
 			}
 		} else {
@@ -299,7 +299,7 @@ void on_Continue_clicked() {
 }
 
 void on_Pause_clicked() {
-	console("Paused at: 0x%04X.\n", context.PC);
+	console("Paused at: 0x%04X.\n", zi28.context.PC);
 	status = PAUSE;
 };
 
@@ -384,20 +384,21 @@ void on_menu_mem_romReload_activate() {
 }
 
 void on_menu_mem_ramClear_activate() {
-	for (int i = 0x4000; i < 0x10000; i++) {
-		memory[i] = 0;
+	for (int i = 0; i < 0x20000; i++) {
+		zi28.ram[i] = 0;
 	}
 	console("RAM cleared.\n");
 }
 
 void on_menu_mem_ramRand_activate() {
-	for (int i = 0x4000; i < 0x10000; i++) {
-		memory[i] = rand();
+	for (int i = 0; i < 0x20000; i++) {
+		zi28.ram[i] = rand();
 	}
 	console("RAM randomized.\n");
 }
 
 void on_menu_mem_editor_activate() {
+	/*
 	GtkWidget *memEditorWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	HexDocument *hexdoc = hex_document_new();
 	hex_document_set_data(hexdoc, 0,
@@ -407,4 +408,5 @@ void on_menu_mem_editor_activate() {
 	gtk_hex_show_offsets(GTK_HEX(hexeditor), TRUE);
 	gtk_container_add(GTK_CONTAINER(memEditorWindow), hexeditor);
 	gtk_widget_show_all(memEditorWindow);
+	*/
 }
