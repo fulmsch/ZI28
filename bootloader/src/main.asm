@@ -1,39 +1,41 @@
 .z80
 .org 0x0000
 
+.define DEBUG
+
 ; Jump Table -------------------------------------------------
 coldStart:
-	jp      _coldStart   ;RST 00h
+	jp      _coldStart   ;RST 0x00
 	.db     0x00
-	jp      0x00         ;CALL 04h
+	jp      0x00         ;CALL 0x04
 	.db     0x00
 putc:
-	jp      _putc        ;RST 08h
+	jp      _putc        ;RST 0x08
 	.db     0x00
-	jp      0x00         ;CALL 0Ch
+	jp      0x00         ;CALL 0x0C
 	.db     0x00
 getc:
-	jp      _getc        ;RST 10h
+	jp      _getc        ;RST 0x10
 	.db     0x00
-	jp      0x00         ;CALL 14h
+	jp      0x00         ;CALL 0x14
 	.db     0x00
-	jp      0x00         ;RST 18h
+	jp      0x00         ;RST 0x18
 	.db     0x00
-	jp      0x00         ;CALL 1Ch
+	jp      0x00         ;CALL 0x1C
 	.db     0x00
-	jp      0x00         ;RST 20h
+	jp      0x00         ;RST 0x20
 	.db     0x00
-	jp      0x00         ;CALL 24h
+	jp      0x00         ;CALL 0x24
 	.db     0x00
-	jp      0x00         ;RST 28h
+	jp      0x00         ;RST 0x28
 	.db     0x00
-	jp      0x00         ;CALL 2Ch
+	jp      0x00         ;CALL 0x2C
 	.db     0x00
-	jp      0x00         ;RST 30h
+	jp      0x00         ;RST 0x30
 	.db     0x00
-	jp      0x00         ;CALL 34h
+	jp      0x00         ;CALL 0x34
 	.db     0x00
-	jp      0x00         ;RST 38h
+	jp      0x00         ;RST 0x38
 
 
 _coldStart:
@@ -61,6 +63,9 @@ delayLoop:
 	dec d
 	jr nz, delayLoop
 
+.ifdef DEBUG
+	jr delayLoop
+.endif
 	jr bootOS
 
 bootMenu:
@@ -77,11 +82,19 @@ bootMenuLoop:
 	rst getc
 	cp '1'
 	cp '2'
+	jr z, loadRomUtil
 	cp '3'
 	jr z, bootOS
 	cp '4'
 	cp '5'
 	jr bootMenuLoop
+
+loadRomUtil:
+	ld hl, romUtil
+	ld de, 0x8000
+	ld bc, romUtilEnd - romUtil
+	ldir
+	jp 0x8000
 
 
 bootOS:
@@ -167,3 +180,7 @@ bankSwitch:
 	out (0x02), a
 	rst 0
 bankSwitchEnd:
+
+romUtil:
+.binfile "romutil.bin"
+romUtilEnd:

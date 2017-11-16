@@ -14,7 +14,10 @@ all: bootloader.bin bootloader.hex
 clean:
 	-rm bootloader.bin bootloader.hex bootloader.lst $(SRCDIR)/gitversion.asm
 
-bootloader.bin: $(SRCFILES) $(INCLUDEFILES)
+romutil.bin: $(SRCDIR)/romutil.asm
+	naken_asm -b $(SRCDIR)/romutil.asm -o romutil.bin -l -I $(INCLUDEDIR) -I $(SRCDIR)
+
+bootloader.bin: romutil.bin $(SRCFILES) $(INCLUDEFILES)
 	naken_asm -b $(SRCDIR)/main.asm -o bootloader.bin -l -I $(INCLUDEDIR) -I $(SRCDIR)
 
 bootloader.hex: bootloader.bin
