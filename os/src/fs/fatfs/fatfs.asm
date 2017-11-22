@@ -7,6 +7,7 @@ fat_fsDriver:
 	.dw 0x000 ;fat_close
 	.dw fat_readdir
 	.dw fat_fstat
+	.dw fat_unlink
 
 
 fat_fileDriver:
@@ -262,6 +263,39 @@ checkFF:
 	jr validCluster
 .endf
 
+.func fat_clearClusterChain:
+;; Clear a chain starting at the specified cluster.
+;;
+;; Input:
+;; : hl - cluster
+;; : (iy) - drive entry
+;;
+;; Output:
+;; : carry - error
+
+	push hl ;current cluster
+loop:
+	call fat_nextCluster
+	ex (sp), hl ;stack: next cluster, hl: current cluster to be cleared
+	push af
+
+	ld de, 0x0000
+	call fat_setClusterValue
+	jr c, error
+	pop af
+	jr nc, loop ;not end of cluster chain
+
+	pop hl
+	or a ;clear carry
+	ret
+
+error:
+	;carry is set
+	pop hl
+	pop hl
+	ret
+.endf
+
 .func fat_clusterToAddr:
 ;; Calculate the starting address of a cluster
 ;;
@@ -441,5 +475,6 @@ illegalChars:
 .include "fs/fatfs/open.asm"
 .include "fs/fatfs/readdir.asm"
 .include "fs/fatfs/fstat.asm"
+.include "fs/fatfs/unlink.asm"
 .include "fs/fatfs/read.asm"
 .include "fs/fatfs/write.asm"

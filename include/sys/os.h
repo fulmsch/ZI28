@@ -17,6 +17,7 @@
 #define SYS_dup       9
 #define SYS_mount    10
 #define SYS_chmain   11
+#define SYS_unlink   12
 
 //file mode definition
 #define M_READ   0x01

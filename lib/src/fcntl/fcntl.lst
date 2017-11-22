@@ -7,3 +7,4 @@ fcntl/zi28/writebyte
 fcntl/zi28/stat
 fcntl/zi28/fstat
 fcntl/zi28/readdir
+fcntl/zi28/unlink

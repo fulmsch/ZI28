@@ -15,6 +15,7 @@ syscallTable:
 	.dw u_dup
 	.dw u_mount
 	.dw u_chmain
+	.dw u_unlink
 
 syscallTableEnd:
 

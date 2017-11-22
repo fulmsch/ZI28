@@ -7,6 +7,7 @@ devfs_fsDriver:
 	.dw 0x0000 ;devfs_close
 	.dw devfs_readdir
 	.dw devfs_fstat
+	.dw 0x0000 ;devfs_unlink
 
 devfs_fileDriver:
 	.dw 0x0000 ;devfs_read

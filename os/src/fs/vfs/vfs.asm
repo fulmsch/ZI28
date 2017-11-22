@@ -86,3 +86,4 @@ error:
 .include "fs/vfs/read.asm"
 .include "fs/vfs/write.asm"
 .include "fs/vfs/seek.asm"
+.include "fs/vfs/unlink.asm"

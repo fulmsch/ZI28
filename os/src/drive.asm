@@ -24,6 +24,7 @@
 .define fs_close    4 ;not used yet
 .define fs_readdir  6
 .define fs_fstat    8
+.define fs_unlink  10
 
 .func getDriveAddr:
 ;; Finds the drive entry of a given drive number
