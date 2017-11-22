@@ -12,12 +12,19 @@
 
 
 	push de
+
+	;check if root dir (filetype == dir && startCluster == 0)
+	ld a, (ix + fileTableMode)
+	bit M_DIR_BIT, a
+	jp z, notRootDir
+
 	ld l, (ix + fat_fileTableStartCluster)
 	ld h, (ix + fat_fileTableStartCluster + 1)
 	ld de, 0
 	or a
 	sbc hl, de
 	jr z, rootDir
+notRootDir:
 	ld a, (ix + fileTableDriveNumber)
 	call getDriveAddr
 	jp c, error ;drive number out of bounds
