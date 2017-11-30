@@ -94,7 +94,7 @@ openFile:
 	ld (exec_stack), sp
 
 	;set new stack
-	ld sp, 0xc000
+	ld sp, 0xa000
 
 	;command line arguments TODO just temporary
 	ld a, (argc)

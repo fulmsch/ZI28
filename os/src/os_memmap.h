@@ -1,7 +1,7 @@
 .list
 ;; Contains the memory map of used by the OS
-#define sysStack   8000h
-#define monStack   4200h
+#define sysStack   0xc000
+#define monStack   0xa200
 
 ;BIOS memory map
 #define memBase    0000h
@@ -10,7 +10,7 @@
 
 
 ;Monitor workspace
-#define monWorkspace            4200h
+#define monWorkspace            0xa200
 #define monInputBuffer          monWorkspace + 0
 #define monInputBufferSize      40h
 #define lineCounter             monInputBuffer + monInputBufferSize
@@ -137,7 +137,7 @@
 #define fat_rw_end              fat_rw_clusterSize + 2
 
 ;exec
-#define exec_addr               0xc000 ;temporary for compatibility
+#define exec_addr               0x4000
 #define exec_stack              fat_rw_end       ;2 bytes
 #define exec_fd                 exec_stack + 2   ;1 byte
 #define exec_end                exec_fd + 1
