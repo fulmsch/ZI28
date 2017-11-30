@@ -1,7 +1,6 @@
 #ifndef __SYS_STAT_H__
 #define __SYS_STAT_H__
 
-
 #define SP_READ  0x01 //;read permission
 #define SP_WRITE 0x02 //;write permission
 #define ST_REG   0x04 //;regular file
@@ -18,10 +17,12 @@
 
 #ifndef __NAKEN_ASM
 
+#include <sys/types.h>
+
 struct stat {
 	char st_name[13];
-	unsigned char st_attrib;
-	long st_size;
+	mode_t st_mode;
+	off_t st_size;
 };
 
 extern int __LIB__ __CALLEE__ stat(char *filename, struct stat *buf);

@@ -40,10 +40,8 @@
 #include <unistd.h>
 
 
-typedef int mode_t;
-
 //extern int __LIB__ open(const char *name, int flags, mode_t mode);
-extern int __LIB__ __CALLEE__ open(const char *name, int flags, mode_t mode);
+extern int __LIB__ __CALLEE__ open(const char *name, unsigned int flags, unsigned int mode);
 extern int __LIB__ creat(const char *name, mode_t mode);
 //TODO move to correct header file
 extern int __LIB__ __FASTCALL__ close(int fd);

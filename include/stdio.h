@@ -106,11 +106,7 @@ extern struct filestr _sgoioblk[FOPEN_MAX];
 
 
 #define clearerr(f)
-#ifdef NET_STDIO
 extern int __LIB__ fflush(FILE *);
-#else
-#define fflush(f)
-#endif
 
 /* Our new and improved functions!! */
 

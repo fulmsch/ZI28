@@ -37,6 +37,16 @@ typedef unsigned int size_t;
 typedef signed int ssize_t;
 #endif
 
+#ifndef _OFF_T
+#define _OFF_T
+typedef unsigned long off_t;
+#endif
+
+#ifndef _MODE_T
+#define _MODE_T
+typedef unsigned char mode_t;
+#endif
+
 #ifndef _CLOCK_T
 #define _CLOCK_T
 typedef unsigned long clock_t;
