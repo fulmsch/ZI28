@@ -1,6 +1,15 @@
-include Make.config
+OUTPUT_DIRECTORY := .
 
-CFLAGS += -preserve
+#USE_MPM=1
+ifdef USE_MPM
+LIBLINKER = mpm -I$(Z80_OZFILES) -d -ns -nm -Mo
+ASSEMBLER = mpm -I$(Z80_OZFILES)
+CFLAGS = -mpm
+else
+LIBLINKER = $(EXEC_PREFIX)z80asm -d -I../include
+ASSEMBLER = $(EXEC_PREFIX)z80asm
+CFLAGS = -O3 -vn -Wn43  -c -preserve
+endif
 
 SRCDIR := src
 CFILES := $(shell find $(SRCDIR) -mindepth 2 -iname "*.c")
