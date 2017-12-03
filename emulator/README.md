@@ -6,7 +6,7 @@ the real ZI-28.
 
 ## Building
 
-Make sure you have gtk3, glade, and libz80 installed. Then simple type `make`
+Make sure you have gtk3 and glade installed. Then simple type `make`
 to build the emulator. The target `make install` copies the executable to
 `/usr/local/bin/`.
 

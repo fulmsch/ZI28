@@ -22,9 +22,9 @@ GTKLIB = `pkg-config --cflags --libs gtk+-3.0` `pkg-config --cflags --libs gtkhe
 # linker
 LD = gcc
 LDFLAGS = $(PTHREAD) $(GTKLIB) -export-dynamic
-LIBS = -lz80 -lutil
+LIBS = -lutil
 
-OBJS = main.o resources.o emulator.o sd.o
+OBJS = main.o resources.o emulator.o sd.o libz80/libz80.o
 
 .PHONY: all clean distclean install
 
@@ -43,8 +43,29 @@ src/resources.c: glade/resources.xml glade/window_main.glade
 	$(CC) -c $(CCFLAGS) $(GTKLIB) $< -o $@
 
 clean:
-	@$(RM) -f *.o $(SRCDIR)/resources.c
+	@$(RM) -f *.o $(SRCDIR)/resources.c libz80/libz80.o \
+	          libz80/codegen/mktables libz80/codegen/opcodes_decl.h \
+	          libz80/codegen/opcodes_table.h libz80/codegen/opcodes_impl.c
 
 distclean: clean
 	@$(RM) -f $(TARGET)
 
+
+# --- libz80 ---
+libz80/libz80.o: libz80/z80.c libz80/z80.h \
+                 libz80/codegen/opcodes_table.h \
+                 libz80/codegen/opcodes_decl.h \
+                 libz80/codegen/opcodes_impl.c
+	$(CC) -c $(CCFLAGS) -o $@ libz80/z80.c
+
+libz80/codegen/opcodes_table.h \
+libz80/codegen/opcodes_impl.c: libz80/codegen/mktables \
+                               libz80/codegen/opcodes.lst \
+                               libz80/codegen/mktables.spec
+	cd libz80/codegen && ./mktables
+
+libz80/codegen/opcodes_decl.h: libz80/codegen/opcodes_impl.c
+	grep "static void" $< | sed "s/)/);/g" > $@
+
+libz80/codegen/mktables: libz80/codegen/mktables.c
+	gcc -g -o $@ $<
