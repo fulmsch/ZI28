@@ -38,3 +38,9 @@ libz80
 gtk3
 glade
 z88dk
+
+
+## License
+
+All code original to the ZI-28 project is licensed under the terms of the
+GNU General Public License v3.0.
