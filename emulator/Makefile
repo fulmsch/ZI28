@@ -1,4 +1,4 @@
-TARGET := zi28sim
+TARGET := zi28emu
 SRCDIR := src
 INCDIR := include
 
@@ -28,13 +28,13 @@ OBJS = main.o resources.o emulator.o sd.o libz80/libz80.o
 
 .PHONY: all clean distclean install
 
-all: zi28sim
+all: $(TARGET)
 
-zi28sim: $(OBJS)
+$(TARGET): $(OBJS)
 	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)
 
-install: zi28sim
-	cp zi28sim $(INSTALLDIR)/zi28sim && chmod +x $(INSTALLDIR)/zi28sim
+install: $(TARGET)
+	install $(TARGET) $(INSTALLDIR)
 
 src/resources.c: glade/resources.xml glade/window_main.glade
 	cd glade && glib-compile-resources --target=../$(SRCDIR)/resources.c --generate-source resources.xml

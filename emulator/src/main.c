@@ -56,7 +56,7 @@ enum {
 
 
 void cleanup() {
-	remove("/tmp/zi28sim");
+	remove("/tmp/zi28tty");
 }
 
 void sigHandler(int sig) {

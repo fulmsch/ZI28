@@ -22,7 +22,7 @@ void emulator_init() {
 	tcsetattr(ptm, TCSANOW, &ptyTermios);
 
 
-	symlink(ptsName, "/tmp/zi28sim");
+	symlink(ptsName, "/tmp/zi28tty");
 	free(ptsName);
 
 	pty[0].fd = ptm;
