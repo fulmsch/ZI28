@@ -20,7 +20,7 @@ bootloader.bin: romutil.bin $(SRCFILES) $(INCLUDEFILES)
 	naken_asm -b $(SRCDIR)/main.asm -o bootloader.bin -l -I $(INCLUDEDIR) -I $(SRCDIR)
 
 bootloader.hex: bootloader.bin
-	srec_cat bootloader.bin -binary -o bootloader.hex -intel
+	objcopy -I binary -O ihex bootloader.bin bootloader.hex
 
 sim: | bootloader.bin
 	zi28sim -r bootloader.bin & sleep 0.5 && picocom /tmp/zi28sim --omap crcrlf,delbs --send-cmd "ascii-xfr -snvde" --receive-cmd "ascii-xfr -rne"

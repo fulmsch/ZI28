@@ -17,7 +17,7 @@ os.bin: $(SRCFILES) $(INCLUDEFILES)
 	naken_asm -b $(SRCDIR)/main.asm -o os.bin -l -I $(INCLUDEDIR) -I $(SRCDIR)
 
 os.hex: os.bin
-	srec_cat os.bin -binary -o os.hex -intel
+	objcopy -I binary -O ihex os.bin os.hex
 
 sim: | os.bin
 	zi28sim -r os.bin & sleep 0.5 && picocom /tmp/zi28sim --omap crcrlf,delbs --send-cmd "ascii-xfr -snvde" --receive-cmd "ascii-xfr -rne"
