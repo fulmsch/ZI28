@@ -4,4 +4,4 @@ libz80/codegen/opcodes_table.h
 libz80/codegen/opcodes_decl.h
 libz80/codegen/opcodes_impl.c
 !libz80/codegen/opcodes.lst
-zi28sim
+zi28emu

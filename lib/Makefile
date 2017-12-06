@@ -30,7 +30,8 @@ endef
 $(foreach l, $(LIBNAMES), $(eval $(call make-deps,$l)))
 
 $(OUTPUT_DIRECTORY)/%.lib:
-	@echo "Creating $@"
+	@echo ''
+	@echo '--- Creating $@ ---'
 	@TARGET=zi28 TYPE=z80 $(LIBLINKER) -DFORzi28 -DSTANDARDESCAPECHARS -x$@ $^
 	@# Clean up zcc_opt.def
 	@$(RM) $(sort $(addsuffix /zcc_opt.def, $(^D)))
