@@ -1,4 +1,4 @@
-include ../Make.config
+include ../config.mk
 
 .PHONY: all rom bootloader os sim clean distclean
 
@@ -6,7 +6,7 @@ all: rom
 
 rom: rom.bin rom.hex
 
-rom.bin: bootloader/bootloader.bin os/os.bin
+rom.bin: bootloader os
 	@echo ''
 	@echo '--- Building EEPROM Image ---'
 	dd bs=1 if=bootloader/bootloader.bin of=rom.bin seek=0 >&/dev/null
@@ -15,18 +15,15 @@ rom.bin: bootloader/bootloader.bin os/os.bin
 rom.hex: rom.bin
 	objcopy -I binary -O ihex rom.bin rom.hex
 
-bootloader bootloader/bootloader.bin:
+bootloader:
 	@echo ''
 	@echo '--- Building Bootloader ---'
 	@$(MAKE) $(MFLAGS) -C bootloader
 
-os os/os.bin:
+os:
 	@echo ''
 	@echo '--- Building OS ---'
 	@$(MAKE) $(MFLAGS) -C os
-
-sim: | rom.bin
-	zi28sim -r rom.bin & sleep 0.5 && picocom /tmp/zi28sim --omap crcrlf,delbs --send-cmd "ascii-xfr -snvde" --receive-cmd "ascii-xfr -rne"
 
 clean:
 	$(MAKE) -C os/ clean

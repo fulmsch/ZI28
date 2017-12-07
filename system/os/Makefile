@@ -1,4 +1,4 @@
-include ../../Make.config
+include ../../config.mk
 
 SRCDIR = src
 
