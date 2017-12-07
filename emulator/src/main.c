@@ -196,6 +196,14 @@ int main(int argc, char **argv) {
 	//Start z80lib
 	emulator_init();
 
+	if (!textMode_flag && !gtk_init_check(&argc, &argv)) {
+		fprintf(stderr, "Warning: Cannot open display.\n"
+		                "Executing in text mode.\n");
+		freopen("/dev/null", "w", stdout);
+		silent_flag = 1;
+		textMode_flag = 1;
+	}
+
 	if (textMode_flag) {
 		if (!romFile_flag) {
 			fprintf(stderr, "Error: No ROM-image specified.\n");
@@ -213,13 +221,6 @@ int main(int argc, char **argv) {
 	g_resources_register(resources_get_resource());
 
 	GtkBuilder *builder; 
-
-	if (!gtk_init_check(&argc, &argv)) {
-		fprintf(stderr, "Error: Cannot open display.\n"
-		                "Try using '--text-mode'.\n");
-		exit(1);
-	}
-
 
 	builder = gtk_builder_new_from_resource("/zi28sim/window_main.glade");
 
