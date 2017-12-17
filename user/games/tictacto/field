@@ -1,0 +1,31 @@
+My wins: 0 | Your wins: 0 | Draws: 0
+
+
+                |   |
+             ---+---+---
+                |[ ]|
+             ---+---+---
+                |   |
+
+
+My turn.
+Thinking...
+
+Your turn.
+WASD: move cursor | ENTER: confirm
+
+Player X's turn.
+Enter your move:
+
+Player O's turn.
+Enter your move:
+
+
+I win.
+You win.
+Player X wins.
+Player O wins.
+It's a draw.
+
+
+Play again? (Y/n)

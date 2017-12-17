@@ -12,6 +12,8 @@
 # v1.2      25 Jan 2013     Glen Gray: Handle GPT partitions
 # v1.3      07 Dec 2017     Florian Ulmschneider: Adapt for ZI-28 project
 
+set -e
+
 if [ "$#" -ne "3" ]; then
     echo "Usage: $(basename "$0") <image_filename> <partition # (1,2,...)> <mount point>" >&2
     exit 1

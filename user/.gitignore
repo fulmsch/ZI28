@@ -1,2 +1,4 @@
 programs/basic/
+sysroot
 *.img
+*.TZ7
