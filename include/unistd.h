@@ -24,6 +24,15 @@
 extern char *environ[];
 #define isatty(fd) fchkstd(fd)
 #define unlink(a) remove(a)
+
+/*** getopt ***/
+extern int  __LIB__  getopt (int, char **, char *);
+extern char *optarg;                      /* getopt(3) external variables */
+extern int opterr;
+extern int optind;
+extern int optopt;
+extern int optreset;
+
 #endif
 
 #endif

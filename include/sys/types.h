@@ -39,7 +39,7 @@ typedef signed int ssize_t;
 
 #ifndef _OFF_T
 #define _OFF_T
-typedef unsigned long off_t;
+typedef long off_t;
 #endif
 
 #ifndef _MODE_T

@@ -15,6 +15,8 @@
 #define ST_CHAR_BIT  4 //;character device
 #define ST_BLOCK_BIT 5 //;block device
 
+#define S_IFMT (ST_REG | ST_DIR | ST_CHAR | ST_BLOCK)
+
 #ifndef __NAKEN_ASM
 
 #include <sys/types.h>
@@ -36,6 +38,14 @@ extern int __LIB__  mkdir(char *dirname);
 #define S_ISDIR(m)	((m) & ST_DIR)
 #define S_ISCHR(m)	((m) & ST_CHAR)
 #define S_ISBLK(m)	((m) & ST_BLOCK)
+
+#define S_IFBLK  ST_BLOCK
+#define S_IFCHR  ST_CHAR
+#define S_IFIFO  0xFF
+#define S_IFREG  ST_REG
+#define S_IFDIR  ST_DIR
+#define S_IFLNK  0xFF
+#define S_IFSOCK 0xFF
 
 #endif
 #endif

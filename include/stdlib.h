@@ -127,13 +127,6 @@ extern int  __LIB__ __FASTCALL__ atexit(void *fcn);
 // int system(char *s);                     /* might be implemented in target's library but doubtful */
 // char *getenv(char *name);                /* might be implemented in target's library but doubtful */
 
-extern int  __LIB__  getopt (int, char **, char *);
-extern   char *optarg;                      /* getopt(3) external variables */
-extern   int opterr;
-extern   int optind;
-extern   int optopt;
-extern   int optreset;
-
 //////////////////
 //// Search & Sort
 //////////////////

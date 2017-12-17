@@ -73,6 +73,8 @@ ENDIF
 		SECTION bss_fp
 		SECTION bss_error
 		SECTION bss_crt
+		PUBLIC	_errno
+_errno:         defw 0
 IF !DEFINED_nostreams
 		PUBLIC	__sgoioblk
 __sgoioblk:      defs    60      ;stdio control block

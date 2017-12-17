@@ -7,9 +7,13 @@
 #ifndef __ERRNO_H__
 #define __ERRNO_H__
 
+#ifndef __NAKEN_ASM
 #include <sys/compiler.h>
 
 typedef int error_t;
+
+extern int errno;
+#endif
 
 #define	EPERM 1		/* Not super-user */
 #define	ENOENT 2	/* No such file or directory */

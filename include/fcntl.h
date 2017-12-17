@@ -47,7 +47,7 @@ extern int __LIB__ creat(const char *name, mode_t mode);
 extern int __LIB__ __FASTCALL__ close(int fd);
 extern size_t __LIB__ __CALLEE__ read(int fd, void *buf, size_t count);
 extern size_t __LIB__ __CALLEE__ write(int fd, const void *buf, size_t count);
-extern long __LIB__ __SAVEFRAME__ lseek(int fd,long posn, int whence);
+extern off_t __LIB__ __CALLEE__ lseek(int fd, off_t offset, int whence);
 extern int __LIB__ __FASTCALL__ unlink(const char *pathname);
 
 extern int __LIB__ __FASTCALL__ readbyte(int fd);
