@@ -1,7 +1,7 @@
 include ../config.mk
 
 IMGFILE = sd.img
-IMGSIZE = 60000 #in KiB
+IMGSIZE = 600000 #in KiB
 MOUNTDIR = $(SYSROOT)
 PKGLIST = all.pkglist
 
@@ -9,7 +9,7 @@ MAKEDIRS = $(dir $(shell find . -mindepth 2 -iname "Makefile"))
 
 .PHONY: all mount umount unmount applications buildfs clean distclean
 
-all: mount
+all: buildfs
 
 BASEFS.TZ7:
 	mkdir -p basefs basefs/BIN basefs/CFG basefs/DOC basefs/GAMES basefs/HOME basefs/SYS basefs/TMP basefs/VAR basefs/VAR/LOG basefs/VAR/LOG/PACKAGES basefs/VAR/LOG/PACKAGES/REMOVED
@@ -31,7 +31,8 @@ mount:
 		$(UTILDIR)/lomount.sh $(IMGFILE) 1 $(MOUNTDIR); \
 	fi
 
-buildfs: mount applications
+buildfs: applications BASEFS.TZ7
+	$(MAKE) mount
 	$(UTILDIR)/buildfs.sh $(MOUNTDIR) $(PKGLIST)
 
 umount unmount:
@@ -47,12 +48,12 @@ applications:
 	done
 
 clean:
-	@for DIR in $(MAKEDIRS); do \
+	-@for DIR in $(MAKEDIRS); do \
 		$(MAKE) -C $$DIR clean --no-print-directory; \
 	done
 
 distclean: unmount
 	-$(RM) $(IMGFILE) BASEFS.TZ7
-	@for DIR in $(MAKEDIRS); do \
+	-@for DIR in $(MAKEDIRS); do \
 		$(MAKE) -C $$DIR distclean --no-print-directory; \
 	done

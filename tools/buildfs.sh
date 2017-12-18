@@ -52,7 +52,7 @@ PACKAGES=$(python3 -c "$PARSE_PKGLIST" "$SYSROOT" "$PKGLIST")
 
 for P in $PACKAGES
 do
-	echo $P
+	echo "Installing $P"
 	"$SCRIPTDIR/installpkg.sh" "$P" "$SYSROOT"
 done
 

@@ -14,7 +14,7 @@ PACKAGEFILE="$(find . -iname "$PACKAGENAME.TZ7")"
 
 TARFILE="$(mktemp --dry-run || echo "/tmp/$PACKAGENAME.tar")"
 
-dzx7 "$PACKAGEFILE" "$TARFILE"
+dzx7 "$PACKAGEFILE" "$TARFILE" > /dev/null
 cd "$INSTALLDIR"
-tar -xvf "$TARFILE"
+tar -xf "$TARFILE"
 tar -tf "$TARFILE" > "VAR/LOG/PACKAGES/$PACKAGENAME.PKG"

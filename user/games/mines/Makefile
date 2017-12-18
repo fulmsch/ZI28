@@ -1,6 +1,9 @@
 include ../../../config.mk
 
 PKGNAME = MINES
+BINDIR = $(BUILDDIR)/GAMES
+
+BUILDDIR = build
 
 TARGET = $(addsuffix .EX8, $(PKGNAME))
 HEXFILE = $(TARGET:.EX8=.hex)
@@ -18,9 +21,9 @@ $(TARGET): $(CFILES) $(HFILES)
 	objcopy -I binary -O ihex $(TARGET) $(HEXFILE)
 
 $(PKGFILE): $(TARGET)
-	mkdir -p build build/GAMES
-	cp $(TARGET) build/GAMES
-	$(UTILDIR)/makepkg.sh build $(PKGNAME)
+	mkdir -p $(BINDIR)
+	cp $(TARGET) $(BINDIR)
+	$(UTILDIR)/makepkg.sh $(BUILDDIR) $(PKGNAME)
 
 install: $(PKGFILE)
 	$(UTILDIR)/installpkg.sh $(PKGNAME) $(SYSROOT)

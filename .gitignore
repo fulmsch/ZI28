@@ -8,6 +8,7 @@
 *.exe
 *.EXE
 *.EX8
+*.ex8
 *.elf
 *.map
 *.def

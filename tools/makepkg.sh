@@ -15,4 +15,4 @@ TARFILE="$(mktemp --dry-run || echo "/tmp/$PACKAGENAME.tar")"
 
 cd "$BUILDDIR"
 tar -cvf "$TARFILE" -- *
-zx7 -f "$TARFILE" "$OUTDIR/$PACKAGENAME.TZ7"
+zx7 -f "$TARFILE" "$OUTDIR/$PACKAGENAME.TZ7" > /dev/null

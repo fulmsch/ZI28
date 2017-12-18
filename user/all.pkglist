@@ -1,3 +1,4 @@
 basefs
+coreutil
 
-@games.def
+@games/games.pkglist
