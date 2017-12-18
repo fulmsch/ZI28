@@ -38,12 +38,14 @@ struct SdCard {
 struct SdModule {
 	struct SdCard* card;
 	unsigned char writeReg, readReg;
+	int cs;
 };
 
 void SdModule_write(struct SdModule*, unsigned short addr, unsigned char data);
 unsigned char SdModule_read(struct SdModule*, unsigned short addr);
+void SdModule_setCS(struct SdModule*, int);
+
 unsigned char SdCard_transfer(struct SdCard*, unsigned char);
-void SdCard_setCS(struct SdCard*, int);
 void SdCard_parseCommand(struct SdCard*);
 
 /*

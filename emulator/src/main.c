@@ -28,6 +28,7 @@
 GResource *resources_get_resource(void);
 
 int textMode_flag = 0;
+int romProtect = 0;
 
 int quit_req = 0;
 GtkTextView *g_view_console;
@@ -44,7 +45,8 @@ gint timeout_update(gpointer data);
 
 GtkWidget    *window;
 
-char *romFile = 0;
+char *romFileName = NULL;
+char *sdFileName  = NULL;
 
 int breakpointsEnabled = 1;
 
@@ -144,11 +146,12 @@ int main(int argc, char **argv) {
 			{"help",      no_argument,       0, 'h'},
 			{"text-mode", no_argument,       0, 't'},
 			{"rom-file",  required_argument, 0, 'r'},
+			{"sd-image",  required_argument, 0, 'c'},
 			{"silent",    no_argument,       0, 's'},
 			{0, 0, 0, 0}
 		};
 		int option_index = 0;
-		c = getopt_long(argc, argv, "htr:s",
+		c = getopt_long(argc, argv, "htr:c:s",
 		                long_options, &option_index);
 
 		// End of options
@@ -163,7 +166,10 @@ int main(int argc, char **argv) {
 				break;
 			case 'r':
 				romFile_flag = 1;
-				romFile = optarg;
+				romFileName = optarg;
+				break;
+			case 'c':
+				sdFileName = optarg;
 				break;
 			case 's':
 				silent_flag = 1;
@@ -183,6 +189,7 @@ int main(int argc, char **argv) {
 			" -h, --help       Display this help message.\n"
 			" -t, --text-mode  Launch without a graphical interface.\n"
 			" -r, --rom-file   Specify a binary file that is loaded into ROM.\n"
+			" -c, --sd-image   Specify a SD-Card image file.\n"
 			" -s, --silent     Don't write anything to stdout.\n"
 		);
 		return 0;
@@ -209,8 +216,8 @@ int main(int argc, char **argv) {
 			fprintf(stderr, "Error: No ROM-image specified.\n");
 			exit(1);
 		}
-		if (emulator_loadRom(romFile)) {
-			fprintf(stderr, "Error: Could not open '%s'.\n", romFile);
+		if (emulator_loadRom(romFileName)) {
+			fprintf(stderr, "Error: Could not open '%s'.\n", romFileName);
 			exit(1);
 		}
 		while (1) {
@@ -266,9 +273,9 @@ int main(int argc, char **argv) {
 
 	g_timeout_add(10, timeout_update, NULL);
 
-	if (romFile) {
-		if (emulator_loadRom(romFile)) {
-			console("Warning: Could not open '%s'.\n", romFile);
+	if (romFileName) {
+		if (emulator_loadRom(romFileName)) {
+			console("Warning: Could not open '%s'.\n", romFileName);
 		}
 	}
 
@@ -363,20 +370,20 @@ void on_menu_mem_romLoad_activate() {
 	res = gtk_dialog_run (GTK_DIALOG (dialog));
 	if (res == GTK_RESPONSE_ACCEPT) {
 		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-		romFile = gtk_file_chooser_get_filename (chooser);
-		if (!emulator_loadRom(romFile))
-			console("Loaded the contents of '%s' into ROM.\n", romFile);
+		romFileName = gtk_file_chooser_get_filename (chooser);
+		if (!emulator_loadRom(romFileName))
+			console("Loaded the contents of '%s' into ROM.\n", romFileName);
 		else
-			console("Could not open '%s'.\n", romFile);
+			console("Could not open '%s'.\n", romFileName);
 	}
 
 	gtk_widget_destroy (dialog);
 }
 
 void on_menu_mem_romReload_activate() {
-	if (romFile) {
-		if (!emulator_loadRom(romFile))
-			console("Could not open '%s'.\n", romFile);
+	if (romFileName) {
+		if (!emulator_loadRom(romFileName))
+			console("Could not open '%s'.\n", romFileName);
 		else
 			console("ROM-File reloaded.\n");
 	} else {

@@ -1,8 +1,6 @@
 #ifndef EMULATOR_H
 #define EMULATOR_H
 
-FILE *memFile;
-
 struct {
 	unsigned char rom[0x8000];
 	unsigned char ram[0x20000];
@@ -16,11 +14,7 @@ struct {
 	};
 } zi28;
 
-int breakpoints[0x10000];
-struct SdCard sd;
-struct SdModule sdModule;
-struct pollfd pty[1];
-struct termios ptyTermios;
+extern int breakpoints[0x10000];
 
 void emulator_init(void);
 int emulator_loadRom(char *romFile);

@@ -106,11 +106,14 @@ unsigned char SdCard_transfer(struct SdCard *card, unsigned char in) {
 	return out;
 }
 
-void SdCard_setCS(struct SdCard *card, int state) {
-	if (!card->enable && state) {
-		card->status = IDLE;
+void SdModule_setCS(struct SdModule *module, int state) {
+	module->cs = state;
+	if (module->card != NULL) {
+		if (!module->card->enable && state) {
+			module->card->status = IDLE;
+		}
+		module->card->enable = state;
 	}
-	card->enable = state;
 }
 
 void SdCard_parseCommand(struct SdCard *card) {
@@ -174,14 +177,18 @@ void SdModule_write(struct SdModule *module, unsigned short addr, unsigned char 
 			module->writeReg = data;
 			break;
 		case 1:
-			module->readReg = SdCard_transfer(module->card, module->writeReg);
+			if (module->card != NULL) {
+				module->readReg = SdCard_transfer(module->card, module->writeReg);
+			} else {
+				module->readReg = 0xff;
+			}
 			module->writeReg = 0xff;
 			break;
 		case 2:
-			SdCard_setCS(module->card, 1);
+			SdModule_setCS(module, 1);
 			break;
 		case 3:
-			SdCard_setCS(module->card, 0);
+			SdModule_setCS(module, 0);
 			break;
 		default:
 			break;
@@ -193,7 +200,9 @@ unsigned char SdModule_read(struct SdModule *module, unsigned short addr) {
 	unsigned char data = 0xff;
 	switch (addr) {
 		case 0:
-			data = module->readReg;
+			if (module->card != NULL) {
+				data = module->readReg;
+			}
 			break;
 		default:
 			break;

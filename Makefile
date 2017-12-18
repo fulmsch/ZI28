@@ -19,7 +19,7 @@ user: lib
 	@$(MAKE) $(MFLAGS) -C user/
 
 run:
-	emulator/zi28emu -r system/rom.bin & sleep 0.5 && picocom /tmp/zi28tty --omap crcrlf,delbs --send-cmd "ascii-xfr -snvde" --receive-cmd "ascii-xfr -rne"; killall zi28emu
+	emulator/zi28emu -r system/rom.bin -c user/sd.img& sleep 0.5 && picocom /tmp/zi28tty --omap crcrlf,delbs --send-cmd "ascii-xfr -snvde" --receive-cmd "ascii-xfr -rne"; killall zi28emu
 
 clean:
 	-@$(MAKE) -C emulator/ clean

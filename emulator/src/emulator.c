@@ -12,6 +12,14 @@
 
 char lastTtyChar = 0;
 
+FILE *memFile;
+
+int breakpoints[0x10000];
+struct SdCard sd;
+struct SdModule sdModule;
+struct pollfd pty[1];
+struct termios ptyTermios;
+
 void emulator_init() {
 	int ptm, pts;
 	char *ptsName;
@@ -30,12 +38,16 @@ void emulator_init() {
 
 	romProtect = 1;
 
-	if (!(sd.imgFile = fopen("/home/florian/sd.img", "r+"))) {
-		fprintf(stderr, "Error: can't open SD image file.\n");
-		exit(1);
+	if (sdFileName != NULL) {
+		if (!(sd.imgFile = fopen(sdFileName, "r+"))) {
+			fprintf(stderr, "Error: can't open SD image file.\n");
+			exit(1);
+		}
+		sd.status = IDLE;
+		sdModule.card = &sd;
+	} else {
+		sdModule.card = NULL;
 	}
-	sd.status = IDLE;
-	sdModule.card = &sd;
 
 	zi28.context.memRead = context_mem_read_callback;
 	zi28.context.memWrite = context_mem_write_callback;
@@ -44,8 +56,8 @@ void emulator_init() {
 	emulator_reset();
 }
 
-int emulator_loadRom(char *romFile) {
-	if(!(memFile = fopen(romFile, "rb"))) return -1;
+int emulator_loadRom(char *romFileName) {
+	if(!(memFile = fopen(romFileName, "rb"))) return -1;
 	fread(zi28.rom, 1, 0x8000, memFile);
 	fclose(memFile);
 	return 0;
@@ -109,7 +121,7 @@ byte context_io_read_callback(int param, ushort address) {
 	address = address & 0xff;
 
 	if (address >= 0x80) {
-		int base = (address - 0x80) / 0x10;
+//		int base = (address - 0x80) / 0x10;
 		ushort offs = (address - 0x80) % 0x10;
 		data = SdModule_read(&sdModule, offs);
 
@@ -143,7 +155,7 @@ byte context_io_read_callback(int param, ushort address) {
 void context_io_write_callback(int param, ushort address, byte data) {
 	address = address & 0xff; // port address
 	if (address >= 0x80) {
-		int base = (address - 0x80) / 0x10;
+//		int base = (address - 0x80) / 0x10;
 		ushort offs = (address - 0x80) % 0x10;
 		SdModule_write(&sdModule, offs, data);
 
