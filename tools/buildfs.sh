@@ -48,7 +48,7 @@ for pkg in read_list(package_list_file):
 	print(pkg)
 "
 
-PACKAGES=$(python3 -c "$PARSE_PKGLIST" "$SYSROOT" "$PKGLIST")
+PACKAGES=$(python -c "$PARSE_PKGLIST" "$SYSROOT" "$PKGLIST")
 
 for P in $PACKAGES
 do
