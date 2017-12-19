@@ -1,6 +1,33 @@
-INCLUDEPATH = ../../../include
+include ../../../config.mk
 
-guessing_game.hex: guessing_game.asm $(INCLUDEPATH)/*.h
-	naken_asm -b guessing_game.asm -o GUESS.EX8 -I $(INCLUDEPATH) && \
-	cp GUESS.EX8 ../../sysroot/GAMES/GUESS.EX8 && \
-	objcopy -I binary -O ihex guessing_game.bin guessing_game.hex
+PKGNAME = GUESS
+BINDIR = $(BUILDDIR)/GAMES
+
+BUILDDIR = build
+
+TARGET = $(addsuffix .EX8, $(PKGNAME))
+HEXFILE = $(TARGET:.EX8=.hex)
+PKGFILE = $(addsuffix .TZ7, $(PKGNAME))
+
+.PHONY: all install clean distclean
+
+all: $(TARGET) $(PKGFILE)
+
+$(TARGET): guessing_game.asm
+	naken_asm -b guessing_game.asm -o $(TARGET) -I$(INCLUDEDIR)
+	objcopy -I binary -O ihex $(TARGET) $(HEXFILE)
+
+$(PKGFILE): $(TARGET)
+	mkdir -p $(BINDIR)
+	cp $(TARGET) $(BINDIR)
+	$(UTILDIR)/makepkg.sh $(BUILDDIR) $(PKGNAME)
+
+install: $(PKGFILE)
+	$(UTILDIR)/installpkg.sh $(PKGNAME) $(SYSROOT)
+
+clean:
+	$(RM) *.def *.map *.o* *.sym *.lst
+	$(RM) -r build
+
+distclean: clean
+	$(RM) $(TARGET) $(HEXFILE) $(PKGFILE)

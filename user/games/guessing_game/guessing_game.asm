@@ -1,7 +1,7 @@
 .z80
 .include "sys/os.h"
 
-.org 0xc000
+.org 0x4000
 
 restart:
 	ld e, 0
