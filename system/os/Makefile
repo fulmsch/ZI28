@@ -19,8 +19,8 @@ os.bin: $(SRCFILES) $(INCLUDEFILES)
 os.hex: os.bin
 	objcopy -I binary -O ihex os.bin os.hex
 
-sim: | os.bin
-	zi28sim -r os.bin & sleep 0.5 && picocom /tmp/zi28sim --omap crcrlf,delbs --send-cmd "ascii-xfr -snvde" --receive-cmd "ascii-xfr -rne"
+run:
+	$(ROOTDIR)/emulator/zi28emu -r os.bin -c $(ROOTDIR)/user/sd.img& sleep 0.5 && picocom /tmp/zi28tty --omap crcrlf,delbs --send-cmd "ascii-xfr -snvde" --receive-cmd "ascii-xfr -rne"; killall zi28emu
 
 $(SRCDIR)/gitversion.asm: $(ROOTDIR)/.git/HEAD $(ROOTDIR)/.git/index
 	echo -e "gitversion:\n\t.asciiz \"Commit: $(shell git describe --always --abbrev=10)\\nBuild: $(shell date -Iminutes)\"" > $@
