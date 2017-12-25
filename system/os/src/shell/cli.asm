@@ -255,20 +255,22 @@ noMatch:
 noMatchStr:
 	.asciiz "Command not recognised\n"
 
+;TODO customisable prompt
 promptStartStr:
-	.asciiz "["
+	.db 0x1b
+	.asciiz "[36m"
 promptEndStr:
-	.asciiz "]$ "
+	.db 0x1b
+	.asciiz "[m$ "
 .endf ;cli
 
 
 
 execPath:
-	.asciiz ":/BIN/"
+	.asciiz "/BIN/"
 
 ;Command strings
 chdirStr:   .asciiz "CD"
-chmainStr:  .asciiz "CHMAIN"
 clsStr:     .asciiz "CLS"
 echoStr:    .asciiz "ECHO"
 helpStr:    .asciiz "HELP"
@@ -281,7 +283,6 @@ nullStr:    .db 00h
 
 dispatchTable:
 	.dw chdirStr,  b_chdir
-	.dw chmainStr, b_chmain
 	.dw clsStr,    b_cls
 	.dw echoStr,   b_echo
 	.dw helpStr,   b_help
@@ -293,7 +294,6 @@ dispatchTable:
 	.dw nullStr
 
 .include "shell/builtins/chdir.asm"
-.include "shell/builtins/chmain.asm"
 .include "shell/builtins/cls.asm"
 .include "shell/builtins/echo.asm"
 .include "shell/builtins/help.asm"

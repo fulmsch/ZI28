@@ -140,6 +140,28 @@ srcloop:
 .endf ;strncmp
 
 
+.func strbegins:
+;; Check if hl begins with de.
+;;
+;; Input:
+;; : de, hl - string pointers
+;;
+;; Output:
+;; : z if hl begins with de
+;;
+;; Destroyed: a, de, hl
+
+	ld a, (de)
+	cp 0x00
+	ret z
+	cp (hl)
+	ret nz
+	inc de
+	inc hl
+	jr strbegins
+.endf
+
+
 .func strcpy:
 ;; Copy a string from hl to de
 ;;
@@ -267,6 +289,15 @@ loop:
 ;; Input:
 ;; : a - character
 
+;	push af
+;poll:
+;	in a, (1)
+;	bit 0, a
+;	jr nz, poll
+;	pop af
+;	out (0), a
+;	ret
+
 	push af
 	push bc
 	push de
@@ -290,6 +321,13 @@ loop:
 ;;
 ;; Output:
 ;; : a - character
+
+;poll:
+;	in a, (1)
+;	bit 1, a
+;	jr nz, poll
+;	in a, (0)
+;	ret
 
 	push bc
 	push de

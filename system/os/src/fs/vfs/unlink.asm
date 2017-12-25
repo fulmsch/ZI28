@@ -34,9 +34,9 @@ u_unlink:
 	;check for valid file driver
 	;get the drive table entry of the filesystem
 	ld a, (ix + fileTableDriveNumber)
-	call getDriveAddr
-	jp c, error ;drive number out of bounds
-	;(hl) = driveTableEntry
+	ld h, 0 + (driveTable >> 8)
+	ld l, a
+	;hl = drive entry
 	ld de, driveTableFsdriver
 	add hl, de
 	ld e, (hl)

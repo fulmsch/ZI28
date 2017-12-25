@@ -1,5 +1,5 @@
 ;drive table
-.define fat_fat1StartAddr     driveTableFsdata          ;4 bytes
+.define fat_fat1StartAddr     driveTableFsData          ;4 bytes
 .define fat_fat2StartAddr     fat_fat1StartAddr + 4     ;4 bytes
 .define fat_rootDirStartAddr  fat_fat2StartAddr + 4     ;4 bytes
 .define fat_dataStartAddr     fat_rootDirStartAddr + 4  ;4 bytes

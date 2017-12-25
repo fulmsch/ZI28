@@ -14,7 +14,7 @@ syscallTable:
 	.dw u_readdir
 	.dw u_dup
 	.dw u_mount
-	.dw u_chmain
+	.dw u_unmount
 	.dw u_unlink
 
 syscallTableEnd:

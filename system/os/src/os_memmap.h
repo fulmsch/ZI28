@@ -47,8 +47,7 @@
 #define osWorkspaceEnd          pathBuffer + PATH_MAX
 
 ;Environment
-#define env_mainDrive           osWorkspaceEnd             ;5 bytes
-#define env_workingPath         env_mainDrive + 5          ;PATH_MAX bytes
+#define env_workingPath         osWorkspaceEnd             ;PATH_MAX bytes
 #define env_end                 env_workingPath + PATH_MAX
 
 ;Device Fs
@@ -61,15 +60,17 @@
 
 ;Drive Table
 #define driveTableEntrySize     32
-#define driveTableEntries       9
+#define driveTableEntries       8
 
-#define driveTable              devfsRootEnd
-#define driveTableEnd           driveTable + driveTableEntrySize * driveTableEntries
+#define driveTable              0x0100 + ((devfsRootEnd) & 0xff00)
+#define driveTablePaths         driveTable + (driveTableEntrySize * driveTableEntries)
+#define driveTableEnd           driveTablePaths + (driveTableEntrySize * driveTableEntries)
 
 ;File Table
 #define fileTableEntrySize      32
 #define fileTableEntries        32
 
+;TODO align to 256 byte boundary, add second table just for names
 #define fileTable               driveTableEnd
 #define fileTableEnd            fileTable + fileTableEntrySize * fileTableEntries
 
@@ -109,13 +110,8 @@
 #define k_seek_new              k_open_end
 #define k_seek_end              k_seek_new + 4
 
-;k_chmain
-#define k_chmain_pathColon      k_seek_end              ;1 byte
-#define k_chmain_pathBuffer     k_chmain_pathColon + 1  ;5 bytes
-#define k_chmain_end            k_chmain_pathBuffer + 5
-
 ;fat
-#define fat_clusterValue        k_chmain_end                 ;2 bytes
+#define fat_clusterValue        k_seek_end                 ;2 bytes
 #define fat_clusterValueOffset1 fat_clusterValue + 2         ;4 bytes
 #define fat_clusterValueOffset2 fat_clusterValueOffset1 + 4  ;4 bytes
 
@@ -143,7 +139,8 @@
 #define exec_end                exec_fd + 1
 
 ;realpath
-#define realpath_output         exec_end
+#define realpath_outputProt     exec_end
+#define realpath_output         realpath_outputProt + 1
 #define realpath_end            realpath_output + PATH_MAX
 
 ;cli

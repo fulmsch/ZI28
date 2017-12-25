@@ -16,8 +16,12 @@
 #define SYS_readdir   8
 #define SYS_dup       9
 #define SYS_mount    10
-#define SYS_chmain   11
+#define SYS_unmount  11
 #define SYS_unlink   12
+
+//file system types
+#define FS_DEV 0
+#define FS_FAT 1
 
 //file mode definition
 #define M_READ   0x01

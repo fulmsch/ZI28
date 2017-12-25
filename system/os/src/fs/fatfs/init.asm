@@ -4,7 +4,6 @@
 ;; Calculate and store filesystem offsets
 ;;
 ;; Input:
-;;; : a - fd of device containing the fs
 ;; : ix - drive table entry address
 
 	;TODO fix this crap

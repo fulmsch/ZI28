@@ -69,8 +69,6 @@ k_open:
 ;; : e - file descriptor
 ;; : a - errno
 
-
-;TODO convert path to uppercase
 	ld (k_open_mode), a
 	ld (k_open_path), de
 
@@ -116,79 +114,25 @@ tableSpotFound:
 
 	ld hl, (k_open_path)
 	call realpath
-
-	inc hl
-	ld d, h
-	ld e, l
-	;(de) = drive label
-
-fullPathSplitLoop:
-	inc hl
-	ld a, (hl)
-	cp 0x00
-	jr z, rootDir
-	cp '/'
-	jr nz, fullPathSplitLoop
-
-	xor a
-	ld (hl), a ;terminate drive name
-	inc hl
-rootDir:
 	;(hl) = absolute path
+
+	call get_drive_and_path
+	;(de) = drive entry
+	;(hl) = relative path
+
 	ld (k_open_path), hl
-
-
-	;(de) = drive label
-	ld c, driveTableEntries
-	ld hl, driveTable
-
-findDriveLoop:
-	push de ;drive label
-	push hl ;drive entry
-
-	call strcmp
-	jr z, findDriveCmpEnd
-
-findDriveCmpFail:
-	pop hl ;drive entry
-	ld de, driveTableEntrySize
-	add hl, de
-	pop de ;drive label
-
-	dec c
-	jr nz, findDriveLoop
-
-	;drive not found
-	ld a, 0xf3
-	ret
-
-findDriveCmpEnd:
-	ld a, (de)
-	cp '/'
-	jr z, driveFound
-	cp 0x00
-	jr nz, findDriveCmpFail
-
-driveFound:
-	pop hl ;drive entry
-	pop de ;clear the stack
-	;(hl) = drive entry
-
-	;calculate the drive number
-	;c = driveTableEntries - driveNumber
-	;=> driveNumber = driveTableEntries - c
-	ld a, driveTableEntries
-	sub c
+	ld a, e
 	ld (k_open_drive), a
 	
-	ld de, driveTableFsdriver
-	add hl, de
+	add a, driveTableFsdriver
+	ld e, a
+	ex de, hl
 	ld e, (hl)
 	inc hl
 	ld d, (hl)
-	ex de, hl ;(hl) = Fsdriver
+	ex de, hl ;hl = fsdriver address
 
-	and a
+	and a ;clear carry flag
 	ld de, 0
 	sbc hl, de
 	jr z, invalidDrive;NULL pointer

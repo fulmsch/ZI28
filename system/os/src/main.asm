@@ -92,9 +92,10 @@ _coldStart:
 	ld (hl), 0xff
 	ldir
 
-	ld de, devfs_fsDriver
-	ld hl, devDriveName
-	xor a
+	call dummyRoot
+	ld hl, devfsMountPoint
+	ld d, FS_DEV
+	ld e, 0xff
 	call k_mount
 
 	;stdin
@@ -117,14 +118,10 @@ _coldStart:
 
 	;initialise main drive
 	ld de, osDevName ;TODO configurable name in eeprom
-	ld a, O_RDWR
-	call k_open
-	ld a, e
-	ld hl, osDriveName
-	ld de, fat_fsDriver
-	call k_mount
-	ld de, osDriveName
-	call k_chmain
+	ld a, FS_FAT
+	call mountRoot
+
+
 	ld hl, homeDir
 	call k_chdir
 
@@ -132,17 +129,13 @@ _coldStart:
 	jp cli
 
 ttyName:
-	.asciiz ":DEV/TTY0"
+	.asciiz "/DEV/TTY0"
 osDevName:
-	.asciiz ":DEV/SDA1"
-testFileName:
-	.asciiz ":SD/BIN/BASIC.BIN"
-devDriveName:
-	.asciiz "DEV"
-osDriveName:
-	.asciiz "OS"
+	.asciiz "/DEV/SDA1"
+devfsMountPoint:
+	.asciiz "/DEV"
 homeDir:
-	.asciiz ":/"
+	.asciiz "/HOME"
 
 
 

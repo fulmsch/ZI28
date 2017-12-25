@@ -26,8 +26,8 @@
 	jr z, rootDir
 notRootDir:
 	ld a, (ix + fileTableDriveNumber)
-	call getDriveAddr
-	jp c, error ;drive number out of bounds
+	ld h, 0 + (driveTable >> 8)
+	ld l, a
 	;hl = drive entry
 
 	ld bc, driveTableDevfd

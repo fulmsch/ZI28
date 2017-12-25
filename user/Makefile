@@ -12,7 +12,7 @@ MAKEDIRS = $(dir $(shell find . -mindepth 2 -iname "Makefile"))
 all: buildfs
 
 BASEFS.TZ7:
-	mkdir -p basefs basefs/BIN basefs/CFG basefs/DOC basefs/GAMES basefs/HOME basefs/SYS basefs/TMP basefs/VAR basefs/VAR/LOG basefs/VAR/LOG/PACKAGES basefs/VAR/LOG/PACKAGES/REMOVED
+	mkdir -p basefs basefs/BIN basefs/CFG basefs/DEV basefs/DOC basefs/GAMES basefs/HOME basefs/MNT basefs/SYS basefs/TMP basefs/VAR basefs/VAR/LOG basefs/VAR/LOG/PACKAGES basefs/VAR/LOG/PACKAGES/REMOVED
 	$(UTILDIR)/makepkg.sh basefs BASEFS
 	$(RM) -r basefs
 
