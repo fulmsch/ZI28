@@ -1,6 +1,8 @@
 #ifndef EMULATOR_H
 #define EMULATOR_H
 
+#include "libz80/z80.h"
+
 struct {
 	unsigned char rom[0x8000];
 	unsigned char ram[0x20000];

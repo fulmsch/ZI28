@@ -15,7 +15,7 @@ WARN = -Wall
 
 PTHREAD = -pthread
 
-CCFLAGS = $(DEBUG) $(OPT) $(WARN) $(PTHREAD) -I$(INCDIR) -pipe
+CCFLAGS = $(DEBUG) $(OPT) $(WARN) $(PTHREAD) -I$(INCDIR) -I. -pipe
 
 GTKLIB = `pkg-config --cflags --libs gtk+-3.0` `pkg-config --cflags --libs gtkhex-3`
 

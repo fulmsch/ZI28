@@ -16,7 +16,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-#include <z80.h>
 #include <getopt.h>
 
 #include <gtkhex.h>
@@ -24,6 +23,7 @@
 #include "main.h"
 #include "emulator.h"
 #include "sd.h"
+#include "libz80/z80.h"
 
 GResource *resources_get_resource(void);
 

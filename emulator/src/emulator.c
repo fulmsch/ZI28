@@ -4,11 +4,11 @@
 #include <poll.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <z80.h>
 
 #include "main.h"
 #include "emulator.h"
 #include "sd.h"
+#include "libz80/z80.h"
 
 char lastTtyChar = 0;
 
