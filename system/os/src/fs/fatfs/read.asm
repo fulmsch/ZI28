@@ -230,7 +230,7 @@ relOffsLoop:
 
 	ld a, (iy + driveTableDevfd)
 
-	ld h, K_SEEK_SET
+	ld h, SEEK_SET
 	push ix
 	push af
 	call k_lseek
@@ -276,7 +276,7 @@ readCluster:
 	call ld16
 	call fat_clusterToAddr
 	ex de, hl
-	ld h, K_SEEK_SET
+	ld h, SEEK_SET
 	ld a, (iy + driveTableDevfd)
 	push ix
 	call k_lseek
@@ -317,7 +317,7 @@ rootDir:
 	ex de, hl
 
 	;(de) = offset
-	ld h, K_SEEK_SET
+	ld h, SEEK_SET
 	push af
 	call k_lseek
 	pop af

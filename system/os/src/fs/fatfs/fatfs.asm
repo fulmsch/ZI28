@@ -81,7 +81,7 @@ loop:
 
 	ld a, (iy + driveTableDevfd)
 	push af
-	ld h, K_SEEK_SET
+	ld h, SEEK_SET
 	call k_lseek
 	pop af
 
@@ -136,7 +136,7 @@ loop:
 	;write to FAT 1
 	ld de, fat_clusterValueOffset1
 	push af
-	ld h, K_SEEK_SET
+	ld h, SEEK_SET
 	call k_lseek
 	pop af
 
@@ -153,7 +153,7 @@ loop:
 	;write to FAT 2
 	ld de, fat_clusterValueOffset2
 	push af
-	ld h, K_SEEK_SET
+	ld h, SEEK_SET
 	call k_lseek
 	pop af
 

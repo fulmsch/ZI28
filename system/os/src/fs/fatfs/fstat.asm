@@ -40,7 +40,7 @@ notRootDir:
 	add hl, de
 	ex de, hl ;(de) = dir entry addr
 
-	ld h, K_SEEK_SET
+	ld h, SEEK_SET
 	push af
 	call k_lseek
 	pop af

@@ -148,7 +148,7 @@ match:
 	;set dirEntryAddr to current offset of underlying device
 	ld a, (iy + driveTableDevfd)
 	ld de, 0
-	ld h, K_SEEK_PCUR ;TODO replace with NCUR 32 and remove the subtraction further down
+	ld h, SEEK_CUR ;TODO replace with CUR -32 and remove the subtraction further down
 	push ix
 	push iy
 	call k_seek

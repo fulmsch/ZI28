@@ -46,10 +46,4 @@
 #define STAT_SIZE   14 ;4 bytes
 #define STAT_LEN    18
 
-//seek modes
-#define K_SEEK_SET  0
-#define K_SEEK_PCUR 1
-#define K_SEEK_NCUR 2
-#define K_SEEK_END  3
-
 #define PATH_MAX 64

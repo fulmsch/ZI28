@@ -34,7 +34,7 @@
 	push de
 	push hl
 	ld de, devfsEntrySize
-	ld h, K_SEEK_PCUR
+	ld h, SEEK_CUR
 	call k_seek
 	pop hl
 	pop de

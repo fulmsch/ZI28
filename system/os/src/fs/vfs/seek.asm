@@ -13,10 +13,9 @@ k_seek:
 ;;
 ;; The new offset is calculated according to whence as follows:
 ;;
-;; * `K_SEEK_SET` : from start of file
-;; * `K_SEEK_PCUR` : from current location in positive direction
-;; * `K_SEEK_NCUR` : from current location in negative direction
-;; * `K_SEEK_END` : from end of file in negative direction
+;; * `SEEK_SET` : from start of file
+;; * `SEEK_CUR` : from current location in positive direction
+;; * `SEEK_END` : from end of file in positive direction
 ;;
 ;; Input:
 ;; : a - file descriptor
@@ -40,10 +39,9 @@ k_seek:
 ;;
 ;; The new offset is calculated according to whence as follows:
 ;;
-;; * `K_SEEK_SET` : from start of file
-;; * `K_SEEK_PCUR` : from current location in positive direction
-;; * `K_SEEK_NCUR` : from current location in negative direction
-;; * `K_SEEK_END` : from end of file in negative direction
+;; * `SEEK_SET` : from start of file
+;; * `SEEK_CUR` : from current location in positive direction
+;; * `SEEK_END` : from end of file in positive direction
 ;;
 ;; Input:
 ;; : a - file descriptor
@@ -76,55 +74,23 @@ k_seek:
 
 	;check whence
 	ld a, b
-	cp K_SEEK_SET
+	cp SEEK_SET
 	jr z, set
-	cp K_SEEK_END
+	cp SEEK_CUR
+	jr z, cur
+	cp SEEK_END
 	jr z, end
-	cp K_SEEK_PCUR
-	jr z, pcur
-	cp K_SEEK_NCUR
 	jr nz, invalidWhence
 
-ncur:
-	ld de, fileTableOffset
-	add hl, de
-	ld de, k_seek_new
-	call ld32
-	jr subOffs
 
 end:
 	ld de, fileTableSize
 	add hl, de
 	ld de, k_seek_new
 	call ld32
+	jr addOffs
 
-subOffs:
-	;new=new-offs
-	ld hl, k_seek_new
-	pop de ;offset
-	push de
-	call cp32
-	pop de
-	jr c, invalidOffset
-
-	ld hl, k_seek_new
-	ex de, hl
-	call sub32
-
-	pop hl ;table entry addr
-
-	ld de, fileTableOffset
-	add hl, de
-	push hl
-	ld de, k_seek_new
-	call ld32
-
-	pop de
-	xor a
-	ret
-
-
-pcur:
+cur:
 	ld de, fileTableOffset
 	add hl, de
 	ld de, k_seek_new
@@ -142,20 +108,14 @@ addOffs:
 	call add32
 
 	pop hl ;table entry
-	push hl
-	ld de, fileTableSize
-	add hl, de
-	ex de, hl
-	ld hl, k_seek_new
-	call cp32
-	pop hl
-	;TODO reenable size checking
-	;jr nc, invalidOffset
 
 	ld de, fileTableOffset
 	add hl, de
-	push hl
 	ld de, k_seek_new
+	ld a, (de)
+	bit 7, a
+	jr nz, invalidOffset
+	push hl
 	ex de, hl
 	call ld32
 

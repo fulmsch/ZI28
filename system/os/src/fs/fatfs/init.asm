@@ -25,7 +25,7 @@
 	push af
 	push ix
 	ld de, FAT_VBR_RESERVED_SECTORS
-	ld h, K_SEEK_SET
+	ld h, SEEK_SET
 	call k_seek
 	pop ix
 	pop af
@@ -54,7 +54,7 @@
 	push af
 	push ix
 	ld de, FAT_VBR_SECTORS_PER_FAT
-	ld h, K_SEEK_SET
+	ld h, SEEK_SET
 	call k_seek
 	pop ix
 	pop af
@@ -104,7 +104,7 @@
 	push af
 	push ix
 	ld de, FAT_VBR_MAX_ROOT_DIR_ENTRIES
-	ld h, K_SEEK_SET
+	ld h, SEEK_SET
 	call k_seek
 	pop ix
 	pop af
@@ -139,7 +139,7 @@ rootDirSizeLoop:
 	push af
 	push ix
 	ld de, FAT_VBR_SECTORS_PER_CLUSTER
-	ld h, K_SEEK_SET
+	ld h, SEEK_SET
 	call k_seek
 	pop ix
 	pop af
