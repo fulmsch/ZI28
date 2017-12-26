@@ -44,6 +44,7 @@ GtkTextBuffer *g_txt_console;
 gint timeout_update(gpointer data);
 
 GtkWidget    *window;
+GtkWidget    *window_about;
 
 char *romFileName = NULL;
 char *sdFileName  = NULL;
@@ -232,6 +233,7 @@ int main(int argc, char **argv) {
 	builder = gtk_builder_new_from_resource("/zi28sim/window_main.glade");
 
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "window_main"));
+	window_about = GTK_WIDGET(gtk_builder_get_object(builder, "window_about"));
 	gtk_builder_connect_signals(builder, NULL);
 
 	g_field_instruction = GTK_ENTRY(gtk_builder_get_object(builder, "field_instruction"));
@@ -417,4 +419,9 @@ void on_menu_mem_editor_activate() {
 	gtk_container_add(GTK_CONTAINER(memEditorWindow), hexeditor);
 	gtk_widget_show_all(memEditorWindow);
 	*/
+}
+
+void on_menu_help_about_activate() {
+	gtk_dialog_run(GTK_DIALOG(window_about));
+	gtk_widget_hide(window_about);
 }

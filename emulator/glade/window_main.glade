@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.0 -->
+<!-- Generated with glade 3.20.2 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <object class="GtkTextBuffer" id="txt_console"/>
@@ -285,12 +285,13 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkImageMenuItem">
+                      <object class="GtkImageMenuItem" id="menu_help_about">
                         <property name="label">gtk-about</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <signal name="activate" handler="on_menu_help_about_activate" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -1342,6 +1343,39 @@
       </object>
     </child>
     <child type="titlebar">
+      <placeholder/>
+    </child>
+  </object>
+  <object class="GtkAboutDialog" id="window_about">
+    <property name="can_focus">False</property>
+    <property name="resizable">False</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="type_hint">dialog</property>
+    <property name="transient_for">window_main</property>
+    <property name="program_name">ZI-28 Emulator</property>
+    <property name="copyright" translatable="yes">© 2016-2017 Florian Ulmschneider</property>
+    <property name="website">https://ulms.ch/en/projects/zi28/index.php</property>
+    <property name="logo_icon_name"/>
+    <property name="license_type">gpl-3-0</property>
+    <child internal-child="vbox">
+      <object class="GtkBox">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <child>
       <placeholder/>
     </child>
   </object>
