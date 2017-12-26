@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.20.2 -->
 <interface>
-  <requires lib="gtk+" version="3.20"/>
+  <requires lib="gtk+" version="3.16"/>
   <object class="GtkTextBuffer" id="txt_console"/>
   <object class="GtkApplicationWindow" id="window_main">
     <property name="can_focus">False</property>
