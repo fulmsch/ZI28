@@ -17,7 +17,7 @@ CCFLAGS = #-m -g -s
 all: $(TARGET) $(PKGFILE)
 
 $(TARGET): $(CFILES) $(HFILES)
-	zcc +zi28 $(CCFLAGS) $(CFILES) -o $(TARGET) -Iinclude
+	$(ZCC) +zi28 $(CCFLAGS) $(CFILES) -o $(TARGET) -Iinclude
 	objcopy -I binary -O ihex $(TARGET) $(HEXFILE)
 
 $(PKGFILE): $(TARGET)

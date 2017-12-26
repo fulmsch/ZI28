@@ -20,7 +20,7 @@ CCFLAGS = #-m -g -s
 all: $(PKGFILE) $(HEXFILES)
 
 %.ex8: src/%.c $(HFILES)
-	zcc +zi28 $(CCFLAGS) $< -o $@ -Iinclude
+	$(ZCC) +zi28 $(CCFLAGS) $< -o $@ -Iinclude
 
 %.hex: %.ex8
 	objcopy -I binary -O ihex $< $@

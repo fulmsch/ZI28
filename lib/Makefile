@@ -1,3 +1,5 @@
+include ../config.mk
+
 OUTPUT_DIRECTORY := .
 
 #USE_MPM=1
@@ -37,10 +39,10 @@ $(OUTPUT_DIRECTORY)/%.lib:
 	@$(RM) $(sort $(addsuffix /zcc_opt.def, $(^D)))
 
 %.o: %.c
-	zcc +zi28 $(CFLAGS) -o $@  $<
+	$(ZCC) +zi28 $(CFLAGS) -o $@  $<
 
 %.o: %.asm
-	zcc +zi28 $(CFLAGS) -o $@  $<
+	$(ZCC) +zi28 $(CFLAGS) -o $@  $<
 
 clean: # Remove intermediate files
 	@$(RM) $(shell find . -iname "*.o" -or -name "zcc_opt.def" -or -name "zcc_proj.lst")
