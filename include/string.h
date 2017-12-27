@@ -50,6 +50,8 @@ extern void __LIB__              *memopd(void *, void *, uint, uint);
 
 extern char __LIB__ __FASTCALL__ *strdup(const char *);
 
+extern char __LIB__ __FASTCALL__ *strerror(int errnum);
+
 // And now a list of the same non-FASTCALL functions using CALLEE linkage
 
 extern char __LIB__ __CALLEE__   *strcat_callee(char *dst, const char *src);

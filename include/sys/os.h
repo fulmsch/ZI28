@@ -1,8 +1,17 @@
+//legacy
 #define coldStart  0x0000
 #define putc       0x0008
 #define getc       0x0010
 #define syscall    0x0030
 #define monitor    0x0038
+
+//new
+#define RST_coldStart  0x0000
+#define RST_putc       0x0008
+#define RST_getc       0x0010
+#define RST_strerror   0x0028
+#define RST_syscall    0x0030
+#define RST_monitor    0x0038
 
 //syscalls
 #define SYS_open      0

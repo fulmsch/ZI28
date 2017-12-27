@@ -46,7 +46,7 @@
 	.db     00h
 	jp      00h          ;CALL 24h
 	.db     00h
-	jp      00h          ;RST 28h
+	jp      _strerror    ;RST 28h
 	.db     00h
 	jp      00h          ;CALL 2Ch
 	.db     00h
@@ -143,6 +143,7 @@ homeDir:
 
 .include "monitor.asm"
 
+.include "error.asm"
 .include "drive.asm"
 .include "block.asm"
 .include "process.asm"
