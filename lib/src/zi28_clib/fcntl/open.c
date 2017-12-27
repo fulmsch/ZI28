@@ -11,7 +11,7 @@ int open(char *name, int flags, unsigned int mode) {
 
 	ld a, l ;only lsb is used
 	ld c, SYS_open
-	rst syscall
+	rst RST_syscall
 	;e = file descriptor
 	;a = errno
 	cp 0

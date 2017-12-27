@@ -6,7 +6,7 @@ int unlink(const char *pathname) {
 	;hl = fd
 	ex de, hl
 	ld c, SYS_unlink
-	rst syscall
+	rst RST_syscall
 	cp 0
 	jr nz, unlink_error
 	ld h, a

@@ -28,7 +28,7 @@ prompt:
 handleChar:
 	;TODO navigation with arrow keys
 	xor a
-	call getc
+	rst RST_getc
 	cp 08h
 	jr z, backspace
 	cp '\n'
@@ -39,7 +39,7 @@ handleChar:
 	cp 7fh
 	jr nc, handleChar
 	ld (hl), a
-	call putc
+	rst RST_putc
 	;Check for buffer overflow
 	inc c
 	ld a, c
@@ -53,11 +53,11 @@ backspace:
 	cp 0
 	jr z, handleChar
 	ld a, 08h
-	call putc
+	rst RST_putc
 	ld a, 20h
-	call putc
+	rst RST_putc
 	ld a, 08h
-	call putc
+	rst RST_putc
 	dec hl
 	dec c
 	jr handleChar
@@ -72,9 +72,9 @@ inputBufferOverflowStr:
 
 handleLine:
 //	ld a, 0dh
-//	call putc
+//	rst RST_putc
 	ld a, 0ah
-	call putc
+	rst RST_putc
 	;TODO store history in file
 
 	ld (hl), 00h
@@ -169,9 +169,9 @@ commandDispatch:
 ;	inc de
 ;	call printStr
 ;	ld a, 0dh
-;	call putc
+;	rst RST_putc
 ;	ld a, 0ah
-;	call putc
+;	rst RST_putc
 ;	djnz argLoop
 
 	pop hl ;contains pointer to first string

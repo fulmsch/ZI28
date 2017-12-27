@@ -12,7 +12,7 @@ int fstat(int fd, struct stat *buf) {
 	jr nz, fstat_error ;fd > 255
 	ld a, l
 	ld c, SYS_fstat
-	rst syscall
+	rst RST_syscall
 	cp 0
 	jr nz, fstat_error
 	ld h, a

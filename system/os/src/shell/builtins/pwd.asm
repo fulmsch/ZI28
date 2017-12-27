@@ -11,7 +11,7 @@
 	pop hl
 	call printStr
 	ld a, 0x0a
-	jp putc
+	jp RST_putc
 
 
 invalidCall:

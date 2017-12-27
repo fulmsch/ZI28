@@ -14,7 +14,7 @@ size_t write(int fd, const void *buf, size_t count) {
 	push bc ;return address
 
 	ld c, SYS_write
-	rst syscall
+	rst RST_syscall
 	;de = count
 	;a = errno
 	cp 0

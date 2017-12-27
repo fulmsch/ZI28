@@ -277,7 +277,7 @@ loop:
 ;	ld a, (hl)
 ;	cp 00h
 ;	ret z
-;	rst putc
+;	rst RST_putc
 ;	inc hl
 ;	jr printStr
 .endf ;printStr

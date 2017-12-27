@@ -8,7 +8,7 @@ int stat(char *filename, struct stat *buf) {
 	pop de ;filename
 	push bc ;return address
 	ld c, SYS_stat
-	rst syscall
+	rst RST_syscall
 	cp 0
 	jr nz, stat_error
 	ld h, a

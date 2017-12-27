@@ -9,7 +9,7 @@ int close(int fd) {
 	;hl = fd
 	ld a, l
 	ld c, SYS_close
-	rst syscall
+	rst RST_syscall
 	cp 0
 	jr nz, close_error
 	ld h, a

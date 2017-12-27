@@ -12,7 +12,7 @@ int readdir(int dirfd, struct stat *buf) {
 	jr nz, readdir_error ;fd > 255
 	ld a, l
 	ld c, SYS_readdir
-	rst syscall
+	rst RST_syscall
 	cp 0
 	jr nz, readdir_error
 	ld h, a

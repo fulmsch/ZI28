@@ -18,14 +18,14 @@ tableLoop:
 	cp 00h
 	jr z, path
 	ld a, ' '
-	call putc
+	rst RST_putc
 	push bc
 	call printStr
 	pop bc
 	ld a, 0dh
-	call putc
+	rst RST_putc
 	ld a, 0ah
-	call putc
+	rst RST_putc
 	jr tableLoop
 
 path:
@@ -38,9 +38,9 @@ path:
 ;	call printStr
 
 ;	ld a, 0dh
-;	call putc
+;	rst RST_putc
 ;	ld a, 0ah
-;	call putc
+;	rst RST_putc
 
 	ret
 

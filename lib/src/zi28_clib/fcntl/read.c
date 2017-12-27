@@ -14,7 +14,7 @@ size_t read(int fd, void *buf, size_t count) {
 	push bc ;return address
 
 	ld c, SYS_read
-	rst syscall
+	rst RST_syscall
 	;de = count
 	;a = errno
 	cp 0

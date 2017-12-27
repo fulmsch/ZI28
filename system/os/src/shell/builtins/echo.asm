@@ -23,13 +23,13 @@ loop:
 	pop bc
 	pop de
 	ld a, ' '
-	call putc
+	rst RST_putc
 	djnz loop
 
 newline:
 	ld a, 0dh
-	call putc
+	rst RST_putc
 	ld a, 0ah
-	call putc
+	rst RST_putc
 	ret
 .endf

@@ -12,7 +12,7 @@ restart:
 	call print
 number:
 	xor a
-	rst getc
+	rst RST_getc
 	cp 'q'
 	ret z
 	cp 0x03 ;ctrl-c
@@ -49,9 +49,9 @@ attemptsDisp:
 	call print
 	ld a, e
 	or 0x30
-	rst putc
+	rst RST_putc
 	ld a, 0x0a
-	rst putc
+	rst RST_putc
 	jr number
 
 win:
@@ -59,14 +59,14 @@ win:
 	call print
 	ld a, e
 	or 30h
-	rst putc
+	rst RST_putc
 	ld a, 0x0a
-	rst putc
+	rst RST_putc
 	ld hl, newGamePromt
 	call print
 newGame:
 	xor a
-	call getc
+	rst RST_getc
 	cp 0x4e
 	jr z, exit
 	cp 0x6e
@@ -130,7 +130,7 @@ print:
 	inc hl
 	cp 0x00
 	ret z
-	rst putc
+	rst RST_putc
 	jr print
 	ret
 
