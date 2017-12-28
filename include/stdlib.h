@@ -104,10 +104,6 @@ extern void __LIB__ __FASTCALL__ srand(unsigned int seed);
 //// Memory Allocation
 //////////////////////
 
-// Before using the malloc library you must initialize the heap -- see malloc.h for details
-// calloc(), malloc(), realloc(), free(), mallinit(), mallinfo(), sbrk()
-// ot use the -DAMALLOC option to let z88dk doing it automatically
-
 #include <malloc.h>
 
 ///////////////////////

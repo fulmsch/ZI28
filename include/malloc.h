@@ -10,8 +10,6 @@
  */
 
 
-#ifndef FARDATA
-
 // The Near Malloc Library is still a simple first
 // fit linear search of a list of free blocks.  The
 // list of free blocks is kept sorted by address so
@@ -22,49 +20,10 @@
 // Its main advantage is that it is very quick O(1)
 // in comparison to the O(N) of this library.
 //
-// Space must be declared to hold the process's
-// standard heap:
-//
-// long heap;
-//
-// An alternative is to reserve four bytes
-// in RAM at address xxxx using:
-//
-// extern long heap(xxxx);
-//
-// The heap must be initialized to empty with a
-// call to mallinit() or by setting heap=0L.
-// Then available memory must be added by one or
-// more calls to sbrk() as in:
-//
-// mallinit();        /* heap = 0L; is an alternative              */
-// sbrk(50000,4000);  /* add 4000 bytes from 50000-53999 inclusive */
-// sbrk(25000,126);   /* add 126 bytes from 25000-25125 inclusive  */
-// a = malloc(100);
+// A heap is automatically created on the default
+// memory bank. To create a heap on a different bank
+// or reset an existing one, call mallinit().
 
-/* Trick to force a default malloc initialization    */
-/* Activate it by invoking zcc with i.e. '-DAMALLOC' */
-
-// Automatic Preset for malloc:  3/4 of the free memory
-#ifdef AMALLOC
-#pragma output USING_amalloc
-#endif
-#ifdef AMALLOC3
-#pragma output USING_amalloc
-#endif
-
-// Automatic Preset for malloc:  2/4 of the free memory
-#ifdef AMALLOC2
-#pragma output USING_amalloc
-#pragma output USING_amalloc_2
-#endif
-
-// Automatic Preset for malloc:  1/4 of the free memory
-#ifdef AMALLOC1
-#pragma output USING_amalloc
-#pragma output USING_amalloc_2
-#pragma output USING_amalloc_1
-#endif
 
 extern void __LIB__              mallinit(void);
 extern void __LIB__              sbrk(void *addr, unsigned int size);
@@ -82,16 +41,6 @@ extern void __LIB__    __CALLEE__ mallinfo_callee(unsigned int *total, unsigned 
 #define calloc(a,b)    calloc_callee(a,b)
 #define realloc(a,b)   realloc_callee(a,b)
 #define mallinfo(a,b)  mallinfo_callee(a,b)
-
-// The following is to allow programs using the
-// older version of the near malloc library to
-// continue to work
-
-#define HEAPSIZE(bp)       unsigned char heap[bp+4];
-#define heapinit(a)        mallinit(); sbrk_callee(heap+4,a);
-#define getfree()          asm("EXTERN\tMAHeapInfo\nEXTERN\t_heap\nld\thl,_heap\ncall\tMAHeapInfo\nex\tde,hl\n")
-#define getlarge()         asm("EXTERN\tMAHeapInfo\nEXTERN\t_heap\nld\thl,_heap\ncall\tMAHeapInfo\nld\tl,c\nld\th,b\n")
-#define realloc_down(a,b)  realloc_callee(a,b)
 
 
 
@@ -148,45 +97,6 @@ extern void __LIB__    __CALLEE__ HeapInfo_callee(unsigned int *total, unsigned 
 #define HeapAlloc(a,b)      HeapAlloc_callee(a,b)
 #define HeapRealloc(a,b,c)  HeapRealloc_callee(a,b,c)
 #define HeapInfo(a,b,c)     HeapInfo_callee(a,b,c)
-
-#else
-
-/*
- * Now some definitions for far functions
- */
-
-#define calloc(a,b) calloc_far(a,b)
-#define malloc(a)   malloc_far(a)
-#define free(a)     free_far(a)
-
-// realloc, sbrk, mallinit, mallinfo not implemented in far lib
-
-#define realloc(a,b)
-#define sbrk(a,b)      heapinit_far(b)
-#define mallinit()
-#define mallinfo(a,b)
-
-// these are for compatibility with the older version of the near malloc lib
-
-#define HEAPSIZE(bp)
-#define getfree()  
-#define getlarge()
-#define heapinit(a)    heapinit_far(a)
-
-extern far void __LIB__ *calloc_far(int, int);
-extern far void __LIB__ *malloc_far(long);
-extern void __LIB__ free_far(far void *);
-extern void __LIB__ freeall_far();
-
-/* Create the correct memory spec */
-#ifdef MAKE_PACKAGE
-#pragma output far_mmset
-#endif
-
-
-
-#endif /* FARDATA */
-
 
 
 #endif /* _MALLOC_H */

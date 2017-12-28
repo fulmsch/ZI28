@@ -30,15 +30,15 @@
 
 
 
-	org    RAM_Start
+	org     RAM_Start
 
-	jp	start
+	jp      start
 start:
 	;hl = **argv
 	;bc = argc
-	ex de, hl ;de = **argv
+	ex      de, hl ;de = **argv
 
-	pop hl ;return address
+	pop     hl ;return address
 
 ; Make room for the atexit() stack
 	ld      sp, Stack_Top-64
@@ -52,8 +52,13 @@ start:
 	call    crt0_init_bss
 
 ; Store return address
-	pop hl
-	ld (__return_addr), hl
+	pop     hl
+	ld      (__return_addr), hl
+
+; Initialise heap
+	EXTERN  _mallinit
+	call    _mallinit
+
 
 ; Entry to the user code
 	call    _main

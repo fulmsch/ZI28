@@ -37,11 +37,6 @@ IF !DEFINED_nostreams
 		ld      hl,__sgoioblk+14
 		ld      (hl),5 ;stderr _IOUSE | _IOWRITE
 ENDIF
-IF DEFINED_USING_amalloc
-    EXTERN __tail
-	ld	hl,__tail
-	ld	(_heap),hl
-ENDIF
 	
 	; SDCC initialiation code gets placed here
 		SECTION code_crt_exit
@@ -90,15 +85,6 @@ IF !DEFINED_basegraphics
 base_graphics:   defw    0       ;Address of graphics map
 ENDIF
 exitcount:       defb    0       ;Number of atexit() routines
-IF DEFINED_USING_amalloc
-		PUBLIC _heap
-; The heap pointer will be wiped at startup,
-; but first its value (based on __tail)
-; will be kept for sbrk() to setup the malloc area
-_heap:
-		defw 0          ; Initialised by code_crt_init - location of the last program byte
-		defw 0
-ENDIF
 		SECTION bss_fardata
 IF __crt_org_bss_fardata_start
 		org	__crt_org_bss_fardata_start
@@ -110,3 +96,6 @@ ENDIF
 		SECTION bss_clib
 		SECTION bss_user
 		SECTION BSS_END
+
+		PUBLIC _heap
+		DEFC _heap = 0xc000
