@@ -38,21 +38,22 @@ start:
 	;bc = argc
 	ex de, hl ;de = **argv
 
-	ld (__return_sp), sp
+	pop hl ;return address
+
 ; Make room for the atexit() stack
-	ld	hl,Stack_Top-64
-	ld	sp,hl
+	ld      sp, Stack_Top-64
+	ld      (exitsp), sp
 
 	push    bc ;argc
 	push    de ;argv
+	push    hl ;return address
+
 ; Clear static memory
-;	ld	hl,RAM_Start
-;	ld	de,RAM_Start+1
-;	ld	bc,RAM_Length-1
-;	ld	(hl),0
-;	ldir
 	call    crt0_init_bss
-	ld      (exitsp),sp
+
+; Store return address
+	pop hl
+	ld (__return_addr), hl
 
 ; Entry to the user code
 	call    _main
@@ -69,8 +70,9 @@ cleanup:
 ;	call	closeall
 ;ENDIF
 
-	ld sp, (__return_sp)
-	ret
+; Return to caller
+	ld hl, (__return_addr)
+	jp (hl)
 
 l_dcal:
 	jp      (hl)
@@ -87,5 +89,5 @@ l_dcal:
         ENDIF
 	INCLUDE	"crt0_section.asm"
 
-	SECTION	bss_crt
-__return_sp:	defs 2
+	SECTION data_crt
+__return_addr: defs 2

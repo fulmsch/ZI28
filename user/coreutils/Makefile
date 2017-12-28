@@ -37,7 +37,7 @@ install: $(PKGFILE)
 	$(UTILDIR)/installpkg.sh $(PKGNAME) $(SYSROOT)
 
 clean:
-	$(RM) *.def *.map *.o* *.sym *.lst
+	$(RM) *.def *.map *.o* *.sym *.lst *.bin
 	$(RM) -r $(BUILDDIR)
 
 distclean: clean
