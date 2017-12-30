@@ -12,29 +12,7 @@
 #ifndef __FCNTL_H__
 #define __FCNTL_H__
 
-
-#define O_RDONLY    0x01
-#define O_WRONLY    0x02
-#define O_RDWR      0x04
-#define O_APPEND    0x08
-#define O_DIRECTORY 0x10
-#define O_TRUNC     0x20 //unused
-#define O_CREAT     0x40
-#define O_EXCL      0x80
-
-#define O_RDONLY_BIT    0
-#define O_WRONLY_BIT    1
-#define O_RDWR_BIT      2
-#define O_APPEND_BIT    3
-#define O_DIRECTORY_BIT 4
-#define O_TRUNC_BIT     5 //unused
-#define O_CREAT_BIT     6
-#define O_EXCL_BIT      7
-
-
-
-
-#ifndef __NAKEN_ASM
+#include <sys/os.h>
 #include <sys/compiler.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -106,6 +84,5 @@ extern int  __LIB__ rnd_saveblock(char *name, size_t loadstart, size_t len);
 extern int  __LIB__ __FASTCALL__ rnd_erase(char *name) ;
 
 /* ********************************************************* */
-#endif /* __NAKEN_ASM */
 
 #endif /* _FCNTL_H */

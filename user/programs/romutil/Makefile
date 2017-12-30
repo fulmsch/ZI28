@@ -14,7 +14,7 @@ PKGFILE = $(addsuffix .TZ7, $(PKGNAME))
 all: $(TARGET) $(PKGFILE)
 
 $(TARGET): romutil.asm
-	naken_asm -b romutil.asm -o $(TARGET)
+	z80asm -b --output=$(TARGET) -I$(INCLUDEDIR) romutil.asm
 	objcopy -I binary -O ihex $(TARGET) $(HEXFILE)
 
 $(PKGFILE): $(TARGET)

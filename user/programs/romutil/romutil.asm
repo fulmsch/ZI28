@@ -1,14 +1,12 @@
-.z80
-
-.define TERMDR 00h
-.define TERMCR 01h
+DEFC TERMDR = 0x00
+DEFC TERMCR = 0x01
 
 ;TODO:
 ;Change destination address
 ;Enable data protecion
 
 
-.org 0c000h
+ORG 0xc000
 
 	ld hl, clearScreenStr
 	call printStr
@@ -37,9 +35,12 @@ prompt:
 
 
 header:
-byteCountField: 	dw 0
-addressField:		dw 0,0
-recordTypeField:	dw 0
+byteCountField:
+	DEFW 0x0000
+addressField:
+	DEFW 0x0000, 0x0000
+recordTypeField:
+	DEFW 0x0000
 
 
 load:
@@ -126,16 +127,13 @@ loadAbort:
 	jr loadEnd
 
 loadStr:
-	.db "\r\nLoading\r\n"
-	.db 00h
+	DEFM "\r\nLoading\r\n", 0x00
 
 loadFinishedStr:
-	.db "Finished loading\r\n"
-	.db 00h
+	DEFM "Finished loading\r\n", 0x00
 
 loadAbortStr:
-	.db "Loading aborted\r\n"
-	.db 00h
+	DEFM "Loading aborted\r\n", 0x00
 
 
 
@@ -166,12 +164,10 @@ clearLoop:
 	jp prompt
 
 clearConfirmationStr:
-	.db "\r\nClear the entire buffer? [Y/N]\r\n"
-	.db 00h
+	DEFM "\r\nClear the entire buffer? [Y/N]\r\n", 0x00
 
 clearCompleteStr:
-	.db "\r\nThe buffer has been cleared\r\n"
-	.db 00h
+	DEFM "\r\nThe buffer has been cleared\r\n", 0x00
 
 
 
@@ -232,17 +228,14 @@ verifyCheckCancel:
 	jp prompt
 
 verifySelectStr:
-	.db "\r\nSelect source:\r\n"
-	.db "[B]uffer    [R]OM    [C]ancel\r\n"
-	.db 00h
+	DEFM "\r\nSelect source:\r\n"
+	DEFM "[B]uffer    [R]OM    [C]ancel\r\n", 0x00
 
 verifyStartStr:
-	.db "\r\nWaiting for start signal\r\n"
-	.db 00h
+	DEFM "\r\nWaiting for start signal\r\n", 0x00
 
 verifyCancelStr:
-	.db "Transfer canceled\r\n"
-	.db 00h
+	DEFM "Transfer canceled\r\n", 0x00
 
 
 
@@ -304,8 +297,7 @@ burnWait:
 	jp prompt
 
 burnConfirmationStr:
-	.db "\r\nBurn the contents of the buffer to the ROM? [Y/N]\r\n"
-	.db 00h
+	DEFM "\r\nBurn the contents of the buffer to the ROM? [Y/N]\r\n", 0x00
 
 
 
@@ -325,25 +317,19 @@ reset00:
 	jp 0000h
 
 resetConfirmationStr:
-	.db "\r\nReset the system? [Y/N]\r\n"
-	.db 00h
+	DEFM "\r\nReset the system? [Y/N]\r\n", 0x00
 
 
 clearScreenStr:
-	.db 1bh
-	.db "[2J"
-	.db 1bh
-	.db "[H"
-	.db 00h
+	DEFM 0x1b, "[2J"
+	DEFM 0x1b, "[H", 0x00
 
 welcomeStr:
-	.db "RomUtil - Program to write to and verify the EEPROM\r\n"
-	.db "F. Ulmschneider 2016\r\n"
-	.db 00h
+	DEFM "RomUtil - Program to write to and verify the EEPROM\r\n"
+	DEFM "F. Ulmschneider 2016\r\n", 0x00
 
 promptStr:
-	.db "\r\n[L]oad    [C]lear    [V]erify    [B]urn    [R]eset\r\n"
-	.db 00h
+	DEFM "\r\n[L]oad    [C]lear    [V]erify    [B]urn    [R]eset\r\n", 0x00
 
 
 ;*****************

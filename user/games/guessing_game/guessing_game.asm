@@ -1,7 +1,6 @@
-.z80
-.include "sys/os.h"
+INCLUDE "asm/os.asm"
 
-.org 0x4000
+ORG 0x4000
 
 restart:
 	ld e, 0
@@ -138,22 +137,22 @@ print:
 
 
 numberPromt:
-	.asciiz "Guess a number from 0 to 7:\n"
+	DEFM "Guess a number from 0 to 7:\n", 0x00
 
 newGamePromt:
-	.asciiz "New Game? y/n\n"
+	DEFM "New Game? y/n\n", 0x00
 
 correct:
-	.asciiz "Correct! "
+	DEFM "Correct! ", 0x00
 
 tooHigh:
-	.asciiz "Too high! "
+	DEFM "Too high! ", 0x00
 
 tooLow:
-	.asciiz "Too low! "
+	DEFM "Too low! ", 0x00
 
 attempts:
-	.asciiz "Attempts: "
+	DEFM "Attempts: ", 0x00
 
-invalid: 
-	.asciiz "Invalid Entry!\n"
+invalid:
+	DEFM "Invalid Entry!\n", 0x00

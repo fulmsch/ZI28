@@ -14,7 +14,7 @@ PKGFILE = $(addsuffix .TZ7, $(PKGNAME))
 all: $(TARGET) $(PKGFILE)
 
 $(TARGET): guessing_game.asm
-	naken_asm -b guessing_game.asm -o $(TARGET) -I$(INCLUDEDIR)
+	z80asm -b --output=$(TARGET) -I$(INCLUDEDIR) guessing_game.asm
 	objcopy -I binary -O ihex $(TARGET) $(HEXFILE)
 
 $(PKGFILE): $(TARGET)

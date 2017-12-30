@@ -10,6 +10,7 @@ emulator:
 lib:
 	@echo ''
 	@echo '--- Building C Libraries ---'
+	@$(MAKE) $(MFLAGS) -C include/
 	@$(MAKE) $(MFLAGS) -C lib/
 
 rom:
@@ -23,12 +24,14 @@ run:
 
 clean:
 	-@$(MAKE) -C emulator/ clean
+	-@$(MAKE) -C include/ clean
 	-@$(MAKE) -C lib/ clean
 	-@$(MAKE) -C system/ clean
 	-@$(MAKE) -C user/ clean
 
 distclean: clean
 	-@$(MAKE) -C emulator/ distclean
+	-@$(MAKE) -C include/ distclean
 	-@$(MAKE) -C lib/ distclean
 	-@$(MAKE) -C system/ distclean
 	-@$(MAKE) -C user/ distclean

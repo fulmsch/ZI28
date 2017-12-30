@@ -12,11 +12,8 @@
 
 .include "iomap.h"
 .include "os_memmap.h"
-.include "unistd.h"
 .include "sys/os.h"
-.include "sys/stat.h"
 .include "errno.h"
-.include "fcntl.h"
 .include "fs/vfs/vfs.h"
 .include "fs/fatfs/fatfs.h"
 .include "fs/devfs/devfs.h"

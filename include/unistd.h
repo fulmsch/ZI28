@@ -7,17 +7,7 @@
 #ifndef __UNISTD_H__
 #define __UNISTD_H__
 
-
-#define SEEK_SET 0
-#define SEEK_CUR 1
-#define SEEK_END 2
-
-#define STDIN_FILENO  0
-#define STDOUT_FILENO 1
-#define STDERR_FILENO 2
-
-
-#ifndef __NAKEN_ASM
+#include <sys/os.h>
 #include <sys/compiler.h>
 #include <sys/types.h>
 
@@ -32,7 +22,5 @@ extern int opterr;
 extern int optind;
 extern int optopt;
 extern int optreset;
-
-#endif
 
 #endif
