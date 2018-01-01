@@ -1,14 +1,12 @@
-.z80
-
-.define FT240_DATA_PORT 0x00
-.define FT240_STATUS_PORT 0x01
-.define BANK_PORT 0x02
+DEFC FT240_DATA_PORT   = 0x00
+DEFC FT240_STATUS_PORT = 0x01
+DEFC BANK_PORT         = 0x02
 
 ;TODO:
 ;Enable data protecion
 
 
-.org 0x8000
+ORG 0x8000
 
 	ld hl, clearScreenStr
 	call printStr
@@ -37,9 +35,12 @@ prompt:
 
 
 header:
-byteCountField: 	dw 0
-addressField:		dw 0,0
-recordTypeField:	dw 0
+byteCountField:
+	DEFW 0x0000
+addressField:
+	DEFW 0x0000, 0x0000
+recordTypeField:
+	DEFW 0x0000
 
 
 load:
@@ -126,13 +127,13 @@ loadAbort:
 	jr loadEnd
 
 loadStr:
-	.asciiz "\r\nLoading\r\n"
+	DEFM "\r\nLoading\r\n", 0x00
 
 loadFinishedStr:
-	.asciiz "Finished loading\r\n"
+	DEFM "Finished loading\r\n", 0x00
 
 loadAbortStr:
-	.asciiz "Loading aborted\r\n"
+	DEFM "Loading aborted\r\n", 0x00
 
 
 
@@ -163,10 +164,10 @@ clearLoop:
 	jp prompt
 
 clearConfirmationStr:
-	.asciiz "\r\nClear the entire buffer? [Y/N]\r\n"
+	DEFM "\r\nClear the entire buffer? [Y/N]\r\n", 0x00
 
 clearCompleteStr:
-	.asciiz "\r\nThe buffer has been cleared\r\n"
+	DEFM "\r\nThe buffer has been cleared\r\n", 0x00
 
 
 
@@ -227,14 +228,14 @@ verifyCheckCancel:
 	jp prompt
 
 verifySelectStr:
-	.ascii "\r\nSelect source:\r\n"
-	.asciiz "[B]uffer    [R]OM    [C]ancel\r\n"
+	DEFM "\r\nSelect source:\r\n"
+	DEFM "[B]uffer    [R]OM    [C]ancel\r\n", 0x00
 
 verifyStartStr:
-	.asciiz "\r\nWaiting for start signal\r\n"
+	DEFM "\r\nWaiting for start signal\r\n", 0x00
 
 verifyCancelStr:
-	.asciiz "Transfer canceled\r\n"
+	DEFM "Transfer canceled\r\n", 0x00
 
 
 
@@ -296,7 +297,7 @@ burnWait:
 	jp prompt
 
 burnConfirmationStr:
-	.asciiz "\r\nBurn the contents of the buffer to the ROM? [Y/N]\r\n"
+	DEFM "\r\nBurn the contents of the buffer to the ROM? [Y/N]\r\n", 0x00
 
 
 
@@ -316,22 +317,19 @@ reset00:
 	jp 0x0000
 
 resetConfirmationStr:
-	.asciiz "\r\nReset the system? [Y/N]\r\n"
+	DEFM "\r\nReset the system? [Y/N]\r\n", 0x00
 
 
 clearScreenStr:
-	.db 0x1b
-	.db "[2J"
-	.db 0x1b
-	.db "[H"
-	.db 0x00
+	DEFM 0x1b, "[2J"
+	DEFM 0x1b, "[H", 0x00
 
 welcomeStr:
-	.ascii "RomUtil - Program to write to and verify the EEPROM\r\n"
-	.asciiz "F. Ulmschneider 2016\r\n"
+	DEFM "RomUtil - Program to write to and verify the EEPROM\r\n"
+	DEFM "F. Ulmschneider 2016\r\n", 0x00
 
 promptStr:
-	.asciiz "\r\n[L]oad    [C]lear    [V]erify    [B]urn    [R]eset\r\n"
+	DEFM "\r\n[L]oad    [C]lear    [V]erify    [B]urn    [R]eset\r\n", 0x00
 
 
 ;*****************

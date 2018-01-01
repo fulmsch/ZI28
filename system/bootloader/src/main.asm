@@ -1,40 +1,39 @@
-.z80
-.org 0x0000
+ORG 0x0000
 
-.define DEBUG
+DEFINE DEBUG
 
 ; Jump Table -------------------------------------------------
 coldStart:
 	jp      _coldStart   ;RST 0x00
-	.db     0x00
+	DEFB    0x00
 	jp      0x00         ;CALL 0x04
-	.db     0x00
+	DEFB    0x00
 putc:
 	jp      _putc        ;RST 0x08
-	.db     0x00
+	DEFB    0x00
 	jp      0x00         ;CALL 0x0C
-	.db     0x00
+	DEFB    0x00
 getc:
 	jp      _getc        ;RST 0x10
-	.db     0x00
+	DEFB    0x00
 	jp      0x00         ;CALL 0x14
-	.db     0x00
+	DEFB    0x00
 	jp      0x00         ;RST 0x18
-	.db     0x00
+	DEFB    0x00
 	jp      0x00         ;CALL 0x1C
-	.db     0x00
+	DEFB    0x00
 	jp      0x00         ;RST 0x20
-	.db     0x00
+	DEFB    0x00
 	jp      0x00         ;CALL 0x24
-	.db     0x00
+	DEFB    0x00
 	jp      0x00         ;RST 0x28
-	.db     0x00
+	DEFB    0x00
 	jp      0x00         ;CALL 0x2C
-	.db     0x00
+	DEFB    0x00
 	jp      0x00         ;RST 0x30
-	.db     0x00
+	DEFB    0x00
 	jp      0x00         ;CALL 0x34
-	.db     0x00
+	DEFB    0x00
 	jp      0x00         ;RST 0x38
 
 
@@ -63,9 +62,9 @@ delayLoop:
 	dec d
 	jr nz, delayLoop
 
-.ifdef DEBUG
+IFDEF DEBUG
 	jr delayLoop
-.endif
+ENDIF
 	jr bootOS
 
 bootMenu:
@@ -107,44 +106,43 @@ bootOS:
 	jp 0x8000
 
 bootOSstr:
-	.asciiz "\n\nBooting OS...\n"
+	DEFM "\n\nBooting OS...\n", 0x00
 
 
 welcomeMsg:
-	.asciiz "\nPress any key for boot menu"
+	DEFM "\nPress any key for boot menu", 0x00
 
 bootMenuStr:
-	.ascii  "\n\n"
-	.ascii  "Select option:\n"
-	.ascii  "  1 - Monitor\n"
-	.ascii  "  2 - Burn EEPROM\n"
-	.ascii  "  3 - Boot into ZI-OS\n"
-	.ascii  "  4 - Launch BASIC\n"
-	.asciiz "  5 - Selftest\n"
+	DEFM  "\n\n"
+	DEFM  "Select option:\n"
+	DEFM  "  1 - Monitor\n"
+	DEFM  "  2 - Burn EEPROM\n"
+	DEFM  "  3 - Boot into ZI-OS\n"
+	DEFM  "  4 - Launch BASIC\n"
+	DEFM "  5 - Selftest\n", 0x00
 
-.define FT240_DATA_PORT   0
-.define FT240_STATUS_PORT 1
+DEFC FT240_DATA_PORT   = 0
+DEFC FT240_STATUS_PORT = 1
 
-.func _putc:
+_putc:
 	push af
-poll:
+_putc_poll:
 	in a, (FT240_STATUS_PORT)
 	bit 0, a
-	jr nz, poll
+	jr nz, _putc_poll
 	pop af
 	cp '\n'
-	call z, newline
+	call z, _putc_newline
 	out (FT240_DATA_PORT), a
 	ret
-
-newline:
+_putc_newline:
 	ld a, '\r'
 	out (FT240_DATA_PORT), a
 	ld a, '\n'
 	ret
-.endf
 
-.func _getc:
+
+_getc:
 ;; Input:
 ;; : a - 0=blocking, 1=not blocking
 ;;
@@ -152,28 +150,28 @@ newline:
 ;; : a - data
 ;; : zf - data available
 	or 0
-	jr z, blocking
+	jr z, _getc_blocking
 	in a, (FT240_STATUS_PORT)
 	bit 1, a
 	ret
-blocking:
+_getc_blocking:
 	in a, (FT240_STATUS_PORT)
 	bit 1, a
-	jr nz, blocking
+	jr nz, _getc_blocking
 	in a, (FT240_DATA_PORT)
 	cp '\r'
-	jr z, blocking
+	jr z, _getc_blocking
 	ret
-.endf
 
-.func printStr:
+
+printStr:
 	ld a, (hl)
 	cp 00h
 	ret z
 	rst putc
 	inc hl
 	jr printStr
-.endf
+
 
 bankSwitch:
 	ld a, 0x08
@@ -182,5 +180,5 @@ bankSwitch:
 bankSwitchEnd:
 
 romUtil:
-.binfile "romutil.bin"
+BINARY "romutil.bin"
 romUtilEnd:
