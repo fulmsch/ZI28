@@ -1,4 +1,4 @@
-INCLUDE "asm/os.asm"
+INCLUDE "asm/os.h"
 
 ORG 0x4000
 
