@@ -10,7 +10,10 @@
 *.EX8
 *.ex8
 *.elf
+*.err
 *.map
 *.def
 *.o
 *~*
+include/errno.h
+include/sys/os.h

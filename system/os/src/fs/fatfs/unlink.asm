@@ -1,6 +1,13 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "fatfs.h"
+INCLUDE "os_memmap.h"
 
-.func fat_unlink:
+PUBLIC fat_unlink
+
+EXTERN fat_clearClusterChain, k_lseek, k_write
+
+fat_unlink:
 ;; Mark the directory entry as deleted and clear the cluster chain.
 ;;
 ;; Input:
@@ -52,4 +59,3 @@ emptyFile:
 error:
 	ld a, 1
 	ret
-.endf

@@ -1,28 +1,10 @@
-;;
-.list
-.z80
+SECTION rom_code
+EXTERN syscallTable, syscallTableEnd
 
-syscallTable:
-	.dw u_open
-	.dw u_close
-	.dw u_read
-	.dw u_write
-	.dw u_seek
-	.dw u_lseek
-	.dw u_stat
-	.dw u_fstat
-	.dw u_readdir
-	.dw u_dup
-	.dw u_mount
-	.dw u_unmount
-	.dw u_unlink
+DEFC nSyscalls = (syscallTableEnd - syscallTable) / 2
 
-syscallTableEnd:
-
-.define nSyscalls 0+((syscallTableEnd - syscallTable)/2)
-
-
-.func _syscall:
+PUBLIC _syscall
+_syscall:
 ;; Access a system function from a running program.
 ;;
 ;; Input:
@@ -56,4 +38,3 @@ error:
 	pop af
 	ld a, 0xff
 	ret
-.endf

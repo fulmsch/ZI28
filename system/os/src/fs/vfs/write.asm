@@ -1,9 +1,17 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "math.h"
+INCLUDE "vfs.h"
+INCLUDE "os_memmap.h"
+
+PUBLIC u_write, k_write
+
+EXTERN fdToFileEntry
 
 u_write:
 	add a, fdTableEntries
 
-.func k_write:
+k_write:
 ;; Write to an open file
 ;;
 ;; Finds and calls the write routine of the corresponding file driver.
@@ -27,7 +35,7 @@ u_write:
 	call fdToFileEntry
 	jr c, invalidFd
 	ld a, (hl)
-	cp 00h
+	cp 0x00
 	jr z, invalidFd
 
 	push hl
@@ -89,4 +97,3 @@ zeroCount:
 	xor a
 	ld de, 0
 	ret
-.endf

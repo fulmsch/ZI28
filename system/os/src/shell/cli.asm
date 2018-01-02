@@ -1,26 +1,31 @@
+SECTION rom_code
 ;; Command line interface of the OS
 ;TODO change putc and getc to OS equivalents
 
 
-.list
 ;.define inputBufferSize 128
 ;.define maxArgc 32
+INCLUDE "os.h"
+INCLUDE "string.h"
+INCLUDE "os_memmap.h"
+
+EXTERN k_getcwd, exec
 
 
-.func cli:
-
+PUBLIC cli
+cli:
 prompt:
 	ld hl, promptStartStr
-	call printStr
+	call print
 
 	ld hl, pathBuffer
 	push hl
 	call k_getcwd
 	pop hl
-	call printStr
+	call print
 
 	ld hl, promptEndStr
-	call printStr
+	call print
 
 
 	ld hl, inputBuffer
@@ -29,14 +34,14 @@ handleChar:
 	;TODO navigation with arrow keys
 	xor a
 	rst RST_getc
-	cp 08h
+	cp 0x08
 	jr z, backspace
 	cp '\n'
 	jr z, handleLine
 	;Check if printable
-	cp 20h
+	cp 0x20
 	jr c, handleChar
-	cp 7fh
+	cp 0x7f
 	jr nc, handleChar
 	ld (hl), a
 	rst RST_putc
@@ -52,11 +57,11 @@ backspace:
 	ld a, c
 	cp 0
 	jr z, handleChar
-	ld a, 08h
+	ld a, 0x08
 	rst RST_putc
-	ld a, 20h
+	ld a, 0x20
 	rst RST_putc
-	ld a, 08h
+	ld a, 0x08
 	rst RST_putc
 	dec hl
 	dec c
@@ -64,28 +69,28 @@ backspace:
 
 inputBufferOverflow:
 	ld hl, inputBufferOverflowStr
-	call printStr
+	call print
 	jr prompt
 
 inputBufferOverflowStr:
-	.asciiz "\nThe entered command is too long\n"
+	DEFM "\nThe entered command is too long\n", 0x00
 
 handleLine:
-//	ld a, 0dh
-//	rst RST_putc
-	ld a, 0ah
+;	ld a, 0x0d
+;	rst RST_putc
+	ld a, 0x0a
 	rst RST_putc
 	;TODO store history in file
 
-	ld (hl), 00h
+	ld (hl), 0x00
 	ld hl, inputBuffer
 	ld de, argv
-	ld a, 00h
+	ld a, 0x00
 	ld (argc), a
 
 	;break the input into individual strings
 	ld a, (hl)
-	cp 00h
+	cp 0x00
 	jr z, commandDispatch;finished the input string
 	cp ' '
 	jr z, nextArgSpace
@@ -94,7 +99,7 @@ handleLine:
 
 nextArg:
 	ld a, (hl)
-	cp 00h
+	cp 0x00
 	jr z, commandDispatch;finished the input string
 	cp ' '
 	jr z, nextArgSpace
@@ -102,7 +107,7 @@ nextArg:
 	jr nextArg
 
 nextArgSpace:
-	ld a, 00h
+	ld a, 0x00
 	ld (hl), a
 	inc hl
 	ld a, (hl)
@@ -129,12 +134,12 @@ addArg:
 
 argOverflow:
 	ld hl, argOverflowStr
-	call printStr
+	call print
 	pop hl
 	jp prompt
 
 argOverflowStr:
-	.asciiz "\nToo many arguments\n"
+	DEFM "\nToo many arguments\n", 0x00
 
 commandDispatch:
 	;terminate argv
@@ -144,7 +149,7 @@ commandDispatch:
 	ld (de), a
 
 	ld a, (argc)
-	cp 00h
+	cp 0x00
 	jp z, prompt
 	ld b, a
 	ld de, argv
@@ -167,10 +172,10 @@ commandDispatch:
 ;	ld a, (de)
 ;	ld h, a
 ;	inc de
-;	call printStr
-;	ld a, 0dh
+;	call print
+;	ld a, 0x0d
 ;	rst RST_putc
-;	ld a, 0ah
+;	ld a, 0x0a
 ;	rst RST_putc
 ;	djnz argLoop
 
@@ -185,7 +190,7 @@ checkIfFullpath:
 	cp '/'
 	jr z, fullPath
 
-	cp 00h
+	cp 0x00
 	jr nz, checkIfFullpath
 
 	ld bc, dispatchTable
@@ -201,7 +206,7 @@ dispatchLoop:
 	inc bc
 	inc bc
 	ld a, (de)
-	cp 00h
+	cp 0x00
 	jr z, programInPath
 	push bc
 	push hl
@@ -249,56 +254,45 @@ fullPath:
 
 noMatch:
 	ld hl, noMatchStr
-	call printStr
+	call print
 	jp prompt
 
 noMatchStr:
-	.asciiz "Command not recognised\n"
+	DEFM "Command not recognised\n", 0x00
 
 ;TODO customisable prompt
 promptStartStr:
-	.db 0x1b
-	.asciiz "[36m"
+	DEFM 0x1b, "[36m", 0x00
 promptEndStr:
-	.db 0x1b
-	.asciiz "[m$ "
-.endf ;cli
+	DEFM 0x1b, "[m$ ", 0x00
 
 
 
 execPath:
-	.asciiz "/BIN/"
+	DEFM "/BIN/", 0x00
 
 ;Command strings
-chdirStr:   .asciiz "CD"
-clsStr:     .asciiz "CLS"
-echoStr:    .asciiz "ECHO"
-helpStr:    .asciiz "HELP"
-monStr:     .asciiz "MONITOR"
-mountStr:   .asciiz "MOUNT"
-pwdStr:     .asciiz "PWD"
-testStr:    .asciiz "TEST"
-verStr:     .asciiz "VER"
-nullStr:    .db 00h
+chdirStr:   DEFM "CD", 0x00
+clsStr:     DEFM "CLS", 0x00
+echoStr:    DEFM "ECHO", 0x00
+helpStr:    DEFM "HELP", 0x00
+monStr:     DEFM "MONITOR", 0x00
+mountStr:   DEFM "MOUNT", 0x00
+pwdStr:     DEFM "PWD", 0x00
+testStr:    DEFM "TEST", 0x00
+verStr:     DEFM "VER", 0x00
+nullStr:    DEFM 0x00
 
+PUBLIC dispatchTable
+EXTERN b_chdir, b_cls, b_echo, b_help, b_monitor, b_mount, b_pwd, b_test, b_ver
 dispatchTable:
-	.dw chdirStr,  b_chdir
-	.dw clsStr,    b_cls
-	.dw echoStr,   b_echo
-	.dw helpStr,   b_help
-	.dw monStr,    b_monitor
-	.dw mountStr,  b_mount
-	.dw pwdStr,    b_pwd
-	.dw testStr,   b_test
-	.dw verStr,    b_ver
-	.dw nullStr
-
-.include "shell/builtins/chdir.asm"
-.include "shell/builtins/cls.asm"
-.include "shell/builtins/echo.asm"
-.include "shell/builtins/help.asm"
-.include "shell/builtins/monitor.asm"
-.include "shell/builtins/mount.asm"
-.include "shell/builtins/pwd.asm"
-.include "shell/builtins/test.asm"
-.include "shell/builtins/ver.asm"
+	DEFW chdirStr,  b_chdir
+	DEFW clsStr,    b_cls
+	DEFW echoStr,   b_echo
+	DEFW helpStr,   b_help
+	DEFW monStr,    b_monitor
+	DEFW mountStr,  b_mount
+	DEFW pwdStr,    b_pwd
+	DEFW testStr,   b_test
+	DEFW verStr,    b_ver
+	DEFW nullStr

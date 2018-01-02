@@ -1,6 +1,7 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
 
-.func b_monitor:
-	rst 38h
+PUBLIC b_monitor
+b_monitor:
+	rst RST_monitor
 	ret
-.endf ;b_monitor

@@ -1,6 +1,11 @@
-.list
+SECTION rom_code
+INCLUDE "os_memmap.h"
 
-.func u_dup:
+PUBLIC u_dup, k_dup
+
+EXTERN k_close, getFdAddr, getFileAddr
+
+u_dup:
 	ld hl, u_fdTable
 	ld c, fdTableEntries
 	call dup
@@ -11,7 +16,6 @@
 	ld e, a
 	pop af
 	ret
-.endf
 
 k_dup:
 ;; Duplicate a file descriptor.
@@ -29,7 +33,7 @@ k_dup:
 	ld hl, k_fdTable
 	ld c, 0
 
-.func dup:
+dup:
 ;; Input:
 ;; : a - new fd
 ;; : b - old fd
@@ -100,4 +104,3 @@ copyFd:
 error:
 	ld a, 1
 	ret
-.endf

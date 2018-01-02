@@ -1,8 +1,15 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "vfs.h"
+INCLUDE "drive.h"
+INCLUDE "os_memmap.h"
+
+PUBLIC u_stat, k_stat, u_fstat, k_fstat
+
+EXTERN k_open, k_close, fdToFileEntry
 
 u_stat:
-
-.func k_stat:
+k_stat:
 ;; Get information about a file.
 ;;
 ;; Input:
@@ -24,13 +31,12 @@ u_stat:
 	call k_fstat
 	pop af
 	jp k_close
-.endf
 
 
 u_fstat:
 	add a, fdTableEntries
 
-.func k_fstat:
+k_fstat:
 ;; Get information about an open file.
 ;;
 ;; Input:
@@ -89,5 +95,3 @@ error:
 	pop de
 	ld a, 1
 	ret
-
-.endf

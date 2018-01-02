@@ -1,12 +1,20 @@
+SECTION rom_code
 ;; Machine monitor, unstable and incomplete
 ;TODO:
 ;Change call to rst
 ;Only allow printable chars as input
 
+INCLUDE "os_memmap.h"
+INCLUDE "iomap.h"
 
-.func _monitor:
+PUBLIC _monitor
 
-prgm	equ	0c000h
+EXTERN print
+
+
+_monitor:
+
+DEFC prgm = 0xc000
 
 	ld (stackSave), sp
 
@@ -21,9 +29,9 @@ prgm	equ	0c000h
 	ld sp, monStack
 
 	;ld hl, clearScreenStr
-	;call printStr
+	;call print
 	ld hl, welcomeStr
-	call printStr
+	call print
 
 	ld ix, (stackSave)
 	ld a, (ix + 1)
@@ -32,7 +40,7 @@ prgm	equ	0c000h
 	call printbyte
 
 	ld hl, readyStr
-	call printStr
+	call print
 
 prompt:
 	ld hl, monInputBuffer
@@ -45,7 +53,7 @@ handleChar:
 	xor a
 	rst RST_getc
 
-	cp 08h
+	cp 0x08
 	jr z, backspace
 
 	cp 0x0a
@@ -69,11 +77,11 @@ backspace:
 	ld a, c
 	cp 0
 	jr z, handleChar
-	ld a, 08h
+	ld a, 0x08
 	rst RST_putc
-	ld a, 20h
+	ld a, 0x20
 	rst RST_putc
-	ld a, 08h
+	ld a, 0x08
 	rst RST_putc
 	dec hl
 	dec c
@@ -83,7 +91,7 @@ backspace:
 handleStr:
 	ld (hl), a
 	rst RST_putc
-	ld a, 0ah
+	ld a, 0x0a
 	rst RST_putc
 
 	ld hl, monInputBuffer
@@ -91,7 +99,7 @@ handleStr:
 	cp 0x0a
 	jp z, prompt ;no char entered
 
-	ld b, 00h
+	ld b, 0x00
 	inc hl
 	ld a, (hl)
 	cp 0x0a
@@ -120,7 +128,7 @@ handleStr01:
 
 handleStr02:
 	;ld a, b
-	;or 30h
+	;or 0x30
 	;rst RST_putc
 
 	ld a, (monInputBuffer)
@@ -162,11 +170,11 @@ handleStr02:
 
 help:
 	ld a, b
-	cp 00h
+	cp 0x00
 	jp nz, invalid
 
 	ld hl, helpStr
-	call printStr
+	call print
 	jp prompt
 
 
@@ -188,9 +196,9 @@ contPrgm:
 loadPrgm:
 	ld de, prgm	;replace with address field recognition
 	ld a, b
-	cp 00h
+	cp 0x00
 	jp z, load
-	cp 01h
+	cp 0x01
 	jp nz, invalid
 	
 	ld hl, monInputBuffer
@@ -202,14 +210,14 @@ loadPrgm:
 load:
 	ld hl, loadStr
 	push de
-	call printStr
+	call print
 	pop de
-	ld hl, 00h
+	ld hl, 0x00
 
 waitForRecord:
 	xor a
 	rst RST_getc
-	cp 03h
+	cp 0x03
 	jp z, loadAbort
 	cp ':'
 	jr nz, waitForRecord
@@ -221,7 +229,7 @@ blockStart:
 headerLoop:
 	xor a
 	rst RST_getc
-	cp 03h
+	cp 0x03
 	jp z, loadAbort
 	ld (hl), a
 	inc hl
@@ -243,7 +251,7 @@ headerLoop:
 dataLoop:
 	xor a
 	rst RST_getc
-	cp 03h
+	cp 0x03
 	jp z, loadAbort
 	call hexToNumNibble
 	sla a
@@ -253,7 +261,7 @@ dataLoop:
 	ld c, a
 	xor a
 	rst RST_getc
-	cp 03h
+	cp 0x03
 	jp z, loadAbort
 	call hexToNumNibble
 	or c
@@ -266,7 +274,7 @@ dataLoop:
 loadExit:
 	xor a
 	rst RST_getc
-	cp 03h
+	cp 0x03
 	jp z, loadAbort
 	cp 0x0a
 	jr nz, loadExit
@@ -279,25 +287,25 @@ loadEnd:
 	; call printbyte
   
 	ld hl, loadFinishedStr
-	call printStr
+	call print
 	
 	jp prompt
 	
 loadAbort:
 	ld hl, loadAbortStr
-	call printStr
+	call print
 	jr loadEnd
 	
 loadAbortStr:
-	.db "\nLoading aborted\n", 00h 
+	DEFM "\nLoading aborted\n", 0x00
 
 
 execPrgm:
 	ld hl, prgm
 	ld a, b
-	cp 00h
+	cp 0x00
 	jp z, exec
-	cp 01h
+	cp 0x01
 	jp nz, invalid
 	
 	ld hl, monInputBuffer
@@ -309,7 +317,7 @@ execPrgm:
 	ld l, e
 
 exec:	
-	ld a, 0ah
+	ld a, 0x0a
 	rst RST_putc
 	
 	ld de, execRtn
@@ -317,13 +325,13 @@ exec:
 	jp (hl)
 execRtn:	
 	ld hl, doneStr
-	call printStr
+	call print
 	jp prompt
 
 	
 jump:
 	ld a, b
-	cp 01h
+	cp 0x01
 	jp nz, invalid
 	
 	ld hl, monInputBuffer
@@ -339,7 +347,7 @@ jump:
 	
 hexDump:
 	ld a, b
-	cp 01h
+	cp 0x01
 	jp nz, invalid
 	
 	ld hl, monInputBuffer
@@ -350,7 +358,7 @@ hexDump:
 	
 	ld hl, hexDumpHeader
 	push de
-	call printStr
+	call print
 	pop de
 
 hexDump00:
@@ -364,29 +372,29 @@ newline:
 	call printbyte
 	ld a, ':'
 	rst RST_putc
-	ld b, 10h
+	ld b, 0x10
 	push de
 	
 line:
-	ld a, 20h
+	ld a, 0x20
 	rst RST_putc
 	ld a, (de)
 	call printbyte
 	inc de
 	djnz line
 	
-	ld a, 20h
+	ld a, 0x20
 	rst RST_putc
 	rst RST_putc
 	
 	pop de
-	ld b, 10h
+	ld b, 0x10
 
 text:	
 	ld a, (de)
-	cp 20h
+	cp 0x20
 	jr c, notPrintable
-	cp 7fh
+	cp 0x7f
 	jr nc, notPrintable
 	jr hexDump01
 	
@@ -400,26 +408,26 @@ hexDump01:
 	
 
 	
-	ld b, 10h
-	ld a, 0ah
+	ld b, 0x10
+	ld a, 0x0a
 	rst RST_putc
 
 	ld a, (lineCounter)
 	dec a
 	ld (lineCounter), a
-	cp 00h
+	cp 0x00
 	jr nz, newline
 	
 hexDumpContinue:
 	xor a
 	rst RST_getc
 	
-	cp 03h ;CTRL-C, break
+	cp 0x03 ;CTRL-C, break
 	jp z, prompt
 	cp 0x0a ;Enter, continue
 	jr nz, hexDumpContinue	
 	
-	ld a, 0ah
+	ld a, 0x0a
 	rst RST_putc
 	jr hexDump00
 
@@ -435,7 +443,7 @@ printbyte:
 	call nibbletoascii
 	rst RST_putc
 	pop af
-	and 0fh
+	and 0x0f
 	call nibbletoascii
 	rst RST_putc
 	ret
@@ -444,20 +452,19 @@ nibbletoascii:
 	cp 10
 	jr c, num
 	sub 9
-	or 40h
+	or 0x40
 	ret
 num:
-	or 30h
+	or 0x30
 	ret
 	
 	
 hexDumpHeader:
-	.db "\n      00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n\n"
-	.db 00h
+	DEFM "\n      00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n\n", 0x00
 
 write:
 	ld a, b
-	cp 01h
+	cp 0x01
 	jp nz, invalid
 	
 	ld hl, monInputBuffer
@@ -475,11 +482,11 @@ writePrompt:
 	call printbyte
 	ld a, e
 	call printbyte
-	ld a, 20h
+	ld a, 0x20
 	rst RST_putc
 	ld a, (de)
 	call printbyte
-	ld a, 20h
+	ld a, 0x20
 	rst RST_putc
 	
 	ld de, monInputBuffer
@@ -490,9 +497,9 @@ writeHandleChar:
 	xor a
 	rst RST_getc
 	
-	cp 08h
+	cp 0x08
 	jr z, writeBackspace
-	cp 03h
+	cp 0x03
 	jr z, writeEnd
 	cp 0x0d
 	jr z, writeHandleChar
@@ -502,7 +509,7 @@ writeHandleChar:
 	
 	ld b, a
 	ld a, c
-	cp 02h
+	cp 0x02
 	jp nc, writeInvalid
 	ld a, b
 	ld (de), a
@@ -514,15 +521,15 @@ writeBackspace:
 	ld a, c
 	cp 0
 	jr z, writeHandleChar
-	ld (hl), 08h
-	ld (hl), 20h
-	ld (hl), 08h
+	ld (hl), 0x08
+	ld (hl), 0x20
+	ld (hl), 0x08
 	dec de
 	dec c
 	jr writeHandleChar
 
 writeHandleStr:
-	ld a, 00h
+	ld a, 0x00
 	or c
 	jp z, writeNext ;no char entered
 
@@ -544,42 +551,40 @@ writeCheckSuccessLoop:
 
 writeInvalid:
 	ld hl, writeErrorStr
-	call printStr
+	call print
 	jp writePrompt
 
 write00:	
 	ld (monInputBuffer + 2), hl
 	
 	ld hl, writeOkStr
-	call printStr
+	call print
 	
 writeNext:	
 	ld hl, (monInputBuffer + 2)
 	inc hl
 	ld (monInputBuffer + 2), hl
 	
-	ld a, 0ah
+	ld a, 0x0a
 	rst RST_putc
 	jp writePrompt
 	
 
 
 writeEnd:
-	ld a, 0ah
+	ld a, 0x0a
 	rst RST_putc
 	jp prompt
 	
 writeErrorStr:
-	db " Error\n"
-	.db 00
+	DEFM " Error\n", 0x00
 	
 writeOkStr:
-	.db " Ok"
-	.db 00
+	DEFM " Ok", 0x00
 
 ioIn:
 	ld a, b
-	cp 01h
+	cp 0x01
 	jp nz, invalid
 	
 	ld hl, monInputBuffer
@@ -591,7 +596,7 @@ ioIn:
 	in a, (c)
 	call printbyte
 	
-	ld a, 0ah
+	ld a, 0x0a
 	rst RST_putc
 	
 	jp prompt
@@ -599,7 +604,7 @@ ioIn:
 	
 ioOut:
 	ld a, b
-	cp 02h
+	cp 0x02
 	jp nz, invalid
 	
 	ld hl, monInputBuffer
@@ -614,7 +619,7 @@ ioOut:
 	
 	out (c), a
 	
-	ld a, 0ah
+	ld a, 0x0a
 	rst RST_putc
 	
 	jp prompt
@@ -624,7 +629,7 @@ ioOut:
 
 bankSel:
 	ld a, b
-	cp 01h
+	cp 0x01
 	jp nz, invalid
 	
 	ld hl, monInputBuffer
@@ -632,12 +637,12 @@ bankSel:
 	call hexToNum8
 	jp nz, invalid
 	
-	cp 06h
+	cp 0x06
 	jp nc, invalid
 	
 	out (BANKSR), a
 	
-	ld a, 0ah
+	ld a, 0x0a
 	rst RST_putc
 	
 	jp prompt
@@ -645,9 +650,9 @@ bankSel:
 
 register:
 	ld a, b
-	cp 00h
+	cp 0x00
 ;	jr z, showRegisters
-;	cp 03h
+;	cp 0x03
 	jp nz, invalid
 	
 ;	ld hl, monInputBuffer
@@ -666,7 +671,7 @@ register:
 
 showRegisters:
 	ld hl, registerStr
-	call printStr
+	call print
 
 	ld hl, registerStack
 	ld b, 6
@@ -687,12 +692,12 @@ showRegisterLoop:
 	jp prompt
 
 registerStr:
-	.asciiz "\nAF    BC    DE    HL    IX    IY\n"
+	DEFM "\nAF    BC    DE    HL    IX    IY\n", 0x00
 
 
 invalid:
 	ld hl, invalidStr
-	call printStr
+	call print
 	jp prompt
 
 
@@ -762,21 +767,21 @@ hexToNum16:
 ;convert a single char to a number
 ;zf=0 if invalid entry
 hexToNumNibble:				
-	cp 30h					;check if it's a number
+	cp 0x30					;check if it's a number
 	jr c, hexToNumNibble00 	;not a number
-	cp 40h
+	cp 0x40
 	jr c, hexToNumNibble01 	;number
 	
 hexToNumNibble00:			;check if it's a letter
 	call convertToUpper
-	cp 41h
+	cp 0x41
 	jr c, hexToNumNibbleInvalid
-	cp 47h
+	cp 0x47
 	jr nc, hexToNumNibbleInvalid
 	
-	add a, 09h				;A -> 4Ah, F -> 4Fh
+	add a, 0x09				;A -> 0x4A, F -> 0x4F
 hexToNumNibble01:
-	and 0fh					;convert to number
+	and 0x0f					;convert to number
 	cp a 					;set zero flag
 	ret
 hexToNumNibbleInvalid:
@@ -795,11 +800,11 @@ hexToNumNibbleInvalid:
 ;
 ;Destroyed: none
 convertToUpper:
-	cp 61h
+	cp 0x61
 	ret c
-	cp 7bh
+	cp 0x7b
 	ret nc
-	sub 20h
+	sub 0x20
 	ret
 	
 	
@@ -826,51 +831,36 @@ nextArgLoop:
 	jr z, nextArgLoop
 	ret
 
-;clearScreenStr:
-;	.db 1bh
-;	.db "[2J"
-;	.db 1bh
-;	.db "[H"
-;	.db 00h
-
 welcomeStr:
-	.db "\nExecution paused at "
-	.db 00h
+	DEFM "\nExecution paused at ", 0x00
 
 readyStr:
-	.db "\nMonitor ready\n"
-	.db "Type '?' for help\n"
-	.db 00h
+	DEFM "\nMonitor ready\n"
+	DEFM "Type '?' for help\n", 0x00
 
 helpStr:
-	.db "\n"
-	.db "C\t\tContinue execution of the program\n"
-	.db "L [ADDR]\tLoad an Intel-HEX file from USB\n"
-	.db "E [ADDR]\tExecute a program\n"
-	.db "J ADDR\t\tJump to a specific address\n"
-	.db "D ADDR\t\tDump 256 bytes of memory in hex format\n"
-	.db "W ADDR\t\tWrite to single bytes in memory\n"
-	.db "I PORT\t\tRead value from port\n"
-	.db "O PORT VAL\tWrite value to port\n"
-	.db "B BANK\t\tSelect memory bank 00-05\n"
-	.db "R\t\tShow and modify register contents\n"
-	.db 00h
+	DEFM "\n"
+	DEFM "C\t\tContinue execution of the program\n"
+	DEFM "L [ADDR]\tLoad an Intel-HEX file from USB\n"
+	DEFM "E [ADDR]\tExecute a program\n"
+	DEFM "J ADDR\t\tJump to a specific address\n"
+	DEFM "D ADDR\t\tDump 256 bytes of memory in hex format\n"
+	DEFM "W ADDR\t\tWrite to single bytes in memory\n"
+	DEFM "I PORT\t\tRead value from port\n"
+	DEFM "O PORT VAL\tWrite value to port\n"
+	DEFM "B BANK\t\tSelect memory bank 00-05\n"
+	DEFM "R\t\tShow and modify register contents\n", 0x00
 
 
 invalidStr:
-	.db "\nInvalid command\n"
-	.db "Type '?' for help\n"
-	.db 00h
+	DEFM "\nInvalid command\n"
+	DEFM "Type '?' for help\n", 0x00
 
 doneStr:
-	.db "\nDone\n"
-	.db 00h
+	DEFM "\nDone\n", 0x00
 
 loadStr:
-	.db "\nLoading program\n"
-	.db 00h
+	DEFM "\nLoading program\n", 0x00
 
 loadFinishedStr:
-	.db "h bytes transferred\n"
-	.db 00h
-.endf ;_monitor
+	DEFM "h bytes transferred\n", 0x00

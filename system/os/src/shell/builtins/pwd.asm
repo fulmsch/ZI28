@@ -1,6 +1,12 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "string.h"
+INCLUDE "os_memmap.h"
 
-.func b_pwd:
+EXTERN k_getcwd
+
+PUBLIC b_pwd
+b_pwd:
 	ld a, (argc)
 	cp 1
 	jr nz, invalidCall
@@ -9,11 +15,10 @@
 	push hl
 	call k_getcwd
 	pop hl
-	call printStr
+	call print
 	ld a, 0x0a
 	jp RST_putc
 
 
 invalidCall:
 	ret
-.endf

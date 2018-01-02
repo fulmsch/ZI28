@@ -1,6 +1,11 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "string.h"
+INCLUDE "os_memmap.h"
 
-.func b_echo:
+PUBLIC b_echo
+
+b_echo:
 	;print all arguments
 	ld a, (argc)
 	dec a
@@ -19,7 +24,7 @@ loop:
 	inc de
 	push de
 	push bc
-	call printStr
+	call print
 	pop bc
 	pop de
 	ld a, ' '
@@ -32,4 +37,3 @@ newline:
 	ld a, 0ah
 	rst RST_putc
 	ret
-.endf

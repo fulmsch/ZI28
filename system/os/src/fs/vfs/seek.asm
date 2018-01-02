@@ -1,9 +1,16 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "math.h"
+INCLUDE "vfs.h"
+INCLUDE "os_memmap.h"
 
-.func u_lseek:
+EXTERN fdToFileEntry
+
+PUBLIC u_seek, k_seek, u_lseek, k_lseek
+
+u_lseek:
 	add a, fdTableEntries
 	jp k_lseek
-.endf
 
 u_seek:
 	add a, fdTableEntries
@@ -27,14 +34,14 @@ k_seek:
 ;; : a - errno
 
 	push hl
-	ld hl, reg32
+	ld hl, regA
 	call ld16
 	ld d, h
 	ld e, l
 	pop hl
 
 
-.func k_lseek:
+k_lseek:
 ;; Change the file offset of an open file using a 32-bit offset.
 ;;
 ;; The new offset is calculated according to whence as follows:
@@ -133,4 +140,3 @@ invalidWhence:
 invalidOffset:
 	ld a, 3
 	ret
-.endf

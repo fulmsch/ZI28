@@ -1,6 +1,13 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "devfs.h"
+INCLUDE "os_memmap.h"
 
-.func devfs_readdir:
+PUBLIC devfs_readdir
+
+EXTERN k_seek, devfs_statFromEntry
+
+devfs_readdir:
 ;; Get information about the next file in a directory.
 ;;
 ;; Input:
@@ -40,11 +47,10 @@
 	pop de
 
 	;hl points to dirEntry
-	jr devfs_statFromEntry
+	jp devfs_statFromEntry
 
 
 error:
 	pop af
 	ld a, 1
 	ret
-.endf

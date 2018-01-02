@@ -1,8 +1,9 @@
-.list
+SECTION rom_code
+PUBLIC _strerror
 
-.define errorTableSize errorTableEnd - errorTable
+DEFC errorTableSize = errorTableEnd - errorTable
 
-.func _strerror:
+_strerror:
 ;; Return a string describing an error number.
 ;;
 ;; Input:
@@ -30,170 +31,173 @@
 	ex de, hl
 	pop de
 	ret
-.endf
+
 
 invalidErrno_msg:
-	.asciiz "Unknown error."
+	DEFM "Unknown error.", 0x00
 
 errorTable:
-	.dw ENOERR_msg
-	.dw EPERM_msg
-	.dw ENOENT_msg
-	.dw EINTR_msg
-	.dw EIO_msg
-	.dw ENXIO_msg
-	.dw EBADF_msg
-	.dw ENOMEM_msg
-	.dw EACCES_msg
-	.dw EFAULT_msg
-	.dw ENOTBLK_msg
-	.dw EBUSY_msg
-	.dw EEXIST_msg
-	.dw ENODEV_msg
-	.dw ENOTDIR_msg
-	.dw EISDIR_msg
-	.dw EINVAL_msg
-	.dw EMFILE_msg
-	.dw ENFILE_msg
-	.dw ENOTTY_msg
-	.dw EFBIG_msg
-	.dw ENOSPC_msg
-	.dw ESPIPE_msg
-	.dw EROFS_msg
-	.dw EDOM_msg
-	.dw ERANGE_msg
-	.dw EAGAIN_msg
-	.dw EWOULDBLOCK_msg
-	.dw EINPROGRESS_msg
-	.dw EALREADY_msg
-	.dw ENAMETOOLONG_msg
-	.dw ENOTEMPTY_msg
-	.dw EFTYPE_msg
-	.dw ENOSYS_msg
-	.dw ENOTSUP_msg
-	.dw ENOMSG_msg
-	.dw EOVERFLOW_msg
-	.dw ETIME_msg
-	.dw ECANCELED_msg
-	.dw EBADFD_msg
+	DEFW ENOERR_msg
+	DEFW EPERM_msg
+	DEFW ENOENT_msg
+	DEFW EINTR_msg
+	DEFW EIO_msg
+	DEFW ENXIO_msg
+	DEFW EBADF_msg
+	DEFW ENOMEM_msg
+	DEFW EACCES_msg
+	DEFW EFAULT_msg
+	DEFW ENOTBLK_msg
+	DEFW EBUSY_msg
+	DEFW EEXIST_msg
+	DEFW ENODEV_msg
+	DEFW ENOTDIR_msg
+	DEFW EISDIR_msg
+	DEFW EINVAL_msg
+	DEFW EMFILE_msg
+	DEFW ENFILE_msg
+	DEFW ENOTTY_msg
+	DEFW EFBIG_msg
+	DEFW ENOSPC_msg
+	DEFW ESPIPE_msg
+	DEFW EROFS_msg
+	DEFW EDOM_msg
+	DEFW ERANGE_msg
+	DEFW EAGAIN_msg
+	DEFW EWOULDBLOCK_msg
+	DEFW EINPROGRESS_msg
+	DEFW EALREADY_msg
+	DEFW ENAMETOOLONG_msg
+	DEFW ENOTEMPTY_msg
+	DEFW EFTYPE_msg
+	DEFW ENOSYS_msg
+	DEFW ENOTSUP_msg
+	DEFW ENOMSG_msg
+	DEFW EOVERFLOW_msg
+	DEFW ETIME_msg
+	DEFW ECANCELED_msg
+	DEFW EBADFD_msg
 errorTableEnd:
+	DEFB 0
+
+SECTION rom_data
 
 ENOERR_msg:
-	.asciiz ""
+	DEFM "", 0x00
 
 EPERM_msg:
-	.asciiz "Operation not permitted."
+	DEFM "Operation not permitted.", 0x00
 
 ENOENT_msg:
-	.asciiz "No such file or directory."
+	DEFM "No such file or directory.", 0x00
 
 EINTR_msg:
-	.asciiz "Interrupted system call."
+	DEFM "Interrupted system call.", 0x00
 
 EIO_msg:
-	.asciiz "Input/output error."
+	DEFM "Input/output error.", 0x00
 
 ENXIO_msg:
-	.asciiz "No such device or address."
+	DEFM "No such device or address.", 0x00
 
 EBADF_msg:
-	.asciiz "Bad file descriptor."
+	DEFM "Bad file descriptor.", 0x00
 
 ENOMEM_msg:
-	.asciiz "Cannot allocate memory."
+	DEFM "Cannot allocate memory.", 0x00
 
 EACCES_msg:
-	.asciiz "Permission denied."
+	DEFM "Permission denied.", 0x00
 
 EFAULT_msg:
-	.asciiz "Bad address."
+	DEFM "Bad address.", 0x00
 
 ENOTBLK_msg:
-	.asciiz "Block device required."
+	DEFM "Block device required.", 0x00
 
 EBUSY_msg:
-	.asciiz "Device or resource busy."
+	DEFM "Device or resource busy.", 0x00
 
 EEXIST_msg:
-	.asciiz "File exists."
+	DEFM "File exists.", 0x00
 
 ENODEV_msg:
-	.asciiz "No such device."
+	DEFM "No such device.", 0x00
 
 ENOTDIR_msg:
-	.asciiz "Not a directory."
+	DEFM "Not a directory.", 0x00
 
 EISDIR_msg:
-	.asciiz "Is a directory."
+	DEFM "Is a directory.", 0x00
 
 EINVAL_msg:
-	.asciiz "Invalid argument."
+	DEFM "Invalid argument.", 0x00
 
 EMFILE_msg:
-	.asciiz "Too many open files."
+	DEFM "Too many open files.", 0x00
 
 ENFILE_msg:
-	.asciiz "Too many open files in system."
+	DEFM "Too many open files in system.", 0x00
 
 ENOTTY_msg:
-	.asciiz "Inappropriate ioctl for device."
+	DEFM "Inappropriate ioctl for device.", 0x00
 
 EFBIG_msg:
-	.asciiz "File too large."
+	DEFM "File too large.", 0x00
 
 ENOSPC_msg:
-	.asciiz "No space left on device."
+	DEFM "No space left on device.", 0x00
 
 ESPIPE_msg:
-	.asciiz "Illegal seek."
+	DEFM "Illegal seek.", 0x00
 
 EROFS_msg:
-	.asciiz "Read-only file system."
+	DEFM "Read-only file system.", 0x00
 
 EDOM_msg:
-	.asciiz "Numerical argument out of domain."
+	DEFM "Numerical argument out of domain.", 0x00
 
 ERANGE_msg:
-	.asciiz "Numerical result out of range."
+	DEFM "Numerical result out of range.", 0x00
 
 EAGAIN_msg:
-	.asciiz "Resource temporarily unavailable."
+	DEFM "Resource temporarily unavailable.", 0x00
 
 EWOULDBLOCK_msg:
-	.asciiz "Operation would block."
+	DEFM "Operation would block.", 0x00
 
 EINPROGRESS_msg:
-	.asciiz "Operation now in progress."
+	DEFM "Operation now in progress.", 0x00
 
 EALREADY_msg:
-	.asciiz "Operation already in progress."
+	DEFM "Operation already in progress.", 0x00
 
 ENAMETOOLONG_msg:
-	.asciiz "File name too long."
+	DEFM "File name too long.", 0x00
 
 ENOTEMPTY_msg:
-	.asciiz "Directory not empty."
+	DEFM "Directory not empty.", 0x00
 
 EFTYPE_msg:
-	.asciiz "Inappropriate file type or format."
+	DEFM "Inappropriate file type or format.", 0x00
 
 ENOSYS_msg:
-	.asciiz "Function not implemented."
+	DEFM "Function not implemented.", 0x00
 
 ENOTSUP_msg:
-	.asciiz "Not supported."
+	DEFM "Not supported.", 0x00
 
 ENOMSG_msg:
-	.asciiz "No message of desired type."
+	DEFM "No message of desired type.", 0x00
 
 EOVERFLOW_msg:
-	.asciiz "Value too large for defined data type."
+	DEFM "Value too large for defined data type.", 0x00
 
 ETIME_msg:
-	.asciiz "Timer expired."
+	DEFM "Timer expired.", 0x00
 
 ECANCELED_msg:
-	.asciiz "Operation canceled."
+	DEFM "Operation canceled.", 0x00
 
 EBADFD_msg:
-	.asciiz "File descriptor in bad state."
+	DEFM "File descriptor in bad state.", 0x00

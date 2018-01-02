@@ -1,6 +1,17 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "vfs.h"
+INCLUDE "fatfs.h"
+INCLUDE "math.h"
+INCLUDE "string.h"
+INCLUDE "os_memmap.h"
 
-.func fat_open:
+PUBLIC fat_open
+
+EXTERN fat_fileDriver
+EXTERN fat_build83Filename, fat_read, k_seek, fat_write
+
+fat_open:
 ;; Creates a new file table entry
 ;;
 ;; Input:
@@ -294,4 +305,3 @@ writeDirEntry:
 error:
 	ld a, 1
 	ret
-.endf

@@ -1,6 +1,10 @@
-.list
+SECTION rom_code
+INCLUDE "os_memmap.h"
 
-.func b_chdir:
+EXTERN k_chdir
+
+PUBLIC b_chdir
+b_chdir:
 	ld a, (argc)
 	cp 2
 	jr nz, invalidCall
@@ -19,4 +23,3 @@
 
 invalidCall:
 	ret
-.endf

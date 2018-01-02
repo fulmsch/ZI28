@@ -1,7 +1,10 @@
-.list
+SECTION rom_code
+INCLUDE "os_memmap.h"
 
+EXTERN k_unlink
 
-.func b_test:
+PUBLIC b_test
+b_test:
 	ld a, (argc)
 	cp 2
 	ret nz
@@ -15,4 +18,3 @@
 	ld d, (hl)
 	;(de) = path name
 	jp k_unlink
-.endf

@@ -1,6 +1,14 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "vfs.h"
+INCLUDE "fatfs.h"
+INCLUDE "math.h"
+INCLUDE "os_memmap.h"
 
-.func fat_read:
+EXTERN k_read, k_lseek, fat_clusterToAddr, fat_nextCluster
+
+PUBLIC fat_read
+fat_read:
 ;; Copy data from a file to memory
 ;;
 ;; Input:
@@ -81,8 +89,8 @@
 	ld l, c
 	call sub32 ;regA = size - offset
 
-.define ZERO_FLAG_BIT     0
-.define OVERFLOW_FLAG_BIT 1
+DEFC ZERO_FLAG_BIT     = 0
+DEFC OVERFLOW_FLAG_BIT = 1
 
 	ld b, 1 << ZERO_FLAG_BIT
 	ld a, (de)
@@ -329,4 +337,3 @@ rootDir:
 error:
 	ld a, 1
 	ret
-.endf

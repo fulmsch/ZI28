@@ -1,6 +1,13 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "string.h"
+INCLUDE "os_memmap.h"
 
-.func b_mount:
+EXTERN fat_fsDriver
+EXTERN sd_init, k_open, k_mount
+
+PUBLIC b_mount
+b_mount:
 	ld a, (argc)
 	cp 3
 	jr nz, invalidCall
@@ -40,8 +47,7 @@
 
 invalidCall:
 	ld hl, invalidCallstr
-	call printStr
+	call print
 	ret
 invalidCallstr:
-	.asciiz "Usage: MOUNT <DEVICE> <LABEL>\n"
-.endf ;b_mount
+	DEFM "Usage: MOUNT <DEVICE> <LABEL>\n", 0x00

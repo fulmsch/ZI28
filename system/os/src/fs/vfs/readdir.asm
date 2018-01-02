@@ -1,9 +1,17 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "vfs.h"
+INCLUDE "drive.h"
+INCLUDE "os_memmap.h"
+
+PUBLIC u_readdir, k_readdir
+
+EXTERN fdToFileEntry
 
 u_readdir:
 	add a, fdTableEntries
 
-.func k_readdir:
+k_readdir:
 ;; Get information about the next file in a directory.
 ;;
 ;; Input:
@@ -20,7 +28,7 @@ u_readdir:
 	call fdToFileEntry
 	jr c, invalidFd
 	ld a, (hl)
-	cp 00h
+	cp 0x00
 	jr z, invalidFd
 
 	push hl
@@ -67,4 +75,3 @@ error:
 	ld a, 1
 	ret
 
-.endf

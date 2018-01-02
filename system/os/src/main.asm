@@ -4,156 +4,81 @@
 
 ;TODO:
 
-
-.z80
-
-.define __NAKEN_ASM
-
-
-.include "iomap.h"
-.include "os_memmap.h"
-.include "sys/os.h"
-.include "errno.h"
-.include "fs/vfs/vfs.h"
-.include "fs/fatfs/fatfs.h"
-.include "fs/devfs/devfs.h"
-
+INCLUDE "os_memmap.h"
 
 ; Jump Table -------------------------------------------------
 
-.org memBase
+org 0x0000
 
-	jp      _coldStart   ;RST 00h
-	.db     00h
-	jp      00h          ;CALL 04h
-	.db     00h
-	jp      _putc        ;RST 08h
-	.db     00h
-	jp      00h          ;CALL 0Ch
-	.db     00h
-	jp      _getc        ;RST 10h
-	.db     00h
-	jp      00h          ;CALL 14h
-	.db     00h
-	jp      00h          ;RST 18h
-	.db     00h
-	jp      00h          ;CALL 1Ch
-	.db     00h
-	jp      00h          ;RST 20h
-	.db     00h
-	jp      00h          ;CALL 24h
-	.db     00h
-	jp      _strerror    ;RST 28h
-	.db     00h
-	jp      00h          ;CALL 2Ch
-	.db     00h
-	jp      _syscall     ;RST 30h
-	.db     00h
-	jp      00h          ;CALL 34h
-	.db     00h
-	jp      _monitor     ;RST 38h
+EXTERN _coldStart, _putc, _getc, _strerror, _syscall, _monitor
 
-
-;	.resw nmiEntry - $
-.org nmiEntry
-
-	.dw ISR_keyboard
-
-.org 0x0100
-.include "syscall.asm" ;syscall table must be aligned to 256 bytes
+	jp      _coldStart   ;RST 0x00
+	DEFB    0x00
+	jp      0x00         ;CALL 0x04
+	DEFB    0x00
+	jp      _putc        ;RST 0x08
+	DEFB    0x00
+	jp      0x00         ;CALL 0x0C
+	DEFB    0x00
+	jp      _getc        ;RST 0x10
+	DEFB    0x00
+	jp      0x00         ;CALL 0x14
+	DEFB    0x00
+	jp      0x00         ;RST 0x18
+	DEFB    0x00
+	jp      0x00         ;CALL 0x1C
+	DEFB    0x00
+	jp      0x00         ;RST 0x20
+	DEFB    0x00
+	jp      0x00         ;CALL 0x24
+	DEFB    0x00
+	jp      _strerror    ;RST 0x28
+	DEFB    0x00
+	jp      0x00         ;CALL 0x2C
+	DEFB    0x00
+	jp      _syscall     ;RST 0x30
+	DEFB    0x00
+	jp      0x00         ;CALL 0x34
+	DEFB    0x00
+	jp      _monitor     ;RST 0x38
 
 
-; BIOS-Routines ----------------------------------------------
+;SECTION rom_nmi
+DEFS nmiEntry - ASMPC
+EXTERN ISR_keyboard
+	DEFW ISR_keyboard
 
-.include "interrupt.asm"
-.include "string.asm"
-.include "math.asm"
+;SECTION rom_syscallTable
+DEFS 0x0100 - ASMPC
+PUBLIC syscallTable, syscallTableEnd
+EXTERN u_open, u_close, u_read, u_write, u_seek, u_lseek, u_stat, u_fstat
+EXTERN u_readdir, u_dup, u_mount, u_unmount, u_unlink
+syscallTable:
+	DEFW u_open
+	DEFW u_close
+	DEFW u_read
+	DEFW u_write
+	DEFW u_seek
+	DEFW u_lseek
+	DEFW u_stat
+	DEFW u_fstat
+	DEFW u_readdir
+	DEFW u_dup
+	DEFW u_mount
+	DEFW u_unmount
+	DEFW u_unlink
+syscallTableEnd:
+DEFB 0
 
-
-; Cold start -------------------------------------------------
-
-_coldStart:
-	;clear ram TODO other banks
-	ld hl, 0x4000
-	ld de, 0x4001
-	ld bc, 0xbfff
-	ld (hl), 0x00
-	ldir
-
-	ld sp, sysStack
-
-	;clear the fd tables (set everything to 0xff)
-	ld hl, k_fdTable
-	ld de, k_fdTable + 1
-	ld bc, fdTableEntries * 2 - 1
-	ld (hl), 0xff
-	ldir
-
-	call dummyRoot
-	ld hl, devfsMountPoint
-	ld d, FS_DEV
-	ld e, 0xff
-	call k_mount
-
-	;stdin
-	ld de, ttyName
-	ld a, O_RDONLY
-	call k_open
-
-	;stdout
-	ld de, ttyName
-	ld a, O_WRONLY
-	call k_open
-
-	;stderr
-	ld a, STDERR_FILENO
-	ld b, STDOUT_FILENO
-	call k_dup
+SECTION rom_code
+SECTION rom_data
 
 
-	call sd_init ;TODO automatic init
+SECTION BSS
+org 0xc000
 
-	;initialise main drive
-	ld de, osDevName ;TODO configurable name in eeprom
-	ld a, FS_FAT
-	call mountRoot
+SECTION bss_fileTable
+SECTION bss_driveTable
+org 0xc200
 
-
-	ld hl, homeDir
-	call k_chdir
-
-	call b_cls
-	jp cli
-
-ttyName:
-	.asciiz "/DEV/TTY0"
-osDevName:
-	.asciiz "/DEV/SDA1"
-devfsMountPoint:
-	.asciiz "/DEV"
-homeDir:
-	.asciiz "/HOME"
-
-
-
-; Monitor ----------------------------------------------------
-
-.include "monitor.asm"
-
-.include "error.asm"
-.include "drive.asm"
-.include "block.asm"
-.include "process.asm"
-
-; Filesystems
-.include "path.asm"
-.include "fs/vfs/vfs.asm"
-.include "fs/fatfs/fatfs.asm"
-.include "fs/devfs/devfs.asm"
-
-; Device drivers
-.include "drivers/sd.asm"
-.include "drivers/ft240.asm"
-
-.include "shell/cli.asm"
-.include "gitversion.asm"
+SECTION bss_os

@@ -1,8 +1,16 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "vfs.h"
+INCLUDE "drive.h"
+INCLUDE "os_memmap.h"
+
+PUBLIC u_unlink, k_unlink
+
+EXTERN k_open, fdToFileEntry
 
 u_unlink:
 
-.func k_unlink:
+k_unlink:
 ;; Remove a file from the file system.
 ;;
 ;; Input:
@@ -80,4 +88,3 @@ clearEntry:
 error:
 	ld a, 1
 	ret
-.endf

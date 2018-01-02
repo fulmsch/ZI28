@@ -1,8 +1,13 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "string.h"
 
-.func b_help:
+EXTERN dispatchTable
+
+PUBLIC b_help
+b_help:
 	ld hl, helpMsg
-	call printStr
+	call print
 	;print commands from dispatch table
 	ld bc, dispatchTable
 tableLoop:
@@ -20,7 +25,7 @@ tableLoop:
 	ld a, ' '
 	rst RST_putc
 	push bc
-	call printStr
+	call print
 	pop bc
 	ld a, 0dh
 	rst RST_putc
@@ -30,12 +35,12 @@ tableLoop:
 
 path:
 ;	ld hl, pathMsg
-;	call printStr
+;	call print
 ;	;print the path
 ;	xor a
 ;	ld (cliProgramName), a
 ;	ld hl, programPath
-;	call printStr
+;	call print
 
 ;	ld a, 0dh
 ;	rst RST_putc
@@ -45,7 +50,6 @@ path:
 	ret
 
 helpMsg:
-	.asciiz: "The following commands are available:\n"
+	DEFM "The following commands are available:\n", 0x00
 pathMsg:
-	.asciiz: "\nAdditional programs will be searched in:\n "
-.endf
+	DEFM "\nAdditional programs will be searched in:\n ", 0x00

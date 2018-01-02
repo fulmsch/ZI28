@@ -1,6 +1,12 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "fatfs.h"
+INCLUDE "math.h"
 
-.func fat_init:
+EXTERN k_seek, k_read
+
+PUBLIC fat_init
+fat_init:
 ;; Calculate and store filesystem offsets
 ;;
 ;; Input:
@@ -158,4 +164,3 @@ rootDirSizeLoop:
 ;	xor a
 
 	ret
-.endf

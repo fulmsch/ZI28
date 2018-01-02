@@ -1,9 +1,16 @@
-.list
+SECTION rom_code
+INCLUDE "math.h"
+INCLUDE "vfs.h"
+INCLUDE "os_memmap.h"
+
+PUBLIC u_read, k_read
+
+EXTERN fdToFileEntry
 
 u_read:
 	add a, fdTableEntries
 
-.func k_read:
+k_read:
 ;; Attempts to read up to count bytes from a file descriptor into a buffer.
 ;;
 ;; On files that support seeking, the read operation commences at the file
@@ -29,8 +36,6 @@ u_read:
 
 	push de ;buffer
 	push hl ;count
-;	ld (buffer), de
-;	ld (count), hl
 
 	;check if fd exists
 	call fdToFileEntry
@@ -110,8 +115,3 @@ zeroCount:
 	xor a
 	ld de, 0
 	ret
-;buffer:
-;	.dw 0
-;count:
-;	.dw 0
-.endf

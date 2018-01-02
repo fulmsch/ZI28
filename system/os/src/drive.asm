@@ -1,40 +1,36 @@
+SECTION rom_code
 ;; Contains routines for accessing drives
-.list
-;*********** Drive Table ********************
 
-.define driveTableChild    0                          ;1 byte
-.define driveTableSibling  driveTableChild + 1        ;1 byte
-.define driveTableDevfd    driveTableSibling + 1      ;1 byte
-.define driveTableFsdriver driveTableDevfd + 1        ;2 bytes
-                                                      ;-------
-                                                ;Total 5 bytes
-.define driveTableFsData   driveTableFsdriver + 2 ;Max 27 bytes
+INCLUDE "os.h"
+INCLUDE "string.h"
+INCLUDE "drive.h"
+INCLUDE "os_memmap.h"
 
-.define fs_init     0
-.define fs_open     2
-.define fs_close    4 ;not used yet
-.define fs_readdir  6
-.define fs_fstat    8
-.define fs_unlink  10
+EXTERN k_open
+EXTERN get_drive_and_path
 
 
-.func addFsDriver:
+PUBLIC addFsDriver
+addFsDriver:
 ;TODO implement
-.endf
+
 
 ;TODO move to ram
-.align_bytes 16
+;.align_bytes 16
+EXTERN devfs_fsDriver
+EXTERN fat_fsDriver
 fsDriverTable:
-	.dw devfs_fsDriver
-	.dw fat_fsDriver
-	.dw 0x0000
-	.dw 0x0000
-	.dw 0x0000
-	.dw 0x0000
-	.dw 0x0000
-	.dw 0x0000
+	DEFW devfs_fsDriver
+	DEFW fat_fsDriver
+	DEFW 0x0000
+	DEFW 0x0000
+	DEFW 0x0000
+	DEFW 0x0000
+	DEFW 0x0000
+	DEFW 0x0000
 
-.func dummyRoot:
+PUBLIC dummyRoot
+dummyRoot:
 ;; Create the root node of the filesystem.
 	ld hl, driveTablePaths
 	ld (hl), '/'
@@ -52,9 +48,11 @@ fsDriverTable:
 	inc l
 	ld (hl), 0x00
 	ret
-.endf
 
-.func mountRoot:
+
+
+PUBLIC mountRoot
+mountRoot:
 ;; Populate the root node of the filesystem.
 ;;
 ;; Input:
@@ -72,9 +70,11 @@ fsDriverTable:
 	ld ix, driveTable
 	ld (ix + driveTableDevfd), a
 	jp storeAndCallFsInit
-.endf
 
-.func u_mount:
+
+
+PUBLIC u_mount
+u_mount:
 ;; Mount filesystem.
 ;;
 ;; Input:
@@ -95,8 +95,8 @@ fsDriverTable:
 	cp 0
 	ret nz
 	ld d, b ;fs type
-.endf
-.func k_mount:
+PUBLIC k_mount
+k_mount:
 ;; Mount a drive file
 ;;
 ;; Creates a new entry in the drive table
@@ -125,17 +125,17 @@ fsDriverTable:
 	ld hl, driveTablePaths
 	ld bc, driveTableEntrySize
 	xor a
-tableSearchLoop:
+k_mount_tableSearchLoop:
 	cp (hl)
-	jr z, tableEntryFound
+	jr z, k_mount_tableEntryFound
 	add hl, bc
-	jr nc, tableSearchLoop ;no entry found
+	jr nc, k_mount_tableSearchLoop ;no entry found
 
 	pop hl
 	ld a, 1 ;no free spot found
 	ret
 
-tableEntryFound:
+k_mount_tableEntryFound:
 	;hl = path table entry
 	;de = fs type / devfd
 	ex (sp), hl
@@ -143,7 +143,7 @@ tableEntryFound:
 	push de ;type/fd
 
 	call get_drive_and_path
-	jr c, pathError
+	jr c, k_mount_pathError
 	;hl = rel path
 	;e = parent drive
 	ld a, e
@@ -159,33 +159,33 @@ tableEntryFound:
 	ld b, fileTableEntrySize
 	call strncpy
 	cp 0
-	jr nz, pathError ;dest too long TODO clean up drive entry
+	jr nz, k_mount_pathError ;dest too long TODO clean up drive entry
 	;de points to null terminator of string copy
 	dec de
 	ld a, (de)
 	cp '/'
-	jr z, destTerminated
+	jr z, k_mount_destTerminated
 	;try to append a '/'
 	inc e
 	ld a, 0x1f
 	and e
 	xor 0x1f
-	jr z, pathError
+	jr z, k_mount_pathError
 	ld a, '/'
 	ld (de), a
 	inc e
 	xor a
 	ld (de), a
 
-destTerminated:
+k_mount_destTerminated:
 	pop bc ;parent/new drive
 	pop de ;type/fd
 
 	ld a, 0xff
 	;ld ixh, 0 + (driveTable >> 8)
-	.db 0xdd, 0x26, 0 + (driveTable >> 8)
+	DEFB 0xdd, 0x26, 0 + (driveTable >> 8)
 	;ld ixl, c
-	.db 0xdd, 0x69
+	DEFB 0xdd, 0x69
 	ld (ix + driveTableChild), a ;child
 	ld (ix + driveTableSibling), a ;sibling
 	ld (ix + driveTableDevfd), e ;devfd
@@ -196,39 +196,37 @@ destTerminated:
 	ld l, b
 	ld a, (hl)
 	cp 0xff
-	jr z, appendEnd
+	jr z, k_mount_appendEnd
 
-appendToSiblingList:
+k_mount_appendToSiblingList:
 	ld l, a ;hl = first child of parent
-appendLoop:
+k_mount_appendLoop:
 	inc l
 	ld a, (hl)
 	cp 0xff
-	jr z, appendEnd
+	jr z, k_mount_appendEnd
 	ld l, a
-	jr appendLoop
+	jr k_mount_appendLoop
 
-appendEnd:
+k_mount_appendEnd:
 	ld (hl), c
 
 	jp storeAndCallFsInit
 
 
-
-
-invalidFsDriver:
+k_mount_invalidFsDriver:
 	ld a, 1 ;invalid driver
 	ret
 
-pathError:
+k_mount_pathError:
 	pop hl
 	pop hl
 	ld a, 1 ;path error
 	ret
-.endf ;k_mount
 
 
-.func storeAndCallFsInit:
+
+storeAndCallFsInit:
 ;; Store and call the fs init routine
 ;;
 ;; Input:
@@ -251,7 +249,7 @@ pathError:
 	and a ;clear carry
 	ld hl, 0
 	adc hl, de
-	jr z, error ;fsdriver null pointer
+	jr z, storeAndCallFsInit_error ;fsdriver null pointer
 	ld (ix + driveTableFsdriver), e
 	ld (ix + driveTableFsdriver + 1), d
 
@@ -265,18 +263,20 @@ pathError:
 	jp (hl)
 
 
-error:
+storeAndCallFsInit_error:
 	ld a, 1 ;invalid fs type
 	ret
-.endf
 
 
+PUBLIC u_unmount
 u_unmount:
+PUBLIC k_unmount
 k_unmount:
 	ret
 
 
-.func getTableAddr:
+PUBLIC getTableAddr
+getTableAddr:
 ;; Finds the file entry of a given fd
 ;;
 ;; Input:
@@ -290,18 +290,17 @@ k_unmount:
 ;; : carry - out of bounds
 ;; : nc - no error
 
-	cp 00h
+	cp 0x00
 	ret z
 	cp b
-	jr nc, invalid
-loop:
+	jr nc, getTableAddr_invalid
+getTableAddr_loop:
 	add hl, de
 	dec a
-	jr nz, loop
+	jr nz, getTableAddr_loop
 	;this should return c (error) if the loop wraps around (unconfirmed)
 	ret
 
-invalid:
+getTableAddr_invalid:
 	scf
 	ret
-.endf

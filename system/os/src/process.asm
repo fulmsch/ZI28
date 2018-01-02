@@ -1,8 +1,13 @@
-;;
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "string.h"
+INCLUDE "os_memmap.h"
 
+PUBLIC exec
 
-.func exec:
+EXTERN k_open, k_read, k_close, udup, u_close
+
+exec:
 ;; Loads a program file into memory and executes it.
 ;;
 ;; The file descriptors for input and output must be set before calling exec.
@@ -129,5 +134,4 @@ closeFilesLoop:
 
 
 execExtension:
-	.asciiz ".EX8"
-.endf
+	DEFM ".EX8", 0x00

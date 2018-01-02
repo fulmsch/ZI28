@@ -1,6 +1,16 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "string.h"
+INCLUDE "math.h"
+INCLUDE "vfs.h"
+INCLUDE "devfs.h"
+INCLUDE "os_memmap.h"
 
-.func devfs_open:
+PUBLIC devfs_open
+
+EXTERN devfs_fileDriver
+
+devfs_open:
 ;; Open a device file
 ;;
 ;; Input:
@@ -109,4 +119,3 @@ fileFound:
 invalidFile:
 	ld a, 4
 	ret
-.endf

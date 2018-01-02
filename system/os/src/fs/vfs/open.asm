@@ -1,6 +1,14 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "vfs.h"
+INCLUDE "drive.h"
+INCLUDE "os_memmap.h"
 
-.func u_open:
+PUBLIC u_open, k_open
+
+EXTERN realpath, get_drive_and_path, getFdAddr
+
+u_open:
 	ld hl, u_fdTable
 	ld c, fdTableEntries
 	call open
@@ -11,7 +19,6 @@
 	ld e, a
 	pop af
 	ret
-.endf
 
 k_open:
 ;; Open a file / device file
@@ -58,7 +65,7 @@ k_open:
 	ld hl, k_fdTable
 	ld c, 0
 
-.func open:
+open:
 ;; Input:
 ;; : hl - base address of fd-table
 ;; : c - base fd
@@ -218,5 +225,3 @@ invalidDrive:
 invalidPath:
 	ld a, 0xf5
 	ret
-
-.endf

@@ -1,6 +1,11 @@
-.list
+SECTION rom_code
+INCLUDE "math.h"
 
-.func devfs_init:
+PUBLIC devfs_init
+
+EXTERN ft240_fileDriver, devfs_addDev, sd_fileDriver
+
+devfs_init:
 ;; Adds all permanently attached devices
 
 	;ft240
@@ -37,9 +42,8 @@
 
 
 tty0name:
-	.asciiz "TTY0"
+	DEFM "TTY0", 0x00
 sdaName:
-	.asciiz "SDA"
+	DEFM "SDA", 0x00
 sda1Name:
-	.asciiz "SDA1"
-.endf ;devfs_init
+	DEFM "SDA1", 0x00

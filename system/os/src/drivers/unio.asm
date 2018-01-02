@@ -1,25 +1,24 @@
+SECTION rom_code
 ;; UNIO-EEPROM Driver
 ;;
 ;; Used for identification of expansion cards
 
-.list
-
 unio_fileDriver:
-	.dw unio_read
-	.dw 0 ;write
+	DEFW unio_read
+	DEFW 0 ;write
 
-.define UNIO_STARTHEADER 0x55
-.define UNIO_READ        0x03
-.define UNIO_CRRD        0x06
-.define UNIO_WRITE       0x6c
-.define UNIO_WREN        0x96
-.define UNIO_WRDI        0x91
-.define UNIO_RDSR        0x05
-.define UNIO_WRSR        0x6e
-.define UNIO_ERAL        0x6d
-.define UNIO_SETAL       0x67
+DEFC UNIO_STARTHEADER = 0x55
+DEFC UNIO_READ        = 0x03
+DEFC UNIO_CRRD        = 0x06
+DEFC UNIO_WRITE       = 0x6c
+DEFC UNIO_WREN        = 0x96
+DEFC UNIO_WRDI        = 0x91
+DEFC UNIO_RDSR        = 0x05
+DEFC UNIO_WRSR        = 0x6e
+DEFC UNIO_ERAL        = 0x6d
+DEFC UNIO_SETAL       = 0x67
 
-.func unio_read:
+unio_read:
 ;;
 ;; Input:
 ;; : ix - file entry addr
@@ -30,4 +29,3 @@ unio_fileDriver:
 ;; : de - count
 ;; : a - errno
 
-.endf ;unio_read

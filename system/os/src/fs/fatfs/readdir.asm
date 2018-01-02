@@ -1,6 +1,11 @@
-.list
+SECTION rom_code
+INCLUDE "os_memmap.h"
 
-.func fat_readdir:
+PUBLIC fat_readdir
+
+EXTERN k_read, fat_statFromEntry
+
+fat_readdir:
 ;; Get information about the next file in a directory.
 ;;
 ;; Input:
@@ -43,4 +48,3 @@ error:
 	pop de
 	ld a, 1
 	ret
-.endf

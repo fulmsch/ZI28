@@ -1,6 +1,12 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "devfs.h"
 
-.func devfs_fstat:
+PUBLIC devfs_fstat
+
+EXTERN devfs_statFromEntry
+
+devfs_fstat:
 ;; Get information about a file.
 ;;
 ;; Input:
@@ -25,7 +31,7 @@ notRootDir:
 	ld hl, dev_fileTableDirEntry
 	add hl, bc
 	;hl points to dirEntry
-	jr devfs_statFromEntry
+	jp devfs_statFromEntry
 
 rootDir:
 	xor a
@@ -37,30 +43,3 @@ rootDir:
 	;file size is unspecified
 	;a = 0
 	ret
-.endf
-
-
-.func devfs_statFromEntry:
-;; Creates a stat from a directory entry.
-;;
-;; Input:
-;; : (hl) - dir entry
-;; : (de) - stat
-
-	;copy name
-	push de
-	call strcpy
-	pop de
-	ex de, hl
-	;(hl) = stat, (de) = dirEntry
-	ld bc, STAT_ATTRIB
-	add hl, bc
-	;(hl) = stat_attrib
-	;TODO store actual attribs
-	ld (hl), SP_READ | SP_WRITE | ST_CHAR
-
-	;file size is unspecified
-
-	xor a
-	ret
-.endf

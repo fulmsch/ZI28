@@ -1,6 +1,15 @@
-.list
+SECTION rom_code
+INCLUDE "os.h"
+INCLUDE "vfs.h"
+INCLUDE "fatfs.h"
+INCLUDE "math.h"
+INCLUDE "os_memmap.h"
 
-.func fat_write:
+EXTERN k_read, k_lseek, fat_clusterToAddr, fat_nextCluster, k_write, fat_addCluster
+
+PUBLIC fat_write
+
+fat_write:
 ;; Copy data from memory to a file
 ;;
 ;; Input:
@@ -337,4 +346,3 @@ rootDir:
 error:
 	ld a, 1
 	ret
-.endf

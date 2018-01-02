@@ -1,6 +1,11 @@
-.list
+SECTION rom_code
+INCLUDE "os_memmap.h"
 
-.func udup:
+PUBLIC udup
+
+EXTERN getFdAddr, getFileAddr
+
+udup:
 ;; Copy a kernel file descriptor to the user fd-table.
 ;;
 ;; If the user fd already exists, it will stay the same.
@@ -48,4 +53,3 @@ error:
 	ld a, 1
 	ret
 
-.endf

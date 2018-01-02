@@ -1,9 +1,14 @@
-.list
+SECTION rom_code
+INCLUDE "os_memmap.h"
+
+PUBLIC u_close, k_close
+
+EXTERN getFileAddr, getFdAddr
 
 u_close:
 	add a, fdTableEntries
 
-.func k_close:
+k_close:
 ;; Close a file
 ;;
 ;; Closes a file descriptor. If the file has no more references, it gets closed too.
@@ -43,4 +48,3 @@ clearEntry:
 invalidFd:
 	ld a, 1
 	ret
-.endf ;k_close

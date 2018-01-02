@@ -1,12 +1,11 @@
-.list
+SECTION rom_code
+INCLUDE "string.h"
 
-.func b_cls:
+PUBLIC b_cls
+b_cls:
 	ld hl, clearSequence
-	jp printStr
+	jp print
 
 clearSequence:
-	.db 0x1b
-	.ascii "[2J"
-	.db 0x1b
-	.asciiz "[H"
-.endf
+	DEFM 0x1b, "[2J"
+	DEFM 0x1b, "[H", 0x00
