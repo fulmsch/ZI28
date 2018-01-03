@@ -38,6 +38,6 @@ poll:
 
 ENDIF ;DEBUG
 
-SECTION BSS
+SECTION bram_os
 getc_buffer:
 	DEFB 0

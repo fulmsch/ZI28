@@ -4,18 +4,19 @@ SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "os_memmap.h"
 
-EXTERN dummyRoot, k_mount, k_open, k_dup, sd_init, mountRoot, k_chdir, b_cls, cli
+EXTERN dummyRoot, k_mount, k_open, k_dup, sd_init, mountRoot, k_chdir, b_cls, cli, bankOs
 
 PUBLIC _coldStart
 _coldStart:
+	ld sp, sysStack
+	call bankOs
+
 	;clear ram TODO other banks
 	ld hl, 0x4000
 	ld de, 0x4001
 	ld bc, 0xbfff
 	ld (hl), 0x00
 	ldir
-
-	ld sp, sysStack
 
 	;clear the fd tables (set everything to 0xff)
 	ld hl, k_fdTable

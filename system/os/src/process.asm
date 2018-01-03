@@ -5,7 +5,7 @@ INCLUDE "os_memmap.h"
 
 PUBLIC exec
 
-EXTERN k_open, k_read, k_close, udup, u_close
+EXTERN k_open, k_read, k_close, udup, u_close, bankOs, bankSwitch
 
 exec:
 ;; Loads a program file into memory and executes it.
@@ -98,6 +98,9 @@ openFile:
 	;save the stack pointer
 	ld (exec_stack), sp
 
+	xor a
+	call bankSwitch
+
 	;set new stack
 	ld sp, 0xa000
 
@@ -108,6 +111,8 @@ openFile:
 	ld hl, argv
 
 	call exec_addr
+
+	call bankOs
 
 	;restore the stack pointer
 	ld sp, (exec_stack)

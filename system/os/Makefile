@@ -21,14 +21,15 @@ $(SRCDIR)/version.asm:
 	z80asm -o$@ -I$(INCLUDEDIR)/asm -Iinclude $<
 
 os.bin: $(OBJFILES) src/os.lst
-	@z80asm -b -o$@ @src/os.lst
+	z80asm -b -o$@ @src/os.lst
 
 os.hex: os.bin
 	objcopy -I binary -O ihex os.bin os.hex
 
 
 clean:
-	@$(RM) $(OBJFILES) $(SRCDIR)/version.asm
+	@$(RM) $(SRCDIR)/version.asm
+	@find $(SRCDIR) -iname "*.o" -delete
 	@find $(SRCDIR) -iname "*.err" -delete
 
 distclean: clean

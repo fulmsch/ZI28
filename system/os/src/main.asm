@@ -74,11 +74,11 @@ SECTION rom_code
 SECTION rom_data
 
 
-SECTION BSS
-org 0xc000
+SECTION CRAM ;common ram, 0xa000 - 0xbfff, 8kB
+org 0xa000
+defb 0
 
-SECTION bss_fileTable
-SECTION bss_driveTable
-org 0xc200
+SECTION BRAM ;banked ram, 0xc000 - 0xffff, 16kB
+	org 0xc000
 
-SECTION bss_os
+SECTION bram_os

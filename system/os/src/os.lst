@@ -1,6 +1,7 @@
 src/main.o
 src/coldstart.o
 src/drive.o
+src/bank/bank.o
 src/shell/cli.o
 src/shell/builtins/mount.o
 src/shell/builtins/ver.o

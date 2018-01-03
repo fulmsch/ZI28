@@ -640,7 +640,7 @@ bankSel:
 	cp 0x06
 	jp nc, invalid
 	
-	out (BANKSR), a
+	out (BANKSEL_PORT), a
 	
 	ld a, 0x0a
 	rst RST_putc

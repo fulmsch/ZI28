@@ -43,6 +43,6 @@ poll:
 
 ENDIF ;DEBUG
 
-SECTION BSS
+SECTION bram_os
 putc_buffer:
 	DEFB 0
