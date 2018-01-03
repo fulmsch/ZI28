@@ -1,4 +1,5 @@
 basefs
 coreutil
+tests
 
 @games/games.pkglist
