@@ -1,6 +1,6 @@
 ORG 0x0000
 
-DEFINE DEBUG
+;DEFINE DEBUG
 
 ; Jump Table -------------------------------------------------
 coldStart:

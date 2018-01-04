@@ -11,7 +11,29 @@ If you want to try out yourself what using the ZI-28 feels like, you can do so
 with the included emulator. See the quick start guide for instructions.
 
 
+## Prerequisites
+
+It is assumed that you have a standard Linux develompent environment
+(gcc, make, etc.) setup already. To build the emulator, you also need Gtk+
+version 3.16 or higher and its development headers.
+
+The Z80 software requires Z88DK v1.99B in order to be built. Make sure to have
+all of the Z88DK binaries in your path. You don't need to worry about the ZCCCFG
+environment variable; it gets set automatically by the Makefiles.
+
+The emulator creates a pseudoterminal to simulate the serial connection of the
+real computer. To access it, you will need a terminal emulator. For the easiest
+experience, picocom should be installed, though you can also use any other one.
+
+
 ## Quick start guide
+
+Ensure that you have all prerequisites installed. Type `make` to build the
+entire project. You might be promted for your password to mount the filesystem
+image. If the build completed successfully, type `make run`. This will open
+the emulator with the newly built ROM- and SD-images and start picocom in your
+current terminal window. Click the `continue`-button of the emulator to start
+the system.
 
 
 ## Contents of this repository
@@ -27,17 +49,6 @@ with the included emulator. See the quick start guide for instructions.
   ROM-based operating system.
 * **tools**: Utilities supporting the project.
 * **user**: Various programs for the system.
-
-
-## Prerequisites
-
-TODO: document required software and configuration
-
-naken_asm
-libz80
-gtk3
-glade
-z88dk
 
 
 ## License
