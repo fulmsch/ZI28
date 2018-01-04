@@ -1,7 +1,9 @@
+MODULE chdir
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "string.h"
-INCLUDE "os_memmap.h"
+INCLUDE "cli.h"
 
 PUBLIC u_chdir, k_chdir
 

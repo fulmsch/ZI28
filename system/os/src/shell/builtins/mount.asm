@@ -1,7 +1,7 @@
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "string.h"
-INCLUDE "os_memmap.h"
+INCLUDE "cli.h"
 
 EXTERN fat_fsDriver
 EXTERN sd_init, k_open, k_mount

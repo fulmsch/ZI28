@@ -1,6 +1,6 @@
 SECTION rom_code
 INCLUDE "string.h"
-INCLUDE "os_memmap.h"
+INCLUDE "drive.h"
 
 PUBLIC get_drive_and_path
 

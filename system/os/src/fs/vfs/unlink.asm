@@ -1,8 +1,9 @@
+MODULE vfs_unlink
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "vfs.h"
 INCLUDE "drive.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC u_unlink, k_unlink
 

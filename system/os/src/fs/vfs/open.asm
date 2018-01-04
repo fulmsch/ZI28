@@ -1,8 +1,9 @@
+MODULE vfs_open
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "vfs.h"
 INCLUDE "drive.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC u_open, k_open
 
@@ -76,8 +77,8 @@ open:
 ;; : e - file descriptor
 ;; : a - errno
 
-	ld (k_open_mode), a
-	ld (k_open_path), de
+	ld (open_mode), a
+	ld (open_path), de
 
 	ld a, 0xff
 	ld b, fdTableEntries
@@ -94,7 +95,7 @@ fdSearchLoop:
 
 fdFound:
 	ld a, c
-	ld (k_open_fd), a
+	ld (open_fd), a
 
 	;search free file table spot
 	ld ix, fileTable
@@ -116,10 +117,10 @@ tableSearchLoop:
 
 tableSpotFound:
 	ld a, c
-	ld (k_open_fileIndex), a
+	ld (open_fileIndex), a
 
 
-	ld hl, (k_open_path)
+	ld hl, (open_path)
 	call realpath
 	;(hl) = absolute path
 
@@ -127,9 +128,9 @@ tableSpotFound:
 	;(de) = drive entry
 	;(hl) = relative path
 
-	ld (k_open_path), hl
+	ld (open_path), hl
 	ld a, e
-	ld (k_open_drive), a
+	ld (open_drive), a
 	
 	add a, driveTableFsdriver
 	ld e, a
@@ -151,7 +152,7 @@ tableSpotFound:
 	ex de, hl
 
 	;store requested permissions
-	ld a, (k_open_mode)
+	ld a, (open_mode)
 	ld b, a
 	xor a
 	bit O_RDONLY_BIT, b
@@ -169,7 +170,7 @@ skipAppendFlag:
 	ld (ix + fileTableMode), a
 
 
-	ld a, (k_open_drive)
+	ld a, (open_drive)
 	ld (ix + fileTableDriveNumber), a
 	xor a
 	ld (ix + fileTableOffset + 0), a
@@ -180,8 +181,8 @@ skipAppendFlag:
 	push ix
 	ld de, return
 	push de
-	ld de, (k_open_path)
-	ld a, (k_open_mode)
+	ld de, (open_path)
+	ld a, (open_mode)
 
 	jp (hl)
 
@@ -190,7 +191,7 @@ return:
 	cp 0
 	jr nz, error
 
-	ld a, (k_open_mode)
+	ld a, (open_mode)
 	bit O_DIRECTORY_BIT, a
 	jr z, success
 	;check if directory
@@ -200,9 +201,9 @@ return:
 
 success:
 	ld (ix + fileTableRefCount), 1
-	ld a, (k_open_fileIndex)
+	ld a, (open_fileIndex)
 	push af ;file index
-	ld a, (k_open_fd)
+	ld a, (open_fd)
 	push af ;fd
 	call getFdAddr
 	pop af ;fd
@@ -225,3 +226,11 @@ invalidDrive:
 invalidPath:
 	ld a, 0xf5
 	ret
+
+
+SECTION bram_open
+open_mode:      defs 1
+open_fd:        defs 1
+open_fileIndex: defs 1
+open_path:      defs 2
+open_drive:     defs 1

@@ -1,8 +1,9 @@
+MODULE fatfs_statFromEntry
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "fatfs.h"
 INCLUDE "math.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC fat_statFromEntry
 

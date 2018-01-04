@@ -1,5 +1,7 @@
+MODULE builtin_chdir
+
 SECTION rom_code
-INCLUDE "os_memmap.h"
+INCLUDE "cli.h"
 
 EXTERN k_chdir
 

@@ -1,11 +1,14 @@
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "string.h"
-INCLUDE "os_memmap.h"
+INCLUDE "cli.h"
+INCLUDE "vfs.h"
 
 PUBLIC exec
 
 EXTERN k_open, k_read, k_close, udup, u_close, bankOs, bankSwitch
+
+DEFC exec_addr = 0x4000
 
 exec:
 ;; Loads a program file into memory and executes it.
@@ -73,7 +76,7 @@ openFile:
 	;load file into memory
 	ld a, (exec_fd)
 	ld de, exec_addr
-	ld hl, 4000h
+	ld hl, 0x4000
 	call k_read ;TODO error checking
 
 	;close file
@@ -140,3 +143,7 @@ closeFilesLoop:
 
 execExtension:
 	DEFM ".EX8", 0x00
+
+SECTION bram_os
+exec_fd: defs 1
+exec_stack: defs 2

@@ -3,7 +3,6 @@ INCLUDE "os.h"
 INCLUDE "math.h"
 INCLUDE "drive.h"
 INCLUDE "fatfs.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC fat_getClusterValue
 

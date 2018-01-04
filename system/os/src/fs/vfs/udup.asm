@@ -1,5 +1,5 @@
 SECTION rom_code
-INCLUDE "os_memmap.h"
+INCLUDE "vfs.h"
 
 PUBLIC udup
 

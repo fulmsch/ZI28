@@ -1,8 +1,9 @@
+MODULE sd_read
+
 SECTION rom_code
 INCLUDE "math.h"
 INCLUDE "devfs.h"
 INCLUDE "drivers/sd.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC sd_read
 

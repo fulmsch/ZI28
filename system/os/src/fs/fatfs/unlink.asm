@@ -1,7 +1,8 @@
+MODULE fatfs_unlink
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "fatfs.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC fat_unlink
 

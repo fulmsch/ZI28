@@ -1,3 +1,5 @@
+MODULE fatfs_init
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "fatfs.h"

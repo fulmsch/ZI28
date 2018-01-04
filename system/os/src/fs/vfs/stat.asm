@@ -2,7 +2,6 @@ SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "vfs.h"
 INCLUDE "drive.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC u_stat, k_stat, u_fstat, k_fstat
 

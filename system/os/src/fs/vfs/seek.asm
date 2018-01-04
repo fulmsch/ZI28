@@ -2,7 +2,6 @@ SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "math.h"
 INCLUDE "vfs.h"
-INCLUDE "os_memmap.h"
 
 EXTERN fdToFileEntry
 
@@ -93,24 +92,24 @@ k_lseek:
 end:
 	ld de, fileTableSize
 	add hl, de
-	ld de, k_seek_new
+	ld de, seek_new
 	call ld32
 	jr addOffs
 
 cur:
 	ld de, fileTableOffset
 	add hl, de
-	ld de, k_seek_new
+	ld de, seek_new
 	call ld32
 	jr addOffs
 
 set:
-	ld hl, k_seek_new
+	ld hl, seek_new
 	call clear32
 
 addOffs:
 	;new=new+offs
-	ld hl, k_seek_new
+	ld hl, seek_new
 	pop de ;offset
 	call add32
 
@@ -118,7 +117,7 @@ addOffs:
 
 	ld de, fileTableOffset
 	add hl, de
-	ld de, k_seek_new
+	ld de, seek_new
 	ld a, (de)
 	bit 7, a
 	jr nz, invalidOffset
@@ -140,3 +139,7 @@ invalidWhence:
 invalidOffset:
 	ld a, 3
 	ret
+
+
+SECTION bram_os
+seek_new: defs 4

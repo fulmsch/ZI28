@@ -1,6 +1,8 @@
+MODULE block_read
+
 SECTION rom_code
 INCLUDE "math.h"
-INCLUDE "os_memmap.h"
+INCLUDE "block.h"
 
 PUBLIC block_read
 

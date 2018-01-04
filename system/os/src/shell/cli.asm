@@ -3,13 +3,13 @@ SECTION rom_code
 ;TODO change putc and getc to OS equivalents
 
 
-;.define inputBufferSize 128
-;.define maxArgc 32
 INCLUDE "os.h"
 INCLUDE "string.h"
-INCLUDE "os_memmap.h"
 
 EXTERN k_getcwd, exec
+
+DEFC inputBufferSize         = 128
+DEFC maxArgc                 = 32
 
 
 PUBLIC cli
@@ -296,3 +296,19 @@ dispatchTable:
 	DEFW testStr,   b_test
 	DEFW verStr,    b_ver
 	DEFW nullStr
+
+SECTION CRAM
+PUBLIC argc, argv, inputBuffer
+argc: defb 0
+argv: defs maxArgc * 2
+inputBuffer: defs inputBufferSize
+
+SECTION bram_os
+
+PUBLIC pathBuffer
+pathBuffer: defs PATH_MAX
+
+PUBLIC env_workingPath
+env_workingPath: defs PATH_MAX
+
+cli_programName: defs 13

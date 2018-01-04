@@ -1,11 +1,14 @@
+MODULE monitor
+
 SECTION rom_code
 ;; Machine monitor, unstable and incomplete
 ;TODO:
 ;Change call to rst
 ;Only allow printable chars as input
 
-INCLUDE "os_memmap.h"
 INCLUDE "iomap.h"
+INCLUDE "memmap.h"
+INCLUDE "os_memmap.h"
 
 PUBLIC _monitor
 

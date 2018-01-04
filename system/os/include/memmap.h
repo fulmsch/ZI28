@@ -1,0 +1,7 @@
+IFNDEF MEMMAP_H
+DEFINE MEMMAP_H
+
+DEFC monStack   = 0xa200
+DEFC sysStack = 0xc000
+
+ENDIF

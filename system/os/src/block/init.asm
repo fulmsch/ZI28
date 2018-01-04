@@ -1,7 +1,9 @@
+MODULE block_init
+
 SECTION rom_code
 INCLUDE "math.h"
 INCLUDE "vfs.h"
-INCLUDE "os_memmap.h"
+INCLUDE "block.h"
 
 PUBLIC block_init
 

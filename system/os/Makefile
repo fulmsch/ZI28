@@ -21,7 +21,8 @@ $(SRCDIR)/version.asm:
 	z80asm -o$@ -I$(INCLUDEDIR)/asm -Iinclude $<
 
 os.bin: $(OBJFILES) src/os.lst
-	z80asm -b -o$@ @src/os.lst
+	z80asm -b -I$(INCLUDEDIR)/asm -Iinclude -o$@ @src/os.lst
+	#$(ZCC) +zi28 --no-crt -Ca-I/home/florian/Dropbox/Projekte/ZI28/system/os/include -Ca-I/home/florian/Dropbox/Projekte/ZI28/include/asm @os.lst -oos.bin
 
 os.hex: os.bin
 	objcopy -I binary -O ihex os.bin os.hex
@@ -33,7 +34,7 @@ clean:
 	@find $(SRCDIR) -iname "*.err" -delete
 
 distclean: clean
-	@$(RM) os.bin os.hex
+	@$(RM) *.bin os.hex
 
 run:
 	$(ROOTDIR)/emulator/zi28emu -r os.bin -c $(ROOTDIR)/user/sd.img& sleep 0.5 && picocom /tmp/zi28tty --omap crcrlf,delbs --send-cmd "ascii-xfr -snvde" --receive-cmd "ascii-xfr -rne"; killall zi28emu

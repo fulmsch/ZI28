@@ -1,6 +1,5 @@
 SECTION rom_code
 INCLUDE "drivers/sd.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC sd_sendCmd
 

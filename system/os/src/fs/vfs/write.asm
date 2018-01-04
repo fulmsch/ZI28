@@ -1,8 +1,9 @@
+MODULE vfs_write
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "math.h"
 INCLUDE "vfs.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC u_write, k_write
 

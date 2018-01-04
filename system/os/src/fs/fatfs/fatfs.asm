@@ -1,9 +1,9 @@
 SECTION rom_code
 ;; FAT-16 file system
 
-PUBLIC fat_fsDriver, fat_fileDriver
+INCLUDE "fatfs.h"
 
-EXTERN fat_init, fat_open, fat_readdir, fat_fstat, fat_unlink, fat_read, fat_write
+PUBLIC fat_fsDriver, fat_fileDriver
 
 fat_fsDriver:
 	DEFW fat_init
@@ -17,3 +17,22 @@ fat_fsDriver:
 fat_fileDriver:
 	DEFW fat_read
 	DEFW fat_write
+
+
+
+SECTION bram_os
+
+PUBLIC fat_dirEntryBuffer
+fat_dirEntryBuffer:      defs 33
+
+PUBLIC fat_clusterValue, fat_clusterValueOffset1, fat_clusterValueOffset2
+fat_clusterValue:        defs 2
+fat_clusterValueOffset1: defs 4
+fat_clusterValueOffset2: defs 4
+
+PUBLIC fat_rw_remCount, fat_rw_totalCount, fat_rw_dest, fat_rw_cluster, fat_rw_clusterSize
+fat_rw_remCount:         defs 2
+fat_rw_totalCount:       defs 2
+fat_rw_dest:             defs 2
+fat_rw_cluster:          defs 2
+fat_rw_clusterSize:      defs 2

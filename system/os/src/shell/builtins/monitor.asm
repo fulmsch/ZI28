@@ -1,3 +1,5 @@
+MODULE builtin_monitor
+
 SECTION rom_code
 INCLUDE "os.h"
 

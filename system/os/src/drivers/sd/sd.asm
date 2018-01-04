@@ -8,7 +8,6 @@ SECTION rom_code
 ;; Writing to port 2 enables the SD-card, writing to port 3 disabled it.
 
 INCLUDE "drivers/sd.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC sd_fileDriver, sd_blockCallback
 PUBLIC sd_enable, sd_disable, sd_transferByte, delay100

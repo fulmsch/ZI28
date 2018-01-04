@@ -2,7 +2,8 @@ SECTION rom_code
 ; Cold start -------------------------------------------------
 
 INCLUDE "os.h"
-INCLUDE "os_memmap.h"
+INCLUDE "memmap.h"
+INCLUDE "vfs.h"
 
 EXTERN dummyRoot, k_mount, k_open, k_dup, sd_init, mountRoot, k_chdir, b_cls, cli, bankOs
 

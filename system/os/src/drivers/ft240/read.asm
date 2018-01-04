@@ -1,6 +1,7 @@
+MODULE ft240_read
+
 SECTION rom_code
 INCLUDE "drivers/ft240.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC ft240_read
 

@@ -1,10 +1,11 @@
+MODULE devfs_open
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "string.h"
 INCLUDE "math.h"
 INCLUDE "vfs.h"
 INCLUDE "devfs.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC devfs_open
 

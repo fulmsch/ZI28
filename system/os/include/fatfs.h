@@ -17,6 +17,13 @@ DEFC fat_firstFreeCluster  = fat_sectorsPerCluster + 2 ;2 bytes
 DEFC fat_fileTableStartCluster = fileTableData                 ;2 bytes
 DEFC fat_fileTableDirEntryAddr = fat_fileTableStartCluster + 2 ;4 bytes
 
+
+EXTERN fat_init, fat_open, fat_readdir, fat_fstat, fat_unlink, fat_read, fat_write
+EXTERN fat_build83Filename
+EXTERN fat_fileDriver, fat_dirEntryBuffer
+EXTERN fat_clusterValue, fat_clusterValueOffset1, fat_clusterValueOffset2
+EXTERN fat_rw_remCount, fat_rw_totalCount, fat_rw_dest, fat_rw_cluster, fat_rw_clusterSize
+
 ;file attributes
 DEFC FAT_ATTRIB_RDONLY  = 0
 DEFC FAT_ATTRIB_HIDDEN  = 1

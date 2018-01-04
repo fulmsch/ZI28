@@ -1,5 +1,5 @@
 SECTION rom_code
-INCLUDE "os_memmap.h"
+INCLUDE "devfs.h"
 
 PUBLIC devfs_addDev
 

@@ -1,8 +1,9 @@
+MODULE fatfs_fstat
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "fatfs.h"
 INCLUDE "vfs.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC fat_fstat
 

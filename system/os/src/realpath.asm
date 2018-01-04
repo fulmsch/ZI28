@@ -1,6 +1,7 @@
 SECTION rom_code
+INCLUDE "os.h"
 INCLUDE "string.h"
-INCLUDE "os_memmap.h"
+INCLUDE "cli.h"
 
 PUBLIC realpath
 
@@ -138,3 +139,9 @@ return:
 	call strtup
 	pop hl
 	ret
+
+
+SECTION bram_os
+
+realpath_outputProt: defs 1
+realpath_output:     defs PATH_MAX

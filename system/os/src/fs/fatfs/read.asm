@@ -1,9 +1,10 @@
+MODULE fatfs_read
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "vfs.h"
 INCLUDE "fatfs.h"
 INCLUDE "math.h"
-INCLUDE "os_memmap.h"
 
 EXTERN k_read, k_lseek, fat_clusterToAddr, fat_nextCluster
 

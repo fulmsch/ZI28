@@ -4,8 +4,6 @@
 
 ;TODO:
 
-INCLUDE "os_memmap.h"
-
 ; Jump Table -------------------------------------------------
 
 org 0x0000
@@ -44,7 +42,7 @@ EXTERN _coldStart, _putc, _getc, _strerror, _syscall, _monitor
 
 
 ;SECTION rom_nmi
-DEFS nmiEntry - ASMPC
+DEFS 0x66 - ASMPC
 EXTERN ISR_keyboard
 	DEFW ISR_keyboard
 
@@ -76,9 +74,19 @@ SECTION rom_data
 
 SECTION CRAM ;common ram, 0xa000 - 0xbfff, 8kB
 org 0xa000
-defb 0
+
 
 SECTION BRAM ;banked ram, 0xc000 - 0xffff, 16kB
 	org 0xc000
 
+SECTION bram_driveTable
+SECTION bram_fileTable
+SECTION bram_fdTable
+
 SECTION bram_os
+
+;32bit registers
+PUBLIC regA, regB, regC
+regA: defs 4
+regB: defs 4
+regC: defs 4

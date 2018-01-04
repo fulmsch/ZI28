@@ -1,3 +1,5 @@
+MODULE devfs_init
+
 SECTION rom_code
 INCLUDE "math.h"
 

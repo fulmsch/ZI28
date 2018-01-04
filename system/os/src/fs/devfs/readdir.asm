@@ -1,7 +1,8 @@
+MODULE devfs_readdir
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "devfs.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC devfs_readdir
 

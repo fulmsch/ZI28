@@ -1,5 +1,7 @@
+MODULE fatfs_readdir
+
 SECTION rom_code
-INCLUDE "os_memmap.h"
+INCLUDE "fatfs.h"
 
 PUBLIC fat_readdir
 

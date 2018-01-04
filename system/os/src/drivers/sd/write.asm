@@ -1,7 +1,8 @@
+MODULE sd_write
+
 SECTION rom_code
 INCLUDE "math.h"
 INCLUDE "drivers/sd.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC sd_write
 

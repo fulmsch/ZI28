@@ -2,7 +2,6 @@ SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "math.h"
 INCLUDE "fatfs.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC fat_setClusterValue
 

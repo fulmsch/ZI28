@@ -1,5 +1,5 @@
 SECTION rom_code
-INCLUDE "os_memmap.h"
+INCLUDE "vfs.h"
 
 PUBLIC u_dup, k_dup
 
@@ -46,7 +46,7 @@ dup:
 
 	push af
 	ld a, b
-	ld (k_dup_oldFd), a
+	ld (dup_oldFd), a
 	pop af
 
 	cp 0xff
@@ -65,11 +65,11 @@ fdSearchLoop:
 
 newFdFound:
 	ld a, c
-	ld (k_dup_newFd), a
+	ld (dup_newFd), a
 	jr copyFd
 
 newSpecified:
-	ld (k_dup_newFd), a
+	ld (dup_newFd), a
 	call getFdAddr
 	jr c, error
 	ld a, (hl)
@@ -78,10 +78,10 @@ newSpecified:
 	call k_close
 
 copyFd:
-	ld a, (k_dup_newFd)
+	ld a, (dup_newFd)
 	call getFdAddr
 	push hl
-	ld a, (k_dup_oldFd)
+	ld a, (dup_oldFd)
 	call getFdAddr
 	pop de
 	jr c, error
@@ -95,7 +95,7 @@ copyFd:
 	inc hl
 	inc (hl)
 
-	ld a, (k_dup_newFd)
+	ld a, (dup_newFd)
 	ld e, a
 
 	xor a
@@ -104,3 +104,7 @@ copyFd:
 error:
 	ld a, 1
 	ret
+
+SECTION bram_os
+dup_oldFd: defs 1
+dup_newFd: defs 1

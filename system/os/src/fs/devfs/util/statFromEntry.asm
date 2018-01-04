@@ -1,3 +1,5 @@
+MODULE devfs_statFromEntry
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "string.h"

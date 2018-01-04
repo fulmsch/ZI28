@@ -1,6 +1,11 @@
 src/main.o
 src/coldstart.o
-src/drive.o
+src/drive/drive.o
+src/drive/dummyRoot.o
+src/drive/mount.o
+src/drive/mountRoot.o
+src/drive/storeAndCallFsInit.o
+src/drive/unmount.o
 src/bank/bank.o
 src/shell/cli.o
 src/shell/builtins/mount.o
@@ -68,6 +73,7 @@ src/fs/devfs/fstat.o
 src/fs/devfs/readdir.o
 src/fs/devfs/open.o
 src/fs/devfs/devfs.o
+src/fs/vfs/vfs.o
 src/fs/vfs/util/getFdAddr.o
 src/fs/vfs/util/fdToFileEntry.o
 src/fs/vfs/util/getFileAddr.o
@@ -81,6 +87,7 @@ src/fs/vfs/open.o
 src/fs/vfs/unlink.o
 src/fs/vfs/write.o
 src/fs/vfs/stat.o
+src/block/block.o
 src/block/calcCopyPointers.o
 src/block/init.o
 src/block/read.o

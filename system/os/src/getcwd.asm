@@ -1,6 +1,6 @@
 SECTION rom_code
 INCLUDE "string.h"
-INCLUDE "os_memmap.h"
+INCLUDE "cli.h"
 
 PUBLIC u_getcwd, k_getcwd
 

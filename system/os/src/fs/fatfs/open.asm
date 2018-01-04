@@ -1,15 +1,15 @@
+MODULE fatfs_open
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "vfs.h"
 INCLUDE "fatfs.h"
 INCLUDE "math.h"
 INCLUDE "string.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC fat_open
 
-EXTERN fat_fileDriver
-EXTERN fat_build83Filename, fat_read, k_seek, fat_write
+EXTERN k_seek
 
 fat_open:
 ;; Creates a new file table entry
@@ -305,3 +305,11 @@ writeDirEntry:
 error:
 	ld a, 1
 	ret
+
+
+SECTION bram_os
+fat_open_path:           defs  2
+fat_open_originalPath:   defs  2
+fat_open_flags:          defs  1
+fat_open_freeEntry:      defs  4
+fat_open_filenameBuffer: defs 11

@@ -19,4 +19,10 @@ DEFC fs_readdir =  6
 DEFC fs_fstat   =  8
 DEFC fs_unlink  = 10
 
+DEFC driveTableEntrySize = 32
+DEFC driveTableEntries   = 8
+
+EXTERN driveTable, driveTablePaths
+EXTERN fsDriverTable
+
 ENDIF

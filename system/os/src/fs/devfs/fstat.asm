@@ -1,3 +1,5 @@
+MODULE devfs_fstat
+
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "devfs.h"

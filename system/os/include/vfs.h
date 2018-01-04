@@ -15,4 +15,11 @@ DEFC fileTableData        = fileTableSize + 4  ;Max   19 bytes
 DEFC file_read  = 0
 DEFC file_write = 2
 
+DEFC fileTableEntrySize = 32
+DEFC fileTableEntries   = 32
+EXTERN fileTable
+
+DEFC fdTableEntries = 32
+EXTERN u_fdTable, k_fdTable
+
 ENDIF

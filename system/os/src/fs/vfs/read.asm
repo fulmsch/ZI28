@@ -1,7 +1,8 @@
+MODULE vfs_read
+
 SECTION rom_code
 INCLUDE "math.h"
 INCLUDE "vfs.h"
-INCLUDE "os_memmap.h"
 
 PUBLIC u_read, k_read
 
