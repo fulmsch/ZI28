@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 	printf("File test program\n\n");
 
 	printf("Opening '/HOME/TESTFILE.TXT'...\n");
-	fd = open("/HOME/TESTFILE.TXT", (1 << O_RDONLY), 0);
+	fd = open("/HOME/TESTFILE.TXT", O_RDONLY | O_CREAT, 0);
 	assert(fd != -1);
 	printf("Success: Fd = %d\n", fd);
 
