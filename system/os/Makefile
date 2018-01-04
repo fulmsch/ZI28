@@ -12,10 +12,10 @@ OBJFILES = $(ASMFILES:.asm=.o)
 all: os.bin os.hex
 
 $(SRCDIR)/version.asm:
-	@echo -e 'SECTION rom_data' > $@
-	@echo -e 'PUBLIC version' >> $@
-	@echo -e 'version:' >> $@
-	@echo -e '\tDEFM "Commit: $(shell git describe --always --abbrev=10)\\nBuild: $(shell date -Iminutes)", 0x00' >> $@
+	@echo 'SECTION rom_data' > $@
+	@echo 'PUBLIC version' >> $@
+	@echo 'version:' >> $@
+	@echo 'DEFM "Commit: $(shell git describe --always --abbrev=10)", 0x0a, "Build: $(shell date -Iminutes)", 0x00' >> $@
 
 %.o: %.asm
 	z80asm -o$@ -I$(INCLUDEDIR)/asm -Iinclude $<

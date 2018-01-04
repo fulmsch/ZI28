@@ -18,7 +18,7 @@
 #include <string.h>
 #include <getopt.h>
 
-#include <gtkhex.h>
+//#include <gtkhex.h>
 
 #include "main.h"
 #include "emulator.h"

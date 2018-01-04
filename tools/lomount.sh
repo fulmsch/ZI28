@@ -34,5 +34,5 @@ else
   exit 1
 fi
 
-OFFSET=$((512 * "$UNITS"))
+OFFSET=$(( 512 * $UNITS ))
 sudo mount -o loop,sync,offset="$OFFSET",gid="$(id -g)",uid="$(id -u)" "$FILE" "$DEST"
