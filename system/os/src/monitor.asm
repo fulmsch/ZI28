@@ -12,7 +12,7 @@ INCLUDE "os_memmap.h"
 
 PUBLIC _monitor
 
-EXTERN print
+EXTERN print, getc, putc
 
 
 _monitor:
@@ -50,11 +50,11 @@ prompt:
 	ld c, 0
 
 	ld a, '>'
-	rst RST_putc
+	call putc
 
 handleChar:
 	xor a
-	rst RST_getc
+	call getc
 
 	cp 0x08
 	jr z, backspace
@@ -63,7 +63,7 @@ handleChar:
 	jr z, handleStr
 	cp 0x0d
 	jr z, handleChar
-	rst RST_putc
+	call putc
 
 ;fix this hack when reworking the buffer system
 	ld b, a
@@ -81,11 +81,11 @@ backspace:
 	cp 0
 	jr z, handleChar
 	ld a, 0x08
-	rst RST_putc
+	call putc
 	ld a, 0x20
-	rst RST_putc
+	call putc
 	ld a, 0x08
-	rst RST_putc
+	call putc
 	dec hl
 	dec c
 	jr handleChar
@@ -93,9 +93,9 @@ backspace:
 
 handleStr:
 	ld (hl), a
-	rst RST_putc
+	call putc
 	ld a, 0x0a
-	rst RST_putc
+	call putc
 
 	ld hl, monInputBuffer
 	ld a, (hl)
@@ -132,7 +132,7 @@ handleStr01:
 handleStr02:
 	;ld a, b
 	;or 0x30
-	;rst RST_putc
+	;call putc
 
 	ld a, (monInputBuffer)
 	call convertToUpper
@@ -219,7 +219,7 @@ load:
 
 waitForRecord:
 	xor a
-	rst RST_getc
+	call getc
 	cp 0x03
 	jp z, loadAbort
 	cp ':'
@@ -231,7 +231,7 @@ blockStart:
 	ld hl, header
 headerLoop:
 	xor a
-	rst RST_getc
+	call getc
 	cp 0x03
 	jp z, loadAbort
 	ld (hl), a
@@ -253,7 +253,7 @@ headerLoop:
 	
 dataLoop:
 	xor a
-	rst RST_getc
+	call getc
 	cp 0x03
 	jp z, loadAbort
 	call hexToNumNibble
@@ -263,7 +263,7 @@ dataLoop:
 	sla a
 	ld c, a
 	xor a
-	rst RST_getc
+	call getc
 	cp 0x03
 	jp z, loadAbort
 	call hexToNumNibble
@@ -276,7 +276,7 @@ dataLoop:
 	
 loadExit:
 	xor a
-	rst RST_getc
+	call getc
 	cp 0x03
 	jp z, loadAbort
 	cp 0x0a
@@ -321,7 +321,7 @@ execPrgm:
 
 exec:	
 	ld a, 0x0a
-	rst RST_putc
+	call putc
 	
 	ld de, execRtn
 	push de
@@ -374,21 +374,21 @@ newline:
 	ld a, e
 	call printbyte
 	ld a, ':'
-	rst RST_putc
+	call putc
 	ld b, 0x10
 	push de
 	
 line:
 	ld a, 0x20
-	rst RST_putc
+	call putc
 	ld a, (de)
 	call printbyte
 	inc de
 	djnz line
 	
 	ld a, 0x20
-	rst RST_putc
-	rst RST_putc
+	call putc
+	call putc
 	
 	pop de
 	ld b, 0x10
@@ -405,7 +405,7 @@ notPrintable:
 	ld a, '.'
 
 hexDump01:
-	rst RST_putc
+	call putc
 	inc de
 	djnz text
 	
@@ -413,7 +413,7 @@ hexDump01:
 	
 	ld b, 0x10
 	ld a, 0x0a
-	rst RST_putc
+	call putc
 
 	ld a, (lineCounter)
 	dec a
@@ -423,7 +423,7 @@ hexDump01:
 	
 hexDumpContinue:
 	xor a
-	rst RST_getc
+	call getc
 	
 	cp 0x03 ;CTRL-C, break
 	jp z, prompt
@@ -431,7 +431,7 @@ hexDumpContinue:
 	jr nz, hexDumpContinue	
 	
 	ld a, 0x0a
-	rst RST_putc
+	call putc
 	jr hexDump00
 
 
@@ -444,11 +444,11 @@ printbyte:
 	srl a
 	srl a
 	call nibbletoascii
-	rst RST_putc
+	call putc
 	pop af
 	and 0x0f
 	call nibbletoascii
-	rst RST_putc
+	call putc
 	ret
 
 nibbletoascii:
@@ -486,11 +486,11 @@ writePrompt:
 	ld a, e
 	call printbyte
 	ld a, 0x20
-	rst RST_putc
+	call putc
 	ld a, (de)
 	call printbyte
 	ld a, 0x20
-	rst RST_putc
+	call putc
 	
 	ld de, monInputBuffer
 	ld c, 0
@@ -498,7 +498,7 @@ writePrompt:
 
 writeHandleChar:		
 	xor a
-	rst RST_getc
+	call getc
 	
 	cp 0x08
 	jr z, writeBackspace
@@ -508,7 +508,7 @@ writeHandleChar:
 	jr z, writeHandleChar
 	cp 0x0a
 	jr z, writeHandleStr
-	rst RST_putc
+	call putc
 	
 	ld b, a
 	ld a, c
@@ -569,14 +569,14 @@ writeNext:
 	ld (monInputBuffer + 2), hl
 	
 	ld a, 0x0a
-	rst RST_putc
+	call putc
 	jp writePrompt
 	
 
 
 writeEnd:
 	ld a, 0x0a
-	rst RST_putc
+	call putc
 	jp prompt
 	
 writeErrorStr:
@@ -600,7 +600,7 @@ ioIn:
 	call printbyte
 	
 	ld a, 0x0a
-	rst RST_putc
+	call putc
 	
 	jp prompt
 	
@@ -623,7 +623,7 @@ ioOut:
 	out (c), a
 	
 	ld a, 0x0a
-	rst RST_putc
+	call putc
 	
 	jp prompt
 	
@@ -646,7 +646,7 @@ bankSel:
 	out (BANKSEL_PORT), a
 	
 	ld a, 0x0a
-	rst RST_putc
+	call putc
 	
 	jp prompt
 
@@ -686,12 +686,12 @@ showRegisterLoop:
 	ld a, (hl)
 	call printbyte
 	ld a, ' '
-	rst RST_putc
-	rst RST_putc
+	call putc
+	call putc
 	djnz showRegisterLoop
 
 	ld a, '\n'
-	rst RST_putc
+	call putc
 	jp prompt
 
 registerStr:

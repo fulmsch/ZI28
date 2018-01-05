@@ -1,15 +1,23 @@
 SECTION rom_code
 INCLUDE "os.h"
 
-PUBLIC _putc
+PUBLIC putc, _putc
 
-EXTERN k_write
+EXTERN k_write, bankRestore, bankOs
 
 _putc:
 ;; Print a single character to stdout.
 ;;
 ;; Input:
 ;; : a - character
+
+	push hl
+	ld hl, bankRestore
+	ex (sp), hl
+	push af
+	call bankOs
+	pop af
+putc:
 
 IFNDEF DEBUG
 

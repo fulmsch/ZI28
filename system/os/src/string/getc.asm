@@ -1,14 +1,22 @@
 SECTION rom_code
 INCLUDE "os.h"
-PUBLIC _getc
+PUBLIC getc, _getc
 
-EXTERN k_read
+EXTERN k_read, bankRestore, bankOs
 
 _getc:
 ;; Read a single character from stdin.
 ;;
 ;; Output:
 ;; : a - character
+
+	push hl
+	ld hl, bankRestore
+	ex (sp), hl
+	push af
+	call bankOs
+	pop af
+getc:
 
 IFNDEF DEBUG
 

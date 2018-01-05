@@ -6,7 +6,7 @@ SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "string.h"
 
-EXTERN k_getcwd, exec
+EXTERN k_getcwd, exec, getc, putc
 
 DEFC inputBufferSize         = 128
 DEFC maxArgc                 = 32
@@ -33,7 +33,7 @@ prompt:
 handleChar:
 	;TODO navigation with arrow keys
 	xor a
-	rst RST_getc
+	call getc
 	cp 0x08
 	jr z, backspace
 	cp '\n'
@@ -44,7 +44,7 @@ handleChar:
 	cp 0x7f
 	jr nc, handleChar
 	ld (hl), a
-	rst RST_putc
+	call putc
 	;Check for buffer overflow
 	inc c
 	ld a, c
@@ -58,11 +58,11 @@ backspace:
 	cp 0
 	jr z, handleChar
 	ld a, 0x08
-	rst RST_putc
+	call putc
 	ld a, 0x20
-	rst RST_putc
+	call putc
 	ld a, 0x08
-	rst RST_putc
+	call putc
 	dec hl
 	dec c
 	jr handleChar
@@ -77,9 +77,9 @@ inputBufferOverflowStr:
 
 handleLine:
 ;	ld a, 0x0d
-;	rst RST_putc
+;	call putc
 	ld a, 0x0a
-	rst RST_putc
+	call putc
 	;TODO store history in file
 
 	ld (hl), 0x00
@@ -174,9 +174,9 @@ commandDispatch:
 ;	inc de
 ;	call print
 ;	ld a, 0x0d
-;	rst RST_putc
+;	call putc
 ;	ld a, 0x0a
-;	rst RST_putc
+;	call putc
 ;	djnz argLoop
 
 	pop hl ;contains pointer to first string

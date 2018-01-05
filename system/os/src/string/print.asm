@@ -1,9 +1,10 @@
 SECTION rom_code
 INCLUDE "os.h"
+INCLUDE "string.h"
 
 PUBLIC print
 
-EXTERN k_write, strlen
+EXTERN k_write, putc
 
 print:
 ;; Print a zero-terminated string to stdout.
@@ -26,7 +27,7 @@ ELSE ;DEBUG
 	ld a, (hl)
 	cp 0x00
 	ret z
-	rst RST_putc
+	call putc
 	inc hl
 	jr print
 

@@ -4,6 +4,7 @@ INCLUDE "string.h"
 INCLUDE "cli.h"
 
 EXTERN version
+EXTERN putc
 
 PUBLIC b_ver
 b_ver:
@@ -14,7 +15,7 @@ b_ver:
 	ld hl, version
 	call print
 	ld a, 0x0a
-	jp RST_putc
+	jp putc
 
 invalidCall:
 	ret
