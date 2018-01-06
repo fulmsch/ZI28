@@ -228,7 +228,7 @@ invalidPath:
 	ret
 
 
-SECTION bram_open
+SECTION ram_open
 open_mode:      defs 1
 open_fd:        defs 1
 open_fileIndex: defs 1

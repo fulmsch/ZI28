@@ -5,7 +5,6 @@ DEFC nSyscalls = (syscallTableEnd - syscallTable) / 2
 PUBLIC _syscall
 
 EXTERN syscallTable, syscallTableEnd
-EXTERN bankOs, bankRestore
 
 _syscall:
 ;; Access a system function from a running program.
@@ -19,7 +18,6 @@ _syscall:
 	ld a, nSyscalls
 	cp c
 	jr c, error
-	call bankOs
 	pop af
 
 ;calculate the vector
@@ -32,10 +30,7 @@ _syscall:
 	ld c, (hl)
 	inc hl
 	ld b, (hl)
-
-;push bankRestore as return address, pop hl
-	ld hl, bankRestore
-	ex (sp), hl
+	pop hl
 
 ;jump to bc
 	push bc

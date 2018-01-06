@@ -1,6 +1,6 @@
 INCLUDE "block.h"
 
-SECTION CRAM
+SECTION ram_os
 
 PUBLIC block_buffer, block_curBlock, block_endBlock, block_remCount, block_totalCount
 PUBLIC block_relOffs, block_readCallback, block_writeCallback, block_memPtr

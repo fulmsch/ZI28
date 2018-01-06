@@ -5,12 +5,11 @@ INCLUDE "os.h"
 INCLUDE "memmap.h"
 INCLUDE "vfs.h"
 
-EXTERN dummyRoot, k_mount, k_open, k_dup, sd_init, mountRoot, k_chdir, b_cls, cli, bankOs
+EXTERN dummyRoot, k_mount, k_open, k_dup, sd_init, mountRoot, k_chdir, b_cls, cli
 
 PUBLIC _coldStart
 _coldStart:
 	ld sp, sysStack
-	call bankOs
 
 	;clear ram TODO other banks
 	ld hl, 0x4000

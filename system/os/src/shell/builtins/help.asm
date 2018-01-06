@@ -3,7 +3,6 @@ INCLUDE "os.h"
 INCLUDE "string.h"
 
 EXTERN dispatchTable
-EXTERN putc
 
 PUBLIC b_help
 b_help:
@@ -24,14 +23,14 @@ tableLoop:
 	cp 00h
 	jr z, path
 	ld a, ' '
-	call putc
+	rst RST_putc
 	push bc
 	call print
 	pop bc
 	ld a, 0dh
-	call putc
+	rst RST_putc
 	ld a, 0ah
-	call putc
+	rst RST_putc
 	jr tableLoop
 
 path:
@@ -44,9 +43,9 @@ path:
 ;	call print
 
 ;	ld a, 0dh
-;	call putc
+;	rst RST_putc
 ;	ld a, 0ah
-;	call putc
+;	rst RST_putc
 
 	ret
 

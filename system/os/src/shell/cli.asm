@@ -6,7 +6,7 @@ SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "string.h"
 
-EXTERN k_getcwd, exec, getc, putc
+EXTERN k_getcwd, exec
 
 DEFC inputBufferSize         = 128
 DEFC maxArgc                 = 32
@@ -33,7 +33,7 @@ prompt:
 handleChar:
 	;TODO navigation with arrow keys
 	xor a
-	call getc
+	rst RST_getc
 	cp 0x08
 	jr z, backspace
 	cp '\n'
@@ -44,7 +44,7 @@ handleChar:
 	cp 0x7f
 	jr nc, handleChar
 	ld (hl), a
-	call putc
+	rst RST_putc
 	;Check for buffer overflow
 	inc c
 	ld a, c
@@ -58,11 +58,11 @@ backspace:
 	cp 0
 	jr z, handleChar
 	ld a, 0x08
-	call putc
+	rst RST_putc
 	ld a, 0x20
-	call putc
+	rst RST_putc
 	ld a, 0x08
-	call putc
+	rst RST_putc
 	dec hl
 	dec c
 	jr handleChar
@@ -77,9 +77,9 @@ inputBufferOverflowStr:
 
 handleLine:
 ;	ld a, 0x0d
-;	call putc
+;	rst RST_putc
 	ld a, 0x0a
-	call putc
+	rst RST_putc
 	;TODO store history in file
 
 	ld (hl), 0x00
@@ -174,9 +174,9 @@ commandDispatch:
 ;	inc de
 ;	call print
 ;	ld a, 0x0d
-;	call putc
+;	rst RST_putc
 ;	ld a, 0x0a
-;	call putc
+;	rst RST_putc
 ;	djnz argLoop
 
 	pop hl ;contains pointer to first string
@@ -297,13 +297,13 @@ dispatchTable:
 	DEFW verStr,    b_ver
 	DEFW nullStr
 
-SECTION CRAM
+SECTION ram_os
 PUBLIC argc, argv, inputBuffer
 argc: defb 0
 argv: defs maxArgc * 2
 inputBuffer: defs inputBufferSize
 
-SECTION bram_os
+SECTION ram_os
 
 PUBLIC pathBuffer
 pathBuffer: defs PATH_MAX

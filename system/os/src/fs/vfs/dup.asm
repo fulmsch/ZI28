@@ -105,6 +105,6 @@ error:
 	ld a, 1
 	ret
 
-SECTION bram_os
+SECTION ram_os
 dup_oldFd: defs 1
 dup_newFd: defs 1

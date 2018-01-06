@@ -72,18 +72,14 @@ SECTION rom_code
 SECTION rom_data
 
 
-SECTION CRAM ;common ram, 0xa000 - 0xbfff, 8kB
-org 0xa000
+SECTION RAM ;0x4000 - 0x7fff, 16kB
+	org 0x4000
 
+SECTION ram_driveTable
+SECTION ram_fileTable
+SECTION ram_fdTable
 
-SECTION BRAM ;banked ram, 0xc000 - 0xffff, 16kB
-	org 0xc000
-
-SECTION bram_driveTable
-SECTION bram_fileTable
-SECTION bram_fdTable
-
-SECTION bram_os
+SECTION ram_os
 
 ;32bit registers
 PUBLIC regA, regB, regC

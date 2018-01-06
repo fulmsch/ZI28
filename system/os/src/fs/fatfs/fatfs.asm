@@ -20,7 +20,7 @@ fat_fileDriver:
 
 
 
-SECTION bram_os
+SECTION ram_os
 
 PUBLIC fat_dirEntryBuffer
 fat_dirEntryBuffer:      defs 33

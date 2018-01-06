@@ -141,5 +141,5 @@ invalidOffset:
 	ret
 
 
-SECTION bram_os
+SECTION ram_os
 seek_new: defs 4

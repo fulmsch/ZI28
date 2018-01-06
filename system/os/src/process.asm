@@ -6,9 +6,9 @@ INCLUDE "vfs.h"
 
 PUBLIC exec
 
-EXTERN k_open, k_read, k_close, udup, u_close, bankOs, bankSwitch
+EXTERN k_open, k_read, k_close, udup, u_close
 
-DEFC exec_addr = 0x4000
+DEFC exec_addr = 0x8000
 
 exec:
 ;; Loads a program file into memory and executes it.
@@ -102,7 +102,6 @@ openFile:
 	ld (exec_stack), sp
 
 	xor a
-	call bankSwitch
 
 	;set new stack
 	ld sp, 0xa000
@@ -114,8 +113,6 @@ openFile:
 	ld hl, argv
 
 	call exec_addr
-
-	call bankOs
 
 	;restore the stack pointer
 	ld sp, (exec_stack)
@@ -144,6 +141,6 @@ closeFilesLoop:
 execExtension:
 	DEFM ".EX8", 0x00
 
-SECTION bram_os
+SECTION ram_os
 exec_fd: defs 1
 exec_stack: defs 2

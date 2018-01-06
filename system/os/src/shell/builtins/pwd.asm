@@ -3,7 +3,7 @@ INCLUDE "os.h"
 INCLUDE "string.h"
 INCLUDE "cli.h"
 
-EXTERN k_getcwd, putc
+EXTERN k_getcwd
 
 PUBLIC b_pwd
 b_pwd:
@@ -17,7 +17,7 @@ b_pwd:
 	pop hl
 	call print
 	ld a, 0x0a
-	jp putc
+	jp RST_putc
 
 
 invalidCall:

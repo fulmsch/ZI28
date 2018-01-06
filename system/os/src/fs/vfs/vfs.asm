@@ -1,11 +1,11 @@
 INCLUDE "vfs.h"
 
-SECTION bram_fileTable
+SECTION ram_fileTable
 PUBLIC fileTable
 fileTable:
 	defs fileTableEntries * fileTableEntrySize
 
-SECTION bram_fdTable
+SECTION ram_fdTable
 PUBLIC k_fdTable, u_fdTable
 k_fdTable:
 	defs fdTableEntries

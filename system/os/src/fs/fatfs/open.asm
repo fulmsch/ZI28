@@ -307,7 +307,7 @@ error:
 	ret
 
 
-SECTION bram_os
+SECTION ram_os
 fat_open_path:           defs  2
 fat_open_originalPath:   defs  2
 fat_open_flags:          defs  1

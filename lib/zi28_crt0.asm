@@ -7,9 +7,9 @@
 ; (DM) Could this do with a cleanup to ensure rstXX functions are
 ; available?
 
-	DEFC	RAM_Start  = $4000
-	DEFC	RAM_Length = $6000
-	DEFC	Stack_Top  = $A000
+	DEFC	RAM_Start  = 0x8000
+	DEFC	RAM_Length = 0x4000
+	DEFC	Stack_Top  = 0xC000
 
 	MODULE  zi28_crt0
 

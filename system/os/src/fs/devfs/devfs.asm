@@ -17,7 +17,7 @@ devfs_fileDriver:
 	DEFW 0x0000 ;devfs_write
 
 
-SECTION bram_os
+SECTION ram_os
 
 PUBLIC devfsRoot, devfsRootTerminator
 devfsRoot:           defs devfsEntrySize * devfsEntries

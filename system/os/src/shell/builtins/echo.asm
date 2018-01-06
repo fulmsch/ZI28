@@ -5,8 +5,6 @@ INCLUDE "cli.h"
 
 PUBLIC b_echo
 
-EXTERN putc
-
 b_echo:
 	;print all arguments
 	ld a, (argc)
@@ -30,10 +28,12 @@ loop:
 	pop bc
 	pop de
 	ld a, ' '
-	call putc
+	rst RST_putc
 	djnz loop
 
 newline:
-	ld a, 0x0a
-	call putc
+	ld a, 0dh
+	rst RST_putc
+	ld a, 0ah
+	rst RST_putc
 	ret

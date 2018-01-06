@@ -141,7 +141,7 @@ return:
 	ret
 
 
-SECTION bram_os
+SECTION ram_os
 
 realpath_outputProt: defs 1
 realpath_output:     defs PATH_MAX

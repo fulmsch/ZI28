@@ -61,7 +61,7 @@ getTableAddr_invalid:
 	ret
 
 
-SECTION bram_driveTable
+SECTION ram_driveTable
 PUBLIC driveTable, driveTablePaths
 driveTable:
 	defs driveTableEntries * driveTableEntrySize

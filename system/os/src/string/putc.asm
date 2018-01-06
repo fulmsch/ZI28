@@ -1,23 +1,15 @@
 SECTION rom_code
 INCLUDE "os.h"
 
-PUBLIC putc, _putc
+PUBLIC _putc
 
-EXTERN k_write, bankRestore, bankOs
+EXTERN k_write
 
 _putc:
 ;; Print a single character to stdout.
 ;;
 ;; Input:
 ;; : a - character
-
-	push hl
-	ld hl, bankRestore
-	ex (sp), hl
-	push af
-	call bankOs
-	pop af
-putc:
 
 IFNDEF DEBUG
 
@@ -51,6 +43,6 @@ poll:
 
 ENDIF ;DEBUG
 
-SECTION bram_os
+SECTION ram_os
 putc_buffer:
 	DEFB 0
