@@ -1,7 +1,7 @@
 include ../../../config.mk
 
 PKGNAME = GUESS
-BINDIR = $(BUILDDIR)/GAMES
+BINDIR = $(BUILDDIR)/BIN
 
 BUILDDIR = build
 

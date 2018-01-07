@@ -1,7 +1,7 @@
 include ../../../config.mk
 
 PKGNAME = MINES
-BINDIR = $(BUILDDIR)/GAMES
+BINDIR = $(BUILDDIR)/BIN
 
 BUILDDIR = build
 
