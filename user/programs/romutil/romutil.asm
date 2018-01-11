@@ -6,7 +6,7 @@ DEFC TERMCR = 0x01
 ;Enable data protecion
 
 
-ORG 0xc000
+ORG 0x8000
 
 	ld hl, clearScreenStr
 	call printStr
@@ -18,7 +18,7 @@ prompt:
 	call printStr
 
 	call waitForInput
-	and 5fh		;convert to uppercase
+	and 0x5f		;convert to uppercase
 
 	cp 'L'
 	jp z, load
@@ -44,14 +44,14 @@ recordTypeField:
 
 
 load:
-	ld de, 0e000h
+	ld de, 0xc000
 
 	ld hl, loadStr
 	call printStr
 
 waitForRecord:
 	call waitForInput
-	cp 03h
+	cp 0x03
 	jp z, loadAbort
 	cp ':'
 	jr nz, waitForRecord
@@ -62,7 +62,7 @@ blockStart:
 	ld hl, header
 headerLoop:
 	call waitForInput
-	cp 03h
+	cp 0x03
 	jp z, loadAbort
 	ld (hl), a
 	inc hl
@@ -83,7 +83,7 @@ headerLoop:
 	
 dataLoop:
 	call waitForInput
-	cp 03h
+	cp 0x03
 	jp z, loadAbort
 	call hexToNumNibble
 	sla a
@@ -92,7 +92,7 @@ dataLoop:
 	sla a
 	ld c, a
 	call waitForInput
-	cp 03h
+	cp 0x03
 	jp z, loadAbort
 	call hexToNumNibble
 	or c
@@ -104,9 +104,9 @@ dataLoop:
 	
 loadExit:
 	call waitForInput
-	cp 03h
+	cp 0x03
 	jp z, loadAbort
-	cp 0ah
+	cp 0x0a
 	jr nz, loadExit
 
 
@@ -143,15 +143,15 @@ clear:
 
 clear00:
 	call waitForInput
-	and 5fh		;convert to uppercase
+	and 0x5f		;convert to uppercase
 
 	cp 'N'
 	jp z, prompt
 	cp 'Y'
 	jr nz, clear00
 
-	ld a, 00h
-	ld hl, 0e000h
+	xor a
+	ld hl, 0xc000
 
 clearLoop:
 	ld (hl), a
@@ -177,7 +177,7 @@ verify:
 
 verify00:
 	call waitForInput
-	and 5fh		;convert to uppercase
+	and 0x5f		;convert to uppercase
 
 	cp 'C'
 	jp z, prompt
@@ -186,13 +186,13 @@ verify00:
 	cp 'R'
 	jr nz, verify00
 
-	ld de, 0000h
-	ld b, 20h
+	ld de, 0x0000
+	ld b, 0x20
 	jr verifyStart
 
 verifyBuffer:
-	ld de, 0e000h
-	ld b, 00h	
+	ld de, 0xc000
+	ld b, 0x00	
 
 verifyStart:
 	ld hl, verifyStartStr
@@ -245,7 +245,7 @@ burn:
 
 burn00:
 	call waitForInput
-	and 5fh		;convert to uppercase
+	and 0x5f		;convert to uppercase
 
 	cp 'N'
 	jp z, prompt
@@ -253,17 +253,17 @@ burn00:
 	jr nz, burn00
 
 
-	ld de, 0000h
-	ld hl, 0e000h
+	ld de, 0x0000
+	ld hl, 0xc000
 
 burnLoop:
 	;Data protection bytes
-	ld a, 0aah
-	ld (1555h), a
-	ld a, 55h
-	ld (0aaah), a
-	ld a, 0a0h
-	ld (1555h), a
+	ld a, 0xaa
+	ld (0x1555), a
+	ld a, 0x55
+	ld (0x0aaa), a
+	ld a, 0xa0
+	ld (0x1555), a
 
 	ld bc, 63
 	ldir
@@ -286,7 +286,7 @@ burnWait:
 	inc hl
 	inc de
 
-	;If we haven't reached address 2000h, then repeat, so
+	;If we haven't reached address 0x2000, then repeat, so
 	;as to program the rest of the EEPROM, 64 bytes a at a time.
 
 	xor a
@@ -307,14 +307,14 @@ reset:
 
 reset00:
 	call waitForInput
-	and 5fh		;convert to uppercase
+	and 0x5f		;convert to uppercase
 
 	cp 'N'
 	jp z, prompt
 	cp 'Y'
 	jr nz, reset00
 
-	jp 0000h
+	jp 0x0000
 
 resetConfirmationStr:
 	DEFM "\r\nReset the system? [Y/N]\r\n", 0x00
@@ -381,7 +381,7 @@ waitForInput:
 ;Destroyed: hl, a
 printStr:
 	ld a, (hl)
-	cp 00h
+	cp 0x00
 	ret z
 	out (TERMDR), a
 	inc hl
@@ -430,21 +430,21 @@ hexToNum16:
 ;convert a single char to a number
 ;zf=0 if invalid entry
 hexToNumNibble:				
-	cp 30h					;check if it's a number
+	cp 0x30					;check if it's a number
 	jr c, hexToNumNibble00 	;not a number
-	cp 40h
+	cp 0x40
 	jr c, hexToNumNibble01 	;number
 	
 hexToNumNibble00:			;check if it's a letter
 	call convertToUpper
-	cp 41h
+	cp 0x41
 	jr c, hexToNumNibbleInvalid
-	cp 47h
+	cp 0x47
 	jr nc, hexToNumNibbleInvalid
 	
-	add a, 09h				;A -> 4Ah, F -> 4Fh
+	add a, 0x09				;A -> 0x4A, F -> 0x4F
 hexToNumNibble01:
-	and 0fh					;convert to number
+	and 0x0f					;convert to number
 	cp a 					;set zero flag
 	ret
 hexToNumNibbleInvalid:
@@ -463,10 +463,10 @@ hexToNumNibbleInvalid:
 ;
 ;Destroyed: none
 convertToUpper:
-	cp 61h
+	cp 0x61
 	ret c
-	cp 7bh
+	cp 0x7b
 	ret nc
-	sub 20h
+	sub 0x20
 	ret
 	

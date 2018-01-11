@@ -1,6 +1,6 @@
 INCLUDE "asm/os.h"
 
-ORG 0x4000
+ORG 0x8000
 
 restart:
 	ld e, 0
