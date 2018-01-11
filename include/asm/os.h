@@ -22,6 +22,9 @@ DEFC SYS_dup     =  9
 DEFC SYS_mount   = 10
 DEFC SYS_unmount = 11
 DEFC SYS_unlink  = 12
+DEFC SYS_breq    = 13
+DEFC SYS_bfree   = 14
+DEFC SYS_bsel    = 15
 
 ; file system types
 DEFC FS_DEV = 0
