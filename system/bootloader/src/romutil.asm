@@ -238,8 +238,13 @@ verifyCancelStr:
 	DEFM "Transfer canceled\r\n", 0x00
 
 
+burnBank:
+	DEFB 0
 
 burn:
+	xor a
+	ld (burnBank), a
+
 	ld hl, burnConfirmationStr
 	call printStr
 
@@ -252,18 +257,41 @@ burn00:
 	cp 'Y'
 	jr nz, burn00
 
+	ld hl, burnBankSelStr
+	call printStr
+
+burnBankSel00:
+	call waitForInput
+	cp '0'
+	jr z, burnBank0
+	cp '1'
+	jr z, burnBank1
+	jp prompt
+
+
+burnBank1:
+	ld a, 0x08
+	ld (burnBank), a
+
+burnBank0:
 
 	ld hl, 0xc000
 	ld de, 0x0000
 
 burnLoop:
 	;Data protection bytes
+	xor a
+	out (0x02), a
+
 	ld a, 0xaa
 	ld (0x1555), a
 	ld a, 0x55
 	ld (0xaaa), a
 	ld a, 0xa0
 	ld (0x1555), a
+
+	ld a, (burnBank)
+	out (0x02), a
 
 	ld bc, 63
 	ldir
@@ -299,6 +327,9 @@ burnWait:
 burnConfirmationStr:
 	DEFM "\r\nBurn the contents of the buffer to the ROM? [Y/N]\r\n", 0x00
 
+burnBankSelStr:
+	DEFM "\r\nWhich bank? [0/1]\r\n", 0x00
+
 
 
 reset:
@@ -314,6 +345,8 @@ reset00:
 	cp 'Y'
 	jr nz, reset00
 
+	xor a
+	out (0x02), a
 	jp 0x0000
 
 resetConfirmationStr:
@@ -326,7 +359,7 @@ clearScreenStr:
 
 welcomeStr:
 	DEFM "RomUtil - Program to write to and verify the EEPROM\r\n"
-	DEFM "F. Ulmschneider 2016\r\n", 0x00
+	DEFM "F. Ulmschneider 2016-2018\r\n", 0x00
 
 promptStr:
 	DEFM "\r\n[L]oad    [C]lear    [V]erify    [B]urn    [R]eset\r\n", 0x00
