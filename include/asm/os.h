@@ -25,6 +25,9 @@ DEFC SYS_unlink  = 12
 DEFC SYS_breq    = 13
 DEFC SYS_bfree   = 14
 DEFC SYS_bsel    = 15
+DEFC SYS_fork    = 16
+DEFC SYS_execv   = 17
+DEFC SYS_exit    = 18
 
 ; file system types
 DEFC FS_DEV = 0

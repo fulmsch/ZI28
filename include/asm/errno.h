@@ -40,5 +40,7 @@ DEFC EOVERFLOW    = 36 ; Value too large for defined data type.
 DEFC ETIME        = 37 ; Timer expired.
 DEFC ECANCELED    = 38 ; Operation canceled.
 DEFC EBADFD       = 39 ; File descriptor in bad state.
+DEFC EPROCLIM     = 40 ; Too many processes.
+DEFC E2BIG        = 41 ; Argument list too long.
 
 ENDIF

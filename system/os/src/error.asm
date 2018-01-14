@@ -77,6 +77,8 @@ errorTable:
 	DEFW ETIME_msg
 	DEFW ECANCELED_msg
 	DEFW EBADFD_msg
+	DEFW EPROCLIM_msg
+	DEFW E2BIG_msg
 errorTableEnd:
 	DEFB 0
 
@@ -201,3 +203,9 @@ ECANCELED_msg:
 
 EBADFD_msg:
 	DEFM "File descriptor in bad state.", 0x00
+
+EPROCLIM_msg:
+	DEFM "Too many processes.", 0x00
+
+E2BIG_msg:
+	DEFM "Argument list too long.", 0x00
