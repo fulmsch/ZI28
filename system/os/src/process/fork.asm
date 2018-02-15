@@ -1,6 +1,6 @@
 SECTION rom_code
 
-PUBLIC u_fork:
+PUBLIC u_fork
 
 u_fork:
 ;; Create a child process.

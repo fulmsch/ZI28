@@ -15,6 +15,9 @@ extern char *environ[];
 #define isatty(fd) fchkstd(fd)
 #define unlink(a) remove(a)
 
+extern int __LIB__ __CALLEE__ execv(char *path, char **argv);
+extern int __LIB__ fork(void);
+
 /*** getopt ***/
 extern int  __LIB__  getopt (int, char **, char *);
 extern char *optarg;                      /* getopt(3) external variables */

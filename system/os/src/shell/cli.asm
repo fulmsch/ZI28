@@ -1,12 +1,11 @@
-SECTION rom_code
 ;; Command line interface of the OS
 ;TODO change putc and getc to OS equivalents
-
+SECTION rom_code
 
 INCLUDE "os.h"
 INCLUDE "string.h"
 
-EXTERN k_getcwd, exec
+EXTERN k_getcwd, k_execv
 
 DEFC inputBufferSize         = 128
 DEFC maxArgc                 = 32
@@ -248,7 +247,8 @@ fullPath:
 	;try to open file named &argv[0]
 	pop de ;contains pointer to first string
 
-	call exec
+	ld hl, argv
+	call k_execv
 	cp 0
 	jp z, prompt
 

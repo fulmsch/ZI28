@@ -9,7 +9,6 @@
 
 	DEFC	RAM_Start  = 0x8000
 	DEFC	RAM_Length = 0x4000
-	DEFC	Stack_Top  = 0xC000
 
 	MODULE  zi28_crt0
 
@@ -28,6 +27,7 @@
         PUBLIC    cleanup         ;jp'd to by exit()
         PUBLIC    l_dcal          ;jp(hl)
 
+	INCLUDE "os.h"
 
 
 	org     RAM_Start
@@ -38,22 +38,18 @@ start:
 	;bc = argc
 	ex      de, hl ;de = **argv
 
-	pop     hl ;return address
 
 ; Make room for the atexit() stack
-	ld      sp, Stack_Top-64
+	ld      hl, -64
+	add     hl, sp
+	ld      sp, hl
 	ld      (exitsp), sp
 
 	push    bc ;argc
 	push    de ;argv
-	push    hl ;return address
 
 ; Clear static memory
 	call    crt0_init_bss
-
-; Store return address
-	pop     hl
-	ld      (__return_addr), hl
 
 ; Initialise heap
 	EXTERN  _mallinit
@@ -69,15 +65,14 @@ cleanup:
 ;
 ;       Deallocate memory which has been allocated here!
 ;
-;	push	hl
 ;IF !DEFINED_nostreams
 ;	EXTERN	closeall
 ;	call	closeall
 ;ENDIF
 
 ; Return to caller
-	ld hl, (__return_addr)
-	jp (hl)
+	ld c, SYS_exit
+	rst RST_syscall
 
 l_dcal:
 	jp      (hl)
@@ -93,6 +88,3 @@ l_dcal:
             defc __crt_model = 1
         ENDIF
 	INCLUDE	"crt0_section.asm"
-
-	SECTION data_crt
-__return_addr: defs 2

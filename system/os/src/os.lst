@@ -101,7 +101,10 @@ src/version.o
 src/error.o
 src/monitor.o
 src/interrupt.o
-src/process.o
+src/process/process.o
+src/process/execv.o
+src/process/exit.o
+src/process/fork.o
 src/getcwd.o
 src/syscall.o
 src/drivers/sd/init.o

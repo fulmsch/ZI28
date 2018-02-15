@@ -78,7 +78,9 @@ newGame:
 	call print
 	jr newGame
 exit:
-	ret
+	ld c, SYS_exit
+	xor a
+	rst RST_syscall
 
 ;*****************
 ;Random
