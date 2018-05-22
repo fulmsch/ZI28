@@ -23,6 +23,3 @@ bankSwitch:
 
 
 SECTION ram_os
-PUBLIC bankMap
-bankMap:
-	DEFS 6

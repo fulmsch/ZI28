@@ -7,8 +7,6 @@ src/drive/mountRoot.o
 src/drive/storeAndCallFsInit.o
 src/drive/unmount.o
 src/bank/bank.o
-src/bank/breq.o
-src/bank/bfree.o
 src/bank/bsel.o
 src/shell/cli.o
 src/shell/builtins/mount.o
