@@ -89,14 +89,18 @@ argCountLoop:
 	lddr
 	pop bc
 	dec bc ;bc = argc
-	ex de, hl ;hl = process argv
-	inc hl
+	ld (execv_argc), bc
+	inc de ;de = process argv
+	ld (execv_argv), de
 
 	;TODO copy args
 	ld (kernel_stackSave), sp
 	ld sp, process_argv_top
 	;push addr of exit so that the program can terminate with a ret?
+	ld bc, (execv_argc)
+	ld hl, (execv_argv)
 	jp ram_user
 
 SECTION ram_os
 execv_argv: defs 2
+execv_argc: defs 1
