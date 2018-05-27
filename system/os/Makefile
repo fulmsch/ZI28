@@ -21,7 +21,7 @@ $(SRCDIR)/version.asm:
 	z80asm -o$@ -I$(INCLUDEDIR)/asm -Iinclude $<
 
 os.bin: $(OBJFILES) src/os.lst
-	z80asm -b -I$(INCLUDEDIR)/asm -Iinclude -o$@ @src/os.lst
+	z80asm -b -m -g -I$(INCLUDEDIR)/asm -Iinclude -o$@ @src/os.lst
 	#$(ZCC) +zi28 --no-crt -Ca-I/home/florian/Dropbox/Projekte/ZI28/system/os/include -Ca-I/home/florian/Dropbox/Projekte/ZI28/include/asm @os.lst -oos.bin
 
 os.hex: os.bin

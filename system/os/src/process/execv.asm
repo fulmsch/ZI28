@@ -1,6 +1,8 @@
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "process.h"
+INCLUDE "errno.h"
+INCLUDE "string.h"
 
 PUBLIC u_execv, k_execv
 
@@ -23,31 +25,8 @@ u_execv:
 
 k_execv:
 
-; set up process data area(fd table)
-; copy argv
-; jp 0x8000
-
 	ld (execv_argv), hl
-	;open file
-	;(de) = filename
-	ld a, O_RDONLY
-	call k_open
-	cp 0
-	ret nz ;error opening the file
-	ld a, e
-
-	;TODO check not dir
-	;TODO check magic number (binary/interpreted)
-	
-	push af
-	;load file into memory
-	ld de, ram_user
-	ld hl, 0x4000
-	call k_read ;TODO error checking
-
-	;close file
-	pop af
-	call k_close
+	ld (execv_path), de
 
 	;set up standard streams TODO temporary
 	ld a, STDIN_FILENO
@@ -63,44 +42,145 @@ k_execv:
 	call udup ;STDERR
 
 
-	;count arguments
-	ld hl, (execv_argv)
+	;copy each argument
+	ld h, 0 ;count
+	push hl
+	ld hl, (execv_argv) ;count on stack, vector in hl
+	ld de, execv_args
+
+copyArguments:
+	ld c, (hl)
+	inc hl
+	ld b, (hl)
+	inc hl
+	ex (sp), hl ;count in hl, vector on stack
+
+	;(bc) = argument
+	;check if null
 	xor a
-	ld b, a
-	ld c, a
-	dec hl
+	cp c
+	jr nz, copyArg
+	cp b
+	jr z, copyArgumentsEnd
 
-argCountLoop:
+copyArg:
+;; Input:
+;; : (bc) - source
+;; : (de) - destination
+	ld a, process_max_args_length
+	inc h
+	cp h
+	jr z, argLengthError ;argument string too long
+	ld a, (bc)
+	ld (de), a
+	cp 0x00
 	inc bc
-	inc hl
+	inc de
+	jr nz, copyArg
+
+	ex (sp), hl ;count on stack, vector in hl
+	jr copyArguments
+
+
+copyArgumentsEnd:
+	pop hl ;clear stack
+	xor a
+	ld (de), a ;terminate argument string
+
+;count arguments
+	ld hl, execv_args
+	ld d, a ;0
 	cp (hl)
+	jr z, countArgumentsEnd
+
+countArguments:
+	inc d
+	call strlen
 	inc hl
-	jr nz, argCountLoop ;inc hl first
+	cp (hl) ;a is 0 after strlen
+	jr nz, countArguments
+
+countArgumentsEnd:
+	;d = argc
+	ld a, d
+	cp process_max_argc + 1
+	jr nc, argCountError
+	ld (execv_argc), a
+
+
+
+
+	;open file
+	ld de, (execv_path)
+	ld a, O_RDONLY
+	call k_open
+	cp 0
+	ret nz ;error opening the file
+	ld a, e
+
+	;TODO check not dir
+	;TODO check magic number (binary/interpreted)
+	
+	push af
+	;load file into memory
+	ld de, MEM_user
+	ld hl, MEM_user_top - MEM_user
+	call k_read ;TODO error checking
+
+	;close file
+	pop af
+	call k_close
+
+
+
+	;copy argument string to program data section
+	ld hl, execv_args
+	ld de, process_argString
+	ld bc, process_max_args_length
+	ldir
+
+	;build argv
+	ld de, process_argVector
+	ld hl, process_argString
+	xor a
+
+generateArgv:
 	cp (hl)
-	jr nz, argCountLoop
+	jr z, argvEnd
+	ld a, l
+	ld (de), a
+	inc de
+	ld a, h
+	ld (de), a
+	inc de
+	call strlen
+	inc hl
+	jr generateArgv
 
-	;hl points to second byte of null terminator
-	ld de, process_argv_top - 1
-	push bc
-	;double bc
-	sla c
-	rl b
+argvEnd:
+	;terminate argv
+	ld (de), a
+	inc de
+	ld (de), a
 
-	lddr
-	pop bc
-	dec bc ;bc = argc
-	ld (execv_argc), bc
-	inc de ;de = process argv
-	ld (execv_argv), de
 
-	;TODO copy args
 	ld (kernel_stackSave), sp
-	ld sp, process_argv_top
+	ld sp, MEM_user_top
 	;push addr of exit so that the program can terminate with a ret?
 	ld bc, (execv_argc)
-	ld hl, (execv_argv)
-	jp ram_user
+	ld b, 0
+	ld hl, process_argVector
+	jp MEM_user
+
+
+argLengthError:
+	pop hl
+argCountError:
+	ld a, E2BIG
+	ret
 
 SECTION ram_os
+execv_path: defs 2
 execv_argv: defs 2
 execv_argc: defs 1
+execv_args: defs process_max_args_length

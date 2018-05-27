@@ -1,5 +1,7 @@
 SECTION rom_code
 
+INCLUDE "os.h"
+
 PUBLIC u_exit
 
 EXTERN kernel_stackSave
@@ -19,6 +21,8 @@ u_exit:
 ;TODO close all fds
 
 	ld sp, (kernel_stackSave)
+	xor a
+	ret
 
 EXTERN cli
 	jp cli

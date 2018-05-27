@@ -6,6 +6,7 @@ INCLUDE "os.h"
 INCLUDE "string.h"
 
 EXTERN k_getcwd, k_execv
+EXTERN _strerror
 
 DEFC inputBufferSize         = 128
 DEFC maxArgc                 = 32
@@ -253,12 +254,11 @@ fullPath:
 	jp z, prompt
 
 noMatch:
-	ld hl, noMatchStr
+	call _strerror
 	call print
+	ld a, '\n'
+	rst RST_putc
 	jp prompt
-
-noMatchStr:
-	DEFM "Command not recognised\n", 0x00
 
 ;TODO customisable prompt
 promptStartStr:

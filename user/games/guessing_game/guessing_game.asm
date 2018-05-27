@@ -13,9 +13,9 @@ number:
 	xor a
 	rst RST_getc
 	cp 'q'
-	ret z
+	jr z, exit
 	cp 0x03 ;ctrl-c
-	ret z
+	jr z, exit
 	xor 0x30
 	cp 0x0a
 	jr nc, invalidNumber
