@@ -8,6 +8,9 @@ DEFC RST_strerror  = 0x0028
 DEFC RST_syscall   = 0x0030
 DEFC RST_monitor   = 0x0038
 
+DEFC MEM_user      = 0x8100
+DEFC MEM_user_top  = 0xC000
+
 ; syscalls
 DEFC SYS_open    =  0
 DEFC SYS_close   =  1

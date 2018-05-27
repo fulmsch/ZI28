@@ -7,9 +7,6 @@
 ; (DM) Could this do with a cleanup to ensure rstXX functions are
 ; available?
 
-	DEFC	RAM_Start  = 0x8000
-	DEFC	RAM_Length = 0x4000
-
 	MODULE  zi28_crt0
 
 ;-------
@@ -30,7 +27,7 @@
 	INCLUDE "os.h"
 
 
-	org     RAM_Start
+	org     MEM_user
 
 	jp      start
 start:
@@ -80,7 +77,7 @@ l_dcal:
 
         INCLUDE "crt0_runtime_selection.asm"
 
-;	defc	__crt_org_bss = RAM_Start
+;	defc	__crt_org_bss = MEM_user
         ; If we were given a model then use it
         IF DEFINED_CRT_MODEL
             defc __crt_model = CRT_MODEL

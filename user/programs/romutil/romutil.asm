@@ -1,3 +1,5 @@
+INCLUDE "asm/os.h"
+
 DEFC TERMDR = 0x00
 DEFC TERMCR = 0x01
 
@@ -6,7 +8,7 @@ DEFC TERMCR = 0x01
 ;Enable data protecion
 
 
-ORG 0x8000
+ORG MEM_user
 
 	ld hl, clearScreenStr
 	call printStr

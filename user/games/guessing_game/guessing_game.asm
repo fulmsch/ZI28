@@ -1,6 +1,6 @@
 INCLUDE "asm/os.h"
 
-ORG 0x8000
+ORG MEM_user
 
 restart:
 	ld e, 0
