@@ -4,8 +4,10 @@ SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "memmap.h"
 INCLUDE "vfs.h"
+INCLUDE "process.h"
 
-EXTERN dummyRoot, k_mount, k_open, k_dup, sd_init, mountRoot, k_chdir, b_cls, cli
+EXTERN dummyRoot, k_mount, k_open, k_dup, sd_init, mountRoot, k_chdir, b_cls, k_execv, k_swapon, cli, k_bsel
+EXTERN swap_fd
 
 PUBLIC _coldStart
 _coldStart:
@@ -24,6 +26,9 @@ _coldStart:
 	ld bc, fdTableEntries * 2 - 1
 	ld (hl), 0xff
 	ldir
+
+	ld a, 0xff
+	ld (swap_fd), a
 
 	call dummyRoot
 	ld hl, devfsMountPoint
@@ -54,11 +59,23 @@ _coldStart:
 	ld a, FS_FAT
 	call mountRoot
 
+	ld hl, swapFile
+	call k_swapon
+
+	ld a, 1
+	ld (process_pid), a
+
+	xor a
+	call k_bsel
 
 	ld hl, homeDir
 	call k_chdir
 
-	call b_cls
+;	call b_cls
+
+	ld de, shellName
+	ld hl, 0
+	call k_execv
 	jp cli
 
 ttyName:
@@ -69,3 +86,7 @@ devfsMountPoint:
 	DEFM "/DEV", 0x00
 homeDir:
 	DEFM "/HOME", 0x00
+shellName:
+	DEFM "/BIN/SH.EX8", 0x00
+swapFile:
+	DEFM "/VAR/SWAP.BIN", 0x00
