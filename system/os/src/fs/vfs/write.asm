@@ -4,6 +4,7 @@ SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "math.h"
 INCLUDE "vfs.h"
+INCLUDE "errno.h"
 
 PUBLIC u_write, k_write
 
@@ -87,12 +88,12 @@ validCount:
 invalidFd:
 	pop hl
 	pop hl
-	ld a, 1
+	ld a, EBADF
 	ret
 invalidDriver:
 	pop hl
 	pop hl
-	ld a, 2
+	ld a, ENOTSUP
 	ret
 zeroCount:
 	xor a

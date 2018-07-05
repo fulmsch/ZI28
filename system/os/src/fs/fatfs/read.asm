@@ -5,6 +5,7 @@ INCLUDE "os.h"
 INCLUDE "vfs.h"
 INCLUDE "fatfs.h"
 INCLUDE "math.h"
+INCLUDE "errno.h"
 
 EXTERN k_read, k_lseek, fat_clusterToAddr, fat_nextCluster
 
@@ -187,6 +188,8 @@ clusterIndexLoop:
 	sbc hl, bc
 	jr z, startClusterFound
 
+	inc b
+
 	ex de, hl
 	;hl = startCluster
 
@@ -194,6 +197,7 @@ startClusterLoop:
 	push ix
 	call fat_nextCluster
 	pop ix
+	ld a, EBADFD
 	jp c, error ;the chain shouldn't end
 	dec c
 	jr nz, startClusterLoop
@@ -250,15 +254,18 @@ relOffsLoop:
 	ld hl, (fat_rw_clusterSize)
 	or a
 	sbc hl, bc
-	push hl ;maximum count in first cluster
+	ex de, hl ;de = maximum count in first cluster
 
 readCluster:
 	ld hl, (fat_rw_remCount)
-	ld de, (fat_rw_clusterSize)
-	or a
-	sbc hl, de
-	pop hl ;count
+	ld bc, (fat_rw_clusterSize)
+	scf
+	sbc hl, bc
 	jr c, lastCluster
+
+	inc hl
+	ld (fat_rw_remCount), hl
+	ex de, hl ;hl = count
 
 	;read(clustersize - clusteroffs)
 	ld de, (fat_rw_dest)
@@ -278,6 +285,7 @@ readCluster:
 	push ix
 	call fat_nextCluster
 	pop ix
+	ld a, EBADFD
 	jr c, error ;unexpected end of chain
 	ld (fat_rw_cluster), hl
 	ex de, hl
@@ -298,6 +306,7 @@ lastCluster:
 	;read(remCount)
 	ld hl, (fat_rw_remCount)
 	ld de, (fat_rw_dest)
+	ld a, (iy + driveTableDevfd)
 
 	call k_read
 	ld hl, (fat_rw_totalCount)
@@ -336,5 +345,5 @@ rootDir:
 	jp k_read
 
 error:
-	ld a, 1
+	;TODO replace calls to this with direct ret
 	ret

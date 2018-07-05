@@ -44,8 +44,11 @@ fat_addCluster:
 	ret z ;carry is reset
 
 appendCluster:
+	push hl
 	ex de, hl
-	jp fat_setClusterValue
+	call fat_setClusterValue
+	pop hl
+	ret
 
 error:
 	pop hl
