@@ -14,9 +14,7 @@ errno.h: asm/errno.h
 	@echo '#ifndef ERRNO_H' > errno.h
 	@echo '#define ERRNO_H' >> errno.h
 	@echo '' >> errno.h
-	@echo '#ifndef __NAKEN_ASM' >> errno.h
 	@echo 'extern int errno;' >> errno.h
-	@echo '#endif' >> errno.h
 	@echo '' >> errno.h
 	@sed -e 's/DEFC\s\+\(\w\+\)\s\+=\s\+\(\w\+\)/\#define \1 \2/' -e 's/;/\/\//g' -e '/^\(IFNDEF\|DEFINE\|ENDIF\)/d' asm/errno.h >> errno.h
 	@echo '' >> errno.h

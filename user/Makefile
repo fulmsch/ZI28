@@ -38,7 +38,7 @@ buildfs: applications BASEFS.TZ7
 umount unmount:
 	@if mountpoint -q $(MOUNTDIR); then \
 		echo '--- Unmounting SD image ---'; \
-		sudo umount $(MOUNTDIR); \
+		sudo umount $(MOUNTDIR) && \
 		$(RM) -r $(MOUNTDIR); \
 	fi
 

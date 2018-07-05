@@ -23,16 +23,16 @@ FILE=$1
 PART=$2
 DEST=$3
 
-if parted --version >/dev/null 2>&1; then # Prefer as supports GPT partitions
-  UNITS=$(parted -s "$FILE" unit s print 2>/dev/null | grep " $PART " |
+if sudo parted --version >/dev/null 2>&1; then # Prefer as supports GPT partitions
+  UNITS=$(sudo parted -s "$FILE" unit s print 2>/dev/null | grep " $PART " |
           tr -d 's' | awk '{print $2}')
-elif fdisk -v >/dev/null 2>&1; then
-  UNITS=$(fdisk -lu "$FILE" 2>/dev/null | grep "$FILE$PART " |
+elif sudo fdisk -v >/dev/null 2>&1; then
+  UNITS=$(sudo fdisk -lu "$FILE" 2>/dev/null | grep "$FILE$PART " |
           tr -d '*' | awk '{print $2}')
 else
   echo "Can't find the fdisk or parted utils." >&2
   exit 1
 fi
 
-OFFSET=$(( 512 * $UNITS ))
+OFFSET=$(( 512 * UNITS ))
 sudo mount -o loop,sync,offset="$OFFSET",gid="$(id -g)",uid="$(id -u)" "$FILE" "$DEST"

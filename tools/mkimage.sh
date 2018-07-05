@@ -16,7 +16,7 @@ IMGSIZE="$2"
 TEMPFILE="$(mktemp --dry-run || echo /tmp/fat.img)"
 
 dd if=/dev/zero of="$TEMPFILE" bs=512 count=0 seek="$(( IMGSIZE * 2 - 128 ))" status=none
-mkfs.fat -f2 -F16 -S512 "$TEMPFILE" > /dev/null
+sudo mkfs.fat -f2 -F16 -S512 "$TEMPFILE" > /dev/null
 # 2 FATs, FAT16
 
 rm -f "$IMGFILE"
@@ -24,7 +24,7 @@ rm -f "$IMGFILE"
 dd if=/dev/zero of="$IMGFILE" bs=512 count=0 seek=128 status=none
 dd if="$TEMPFILE" of="$IMGFILE" bs=512 seek=128 conv=notrunc,sparse
 rm -f "$TEMPFILE"
-parted --script --align none "$IMGFILE" \
+sudo parted --script --align none "$IMGFILE" \
 	mklabel msdos \
 	mkpart primary fat16 128s "$(( IMGSIZE * 2 - 1))"s \
 	print
