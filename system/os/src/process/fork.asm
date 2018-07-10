@@ -5,12 +5,12 @@ INCLUDE "vfs.h"
 INCLUDE "process.h"
 INCLUDE "iomap.h"
 INCLUDE "memmap.h"
+INCLUDE "math.h"
 
-EXTERN swap_fd, k_write
+EXTERN swap_fd, k_write, k_lseek
 
 PUBLIC u_fork
 
-;TODO use sysStack
 
 u_fork:
 ;; Create a child process.
@@ -43,6 +43,19 @@ u_fork:
 
 
 ;store entire process memory in swap
+	;offset = (pid - 1) << 16
+	ld hl, regA
+	call clear32
+	ex de, hl
+	ld a, (process_pid)
+	dec a
+	ld (regA + 2), a
+
+	ld a, (swap_fd)
+	ld h, SEEK_SET
+	call k_lseek
+
+
 	ld a, 0x00 | 0x08 ;make sure OS rom bank stays selected
 	out (BANKSEL_PORT), a
 

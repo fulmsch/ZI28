@@ -5,6 +5,7 @@ INCLUDE "vfs.h"
 INCLUDE "process.h"
 INCLUDE "iomap.h"
 INCLUDE "memmap.h"
+INCLUDE "math.h"
 
 PUBLIC u_exit
 
@@ -12,7 +13,6 @@ PUBLIC u_exit
 EXTERN k_read, k_lseek
 EXTERN swap_fd
 
-;TODO use sysStack
 
 u_exit:
 ;; Terminate the current process and return control to the parent.
@@ -41,7 +41,18 @@ u_exit:
 	ld sp, sysStack
 
 ;restore process memory from swap
-;TODO seek
+	;offset = (pid - 2) << 16
+	ld hl, regA
+	call clear32
+	ex de, hl
+	ld a, (process_pid)
+	dec a
+	dec a
+	ld (regA + 2), a
+
+	ld a, (swap_fd)
+	ld h, SEEK_SET
+	call k_lseek
 
 	ld a, 0x00 | 0x08 ;make sure OS rom bank stays selected
 	out (BANKSEL_PORT), a
