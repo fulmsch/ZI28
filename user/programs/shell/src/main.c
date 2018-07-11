@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/os.h>
 #include "readline.h"
 #include "interpreter.h"
 
 
 static char *line;
+static char *prompt(void);
 
 int main(int argc, char **argv)
 {
@@ -41,9 +43,16 @@ int main(int argc, char **argv)
 		printf((index == argc - 1) ? "%s" : "%s ", argv[index]);
 	}
 	printf("\n");
-	while ((line = readline("> ")) != 0) {
+	while ((line = readline(prompt())) != 0) {
 		interpret(line);
 	}
 }
 
-
+static char *prompt()
+{
+	static char promptStr[PATH_MAX + 16];
+	char cwd[PATH_MAX];
+	getcwd(cwd);
+	sprintf(promptStr, "\x1b[36m%s\x1b[m$ ", cwd);
+	return promptStr;
+}

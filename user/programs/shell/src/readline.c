@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include "readline.h"
 
 #define MAX_LINE 256
@@ -17,6 +18,7 @@ char *readline(const char *prompt)
 
 	line.cursor = 0;
 	line.length = 0;
+	memset(line.buffer, 0, MAX_LINE);
 
 	if (prompt != NULL) printf("%s", prompt);
 
