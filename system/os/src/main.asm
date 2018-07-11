@@ -52,6 +52,7 @@ PUBLIC syscallTable, syscallTableEnd
 EXTERN u_open, u_close, u_read, u_write, u_seek, u_lseek, u_stat, u_fstat
 EXTERN u_readdir, u_dup, u_mount, u_unmount, u_unlink
 EXTERN u_bsel, u_fork, u_execv, u_exit
+EXTERN u_chdir, u_getcwd
 syscallTable:
 	DEFW u_open
 	DEFW u_close
@@ -70,6 +71,8 @@ syscallTable:
 	DEFW u_fork
 	DEFW u_execv
 	DEFW u_exit
+	DEFW u_chdir
+	DEFW u_getcwd
 syscallTableEnd:
 DEFB 0
 

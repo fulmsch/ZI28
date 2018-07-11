@@ -29,6 +29,8 @@ DEFC SYS_bsel    = 13
 DEFC SYS_fork    = 14
 DEFC SYS_execv   = 15
 DEFC SYS_exit    = 16
+DEFC SYS_chdir   = 17
+DEFC SYS_getcwd  = 18
 
 ; file system types
 DEFC FS_DEV = 0
