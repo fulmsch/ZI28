@@ -1,6 +1,6 @@
 basefs
 coreutil
-shell
+zish
 tests
 
 @games/games.pkglist

@@ -1,11 +1,11 @@
 include ../../../config.mk
 
-PKGNAME = SHELL
+PKGNAME = ZISH
 BINDIR = $(BUILDDIR)/BIN
 
 BUILDDIR = build
 
-TARGET = SH.EX8
+TARGET = ZISH.EX8
 HEXFILE = $(TARGET:.EX8=.hex)
 PKGFILE = $(addsuffix .TZ7, $(PKGNAME))
 CFILES = $(shell find . -iname "*.c")

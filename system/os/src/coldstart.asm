@@ -87,6 +87,6 @@ devfsMountPoint:
 homeDir:
 	DEFM "/HOME", 0x00
 shellName:
-	DEFM "/BIN/SH.EX8", 0x00
+	DEFM "/BIN/ZISH.EX8", 0x00
 swapFile:
 	DEFM "/VAR/SWAP.BIN", 0x00
