@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/stat.h>
 #include "interpreter.h"
 #include "builtins.h"
 
@@ -13,6 +14,8 @@ static int i;
 
 static commandParam_t param;
 static char *arguments[16];
+
+void external_command (commandParam_t *param);
 
 void interpret(char* line)
 {
@@ -110,14 +113,47 @@ void interpret(char* line)
 		default:
 			break;
 	}
+	external_command(&param);
+}
 
+void external_command (commandParam_t *param)
+{
+	static char buffer[128];
+	char *command, *end;
+	struct stat statBuf;
+	if (strchr(param->argv[0], '/') != 0) {
+		//First argument contains a '/', try to execute it
+		command = param->argv[0];
+	} else {
+		sprintf(buffer, "/BIN/%s", param->argv[0]);
+		command = buffer;
+	}
+
+	if (stat(command, &statBuf) != 0) {
+		end = strchr(command, '\0') - 1;
+		for (i = 0; i < 3; i++) {
+			end--;
+			if (*end == '.') break; //execute as is
+			if (*end == '/' || end <= command) break;//add extension
+		}
+		if (*end != '.') {
+			//append ".EX8"
+			strcat(command, ".EX8");
+		}
+	}
+
+	if (stat(command, &statBuf) != 0) {
+		//File does not exist
+		printf("%s: No such file\n", param->argv[0]);
+		return;
+	}
 
 	ret = fork();
 	//printf("%d\n", ret);
 	if (ret == 0) {
 		//child
 		//printf("Successful fork\n");
-		execv(param.argv[0], param.argv);
+		execv(command, param->argv);
 		printf("error\n");
 	} else if (ret == -1) {
 		//error
