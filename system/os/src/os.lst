@@ -7,16 +7,6 @@ src/drive/mountRoot.o
 src/drive/storeAndCallFsInit.o
 src/drive/unmount.o
 src/bank/bsel.o
-src/shell/cli.o
-src/shell/builtins/mount.o
-src/shell/builtins/ver.o
-src/shell/builtins/chdir.o
-src/shell/builtins/monitor.o
-src/shell/builtins/test.o
-src/shell/builtins/cls.o
-src/shell/builtins/echo.o
-src/shell/builtins/help.o
-src/shell/builtins/pwd.o
 src/string/toupper.o
 src/string/strcat.o
 src/string/strncat.o

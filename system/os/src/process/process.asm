@@ -1,7 +1,6 @@
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "string.h"
-INCLUDE "cli.h"
 INCLUDE "vfs.h"
 
 ;PUBLIC exec

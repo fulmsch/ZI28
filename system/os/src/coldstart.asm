@@ -6,7 +6,7 @@ INCLUDE "memmap.h"
 INCLUDE "vfs.h"
 INCLUDE "process.h"
 
-EXTERN dummyRoot, k_mount, k_open, k_dup, sd_init, mountRoot, k_chdir, b_cls, k_execv, k_swapon, cli, k_bsel
+EXTERN dummyRoot, k_mount, k_open, k_dup, sd_init, mountRoot, k_chdir, b_cls, k_execv, k_swapon, k_bsel
 EXTERN swap_fd
 
 PUBLIC _coldStart
@@ -76,7 +76,7 @@ _coldStart:
 	ld de, shellName
 	ld hl, 0
 	call k_execv
-	jp cli
+	jp 0
 
 ttyName:
 	DEFM "/DEV/TTY0", 0x00
