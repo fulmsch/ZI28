@@ -8,7 +8,9 @@ off_t lseek(int fd, off_t offset, int whence) {
 	pop bc ;return address
 	pop de ;whence
 	pop hl ;offset
+	ld (offset), hl
 	pop hl ;offset
+	ld (offset + 2), hl
 	pop hl ;fd
 	push bc ;return address
 
@@ -17,10 +19,8 @@ off_t lseek(int fd, off_t offset, int whence) {
 	jr nz, lseek_error ;fd > 255
 	ld a, l
 
-	ld hl, 0
-	add hl, sp
-	ex de, hl
-	ld l, h
+	ld h, e ;whence
+	ld de, offset
 
 	ld c, SYS_lseek
 	rst RST_syscall
@@ -43,5 +43,8 @@ lseek_error:
 	ld de, 0xff
 	ld hl, -1
 	ret
+
+SECTION data_user
+offset: defs 4
 	#endasm
 }
