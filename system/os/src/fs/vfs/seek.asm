@@ -117,11 +117,11 @@ addOffs:
 
 	ld de, fileTableOffset
 	add hl, de
-	ld de, seek_new
-	ld a, (de)
+	ld a, (seek_new + 3)
 	bit 7, a
 	jr nz, invalidOffset
 	push hl
+	ld de, seek_new
 	ex de, hl
 	call ld32
 
