@@ -1,5 +1,6 @@
 #include "sd.h"
 #include "main.h"
+#include "ui.h"
 
 //SdCard::SdCard(char* fileName) {
 //	imgFile = fopen(fileName, "rb");

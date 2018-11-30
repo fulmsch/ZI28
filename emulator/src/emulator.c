@@ -4,11 +4,24 @@
 #include <poll.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <time.h>
+#include <signal.h>
 
 #include "main.h"
 #include "emulator.h"
 #include "sd.h"
 #include "libz80/z80.h"
+
+sig_atomic_t interruptFlag = 0;
+
+static EMU_STATUS doStep();
+
+static byte context_mem_read_callback(int param, ushort address);
+static void context_mem_write_callback(int param, ushort address, byte data);
+static byte context_io_read_callback(int param, ushort address);
+static void context_io_write_callback(int param, ushort address, byte data);
+
+static int running;
 
 char lastTtyChar = 0;
 
@@ -20,7 +33,36 @@ struct SdModule sdModule;
 struct pollfd pty[1];
 struct termios ptyTermios;
 
-void emulator_init() {
+static EMU_STATUS handleBreakpoint()
+{
+}
+
+static void registerBreakpoint(struct breakpoint *bp, struct breakpoint **table)
+{
+	bp->prev = NULL;
+	bp->next = NULL;
+
+	if (table[bp->address] == NULL) {
+		table[bp->address] = bp;
+	} else {
+		struct breakpoint *last = table[bp->address];
+		while (last->next != NULL) last = last->next;
+		last->next = bp;
+		bp->prev = last;
+	}
+}
+
+void emu_registerBreakpoint(struct breakpoint *bp)
+{
+	registerBreakpoint(bp, zi28.breakpoints);
+}
+
+void emu_registerWatchpoint(struct breakpoint *bp)
+{
+	registerBreakpoint(bp, zi28.watchpoints);
+}
+
+void emu_init() {
 	int ptm, pts;
 	char *ptsName;
 	ptsName = (char*) malloc(50);
@@ -53,41 +95,102 @@ void emulator_init() {
 	zi28.context.memWrite = context_mem_write_callback;
 	zi28.context.ioRead = context_io_read_callback;
 	zi28.context.ioWrite = context_io_write_callback;
-	emulator_reset();
+	emu_reset();
+	running = 0;
+	zi28.clockCycles = 0;
+	for (int i = 0; i < 0x10000; i++) {
+		zi28.breakpoints[i] = NULL;
+		zi28.watchpoints[i] = NULL;
+	}
 }
 
-int emulator_loadRom(char *romFileName) {
+void emu_break()
+{
+	interruptFlag = 1;
+	return;
+}
+
+extern sig_atomic_t interruptFlag;
+
+int emu_loadRom(char *romFileName) {
 	if(!(memFile = fopen(romFileName, "rb"))) return -1;
 	fread(zi28.rom, 1, 0x8000, memFile);
 	fclose(memFile);
 	return 0;
 }
 
-void emulator_reset() {
+void emu_reset() {
 	Z80RESET(&zi28.context);
 
 	zi28.bankReg = 0;
 }
 
-int emulator_runCycles(int n_cycles, int useBreakpoints) {
-	zi28.context.tstates = 0;
-	if (useBreakpoints) {
-		while (zi28.context.tstates < n_cycles) {
-			Z80Execute(&zi28.context);
-			if (breakpoints[zi28.context.PC]) {
-				return 1;
-			}
-		}
-	} else {
-		while (zi28.context.tstates < n_cycles) {
-			Z80Execute(&zi28.context);
-		}
-	}
-	return 0;
+static EMU_STATUS mode_run(int arg)
+{
+	EMU_STATUS ret;
+	do {
+		ret = doStep();
+	} while (ret == EMU_OK);
+	return ret;
 }
 
+static EMU_STATUS mode_continue(int arg)
+{
+	EMU_STATUS ret;
+	do {
+		ret = doStep();
+	} while (ret == EMU_OK);
+	return ret;
+}
 
-byte context_mem_read_callback(int param, ushort address) {
+static EMU_STATUS (*mode_functions[])(int) = {
+	mode_run, mode_continue
+};
+
+EMU_STATUS emu_run(EMU_MODE mode, int arg)
+{
+	if (mode < 0 || mode >= sizeof(mode_functions)/sizeof(EMU_STATUS (*)(int))-1) {
+		return EMU_ERR;
+	}
+
+	gettimeofday(&zi28.startTime, NULL);
+	zi28.context.tstates = 0;
+	EMU_STATUS ret = mode_functions[mode](arg);
+	zi28.clockCycles += zi28.context.tstates;
+
+	return ret;
+}
+
+static EMU_STATUS doStep()
+{
+	if (interruptFlag) {
+		interruptFlag = 0;
+		printf("\n");
+		return EMU_INTERRUPT;
+	}
+	Z80Execute(&zi28.context);
+	if (zi28.breakpoints[zi28.context.PC]) {
+		return EMU_BREAK;
+	}
+	if (zi28.context.tstates >= 80000) {
+		struct timeval tv2;
+		gettimeofday(&tv2, NULL);
+		long int dtime = tv2.tv_usec - zi28.startTime.tv_usec; //TODO also use seconds
+		if (dtime > 0) {
+			unsigned long targetTime = 10000; //0.01s = 10ms = 10'000us
+			struct timespec sleeptime, remtime;
+			sleeptime.tv_sec = 0;
+			sleeptime.tv_nsec = (targetTime - dtime) * 1000L;
+			nanosleep(&sleeptime, &remtime);
+		}
+		zi28.clockCycles += zi28.context.tstates;
+		zi28.context.tstates = 0;
+		gettimeofday(&zi28.startTime, NULL);
+	}
+	return EMU_OK;
+}
+
+static byte context_mem_read_callback(int param, ushort address) {
 	if (address < 0x4000) {
 		//rom
 		return zi28.rom[address + zi28.romBank * 0x4000];
@@ -100,7 +203,7 @@ byte context_mem_read_callback(int param, ushort address) {
 	}
 }
 
-void context_mem_write_callback(int param, ushort address, byte data) {
+static void context_mem_write_callback(int param, ushort address, byte data) {
 	if (address < 0x4000) {
 		//rom
 		if (!romProtect) {
@@ -115,7 +218,7 @@ void context_mem_write_callback(int param, ushort address, byte data) {
 	}
 }
 
-byte context_io_read_callback(int param, ushort address) {
+static byte context_io_read_callback(int param, ushort address) {
 	char data=0xff;
 	int ret;
 	address = address & 0xff;
@@ -152,7 +255,7 @@ byte context_io_read_callback(int param, ushort address) {
 	return data;
 }
 
-void context_io_write_callback(int param, ushort address, byte data) {
+static void context_io_write_callback(int param, ushort address, byte data) {
 	address = address & 0xff; // port address
 	if (address >= 0x80) {
 //		int base = (address - 0x80) / 0x10;
