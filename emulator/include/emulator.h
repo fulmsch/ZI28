@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <sys/time.h>
+#include <lua.h>
+#include <lauxlib.h>
 
 #include "libz80/z80.h"
 
@@ -50,7 +52,7 @@ typedef enum {
 } EMU_MODE;
 
 void emu_init(void);
-EMU_STATUS emu_run(EMU_MODE mode, int arg);
+EMU_STATUS emu_run(lua_State *L, EMU_MODE mode, int arg);
 
 int emu_loadRom(char *romFile);
 void emu_reset(void);

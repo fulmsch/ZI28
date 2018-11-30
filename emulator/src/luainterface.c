@@ -1,9 +1,48 @@
 #include <string.h>
+#include <lua.h>
 #include <lauxlib.h>
 
 #include "luainterface.h"
 #include "emulator.h"
 #include "interpreter.h"
+
+int evaluateCondition(lua_State *L, struct breakpoint *bp)
+{
+	//Return -1 on error, 0 if false, 1 if true
+	//If string and breakpoint: add return
+	int status;
+	lua_rawgeti(L, LUA_REGISTRYINDEX, bp->condition);
+	if (lua_isstring(L, -1)) {
+		const char *fmt = (bp->type == TYPE_BREAK) ? "return %s;" : "%s;";
+		const char *line = lua_tostring(L, -1);  /* original line */
+		const char *retline = lua_pushfstring(L, fmt, line);
+		status = luaL_loadbuffer(L, retline, strlen(retline), "=condition");
+		if (status == LUA_OK) {
+			lua_remove(L, -2);  /* remove modified line */
+		} else {
+			lua_pop(L, 2);  /* pop result from 'luaL_loadbuffer' and modified line */
+			return -1;
+		}
+	} else if (!lua_isfunction(L, -1)) {
+		lua_pop(L, 1);
+		return -1;
+	}
+
+	lua_pushinteger(L, bp->index);
+
+	lua_call(L, 1, 1);
+	return lua_toboolean(L, -1);
+
+	/* This might be better, but needs a message handler for pcall
+	status = lua_pcall(L, 1, 1, 0);
+	if (status == LUA_OK) {
+		return lua_toboolean(L, -1);
+	} else {
+		lua_pop(L, 1);
+		return -1;
+	}
+	*/
+}
 
 static int breakpointMetatable;
 
@@ -30,7 +69,7 @@ static int luaF_breakpoint_index(lua_State *L)
 				lua_pushnil(L); break;
 		}
 	} else if (!strcmp("condition", key)) {
-		lua_pushnil(L);
+		lua_rawgeti(L, LUA_REGISTRYINDEX, bp->condition);
 	} else if (!strcmp("icount", key)) {
 		lua_pushinteger(L, bp->icount);
 	} else if (!strcmp("ecount", key)) {
@@ -127,7 +166,7 @@ static int luaF_reset(lua_State *L)
 
 static int luaF_run(lua_State *L)
 {
-	emu_run(EMU_RUN, 0);
+	emu_run(L, EMU_RUN, 0);
 	return 0;
 }
 

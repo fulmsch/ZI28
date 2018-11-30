@@ -11,10 +11,11 @@
 #include "emulator.h"
 #include "sd.h"
 #include "libz80/z80.h"
+#include "luainterface.h"
 
 sig_atomic_t interruptFlag = 0;
 
-static EMU_STATUS doStep();
+static EMU_STATUS doStep(lua_State *L);
 
 static byte context_mem_read_callback(int param, ushort address);
 static void context_mem_write_callback(int param, ushort address, byte data);
@@ -33,8 +34,29 @@ struct SdModule sdModule;
 struct pollfd pty[1];
 struct termios ptyTermios;
 
-static EMU_STATUS handleBreakpoint()
+static EMU_STATUS handleBreakpoint(lua_State *L, struct breakpoint *bp)
 {
+// icount: ignore until 0, -1: disabled
+// ecount: disable when 0, -1: delete next time
+
+	if (bp->icount == -1) return EMU_OK; //disabled
+	if (bp->icount > 0) {
+		//Decrement ignore count and continue
+		bp->icount -= 1;
+		return EMU_OK;
+	}
+	if (bp->condition != LUA_REFNIL) {
+		//check condition
+		int ret = evaluateCondition(L, bp);
+		if (ret == -1) return EMU_ERR;
+		else if (ret == 0 && bp->type == TYPE_BREAK) return EMU_OK;
+	}
+	if (bp->ecount == -1) {
+		//delete breakpoint
+	} else if (bp->ecount > 0) {
+		if ((--bp->ecount) == 0) bp->icount = -1;
+	}
+	return (bp->type == TYPE_BREAK) ? EMU_BREAK : EMU_OK;
 }
 
 static void registerBreakpoint(struct breakpoint *bp, struct breakpoint **table)
@@ -125,29 +147,29 @@ void emu_reset() {
 	zi28.bankReg = 0;
 }
 
-static EMU_STATUS mode_run(int arg)
+static EMU_STATUS mode_run(lua_State *L, int arg)
 {
 	EMU_STATUS ret;
 	do {
-		ret = doStep();
+		ret = doStep(L);
 	} while (ret == EMU_OK);
 	return ret;
 }
 
-static EMU_STATUS mode_continue(int arg)
+static EMU_STATUS mode_continue(lua_State *L, int arg)
 {
 	EMU_STATUS ret;
 	do {
-		ret = doStep();
+		ret = doStep(L);
 	} while (ret == EMU_OK);
 	return ret;
 }
 
-static EMU_STATUS (*mode_functions[])(int) = {
+static EMU_STATUS (*mode_functions[])(lua_State *, int) = {
 	mode_run, mode_continue
 };
 
-EMU_STATUS emu_run(EMU_MODE mode, int arg)
+EMU_STATUS emu_run(lua_State *L, EMU_MODE mode, int arg)
 {
 	if (mode < 0 || mode >= sizeof(mode_functions)/sizeof(EMU_STATUS (*)(int))-1) {
 		return EMU_ERR;
@@ -155,13 +177,13 @@ EMU_STATUS emu_run(EMU_MODE mode, int arg)
 
 	gettimeofday(&zi28.startTime, NULL);
 	zi28.context.tstates = 0;
-	EMU_STATUS ret = mode_functions[mode](arg);
+	EMU_STATUS ret = mode_functions[mode](L, arg);
 	zi28.clockCycles += zi28.context.tstates;
 
 	return ret;
 }
 
-static EMU_STATUS doStep()
+static EMU_STATUS doStep(lua_State *L)
 {
 	if (interruptFlag) {
 		interruptFlag = 0;
@@ -169,8 +191,9 @@ static EMU_STATUS doStep()
 		return EMU_INTERRUPT;
 	}
 	Z80Execute(&zi28.context);
-	if (zi28.breakpoints[zi28.context.PC]) {
-		return EMU_BREAK;
+	if (zi28.breakpoints[zi28.context.PC] != NULL) {
+		EMU_STATUS ret = handleBreakpoint(L, zi28.breakpoints[zi28.context.PC]);
+		if (ret != EMU_OK) return ret;
 	}
 	if (zi28.context.tstates >= 80000) {
 		struct timeval tv2;
