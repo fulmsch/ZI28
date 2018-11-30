@@ -242,12 +242,13 @@ static int luaF_newBreakpoint(lua_State *L)
 	bp->size = pointer.size;
 	bp->icount = 0;
 	bp->ecount = 0;
-	bp->condition = luaL_ref(L, 2);
+	lua_pushvalue(L, 2);
+	bp->condition = luaL_ref(L, LUA_REGISTRYINDEX);
 
 	lua_rawset(L, 3); //store the new breakpoint
 
 	//Create entry in C array
-	//emu_registerBreakpoint(bp);
+	emu_registerBreakpoint(bp);
 
 	return 0;
 }
