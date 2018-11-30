@@ -11,6 +11,5 @@ struct memPointer {
 };
 
 void setupLuaEnv(lua_State *L);
-int evaluateCondition(lua_State *L, struct breakpoint *bp);
 
 #endif

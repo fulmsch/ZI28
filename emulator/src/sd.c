@@ -162,7 +162,7 @@ void SdCard_parseCommand(struct SdCard *card) {
 		default:
 			break;
 	}
-	console("Command: %d, Argument: %d, Response: %d.\n", command, argument, card->response);
+	//console("Command: %d, Argument: %d, Response: %d.\n", command, argument, card->response);
 }
 
 

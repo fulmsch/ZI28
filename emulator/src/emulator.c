@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <signal.h>
+#include <string.h>
 
 #include "main.h"
 #include "emulator.h"
@@ -34,29 +35,74 @@ struct SdModule sdModule;
 struct pollfd pty[1];
 struct termios ptyTermios;
 
+static int evaluateCondition(lua_State *L, struct breakpoint *bp)
+{
+	//Return -1 on error, 0 if false, 1 if true
+	//If string and breakpoint: add return
+	int status;
+	lua_rawgeti(L, LUA_REGISTRYINDEX, bp->condition);
+	if (lua_isstring(L, -1)) {
+		const char *fmt = (bp->type == TYPE_BREAK) ? "return %s;" : "%s;";
+		const char *line = lua_tostring(L, -1);  /* original line */
+		const char *retline = lua_pushfstring(L, fmt, line);
+		status = luaL_loadbuffer(L, retline, strlen(retline), "=condition");
+		if (status == LUA_OK) {
+			lua_remove(L, -2);  /* remove modified line */
+		} else {
+			lua_pop(L, 2);  /* pop result from 'luaL_loadbuffer' and modified line */
+			return -1;
+		}
+	} else if (!lua_isfunction(L, -1)) {
+		lua_pop(L, 1);
+		return -1;
+	}
+
+	lua_pushinteger(L, bp->index);
+
+	lua_call(L, 1, 1);
+	return lua_toboolean(L, -1);
+
+	/* This might be better, but needs a message handler for pcall
+	status = lua_pcall(L, 1, 1, 0);
+	if (status == LUA_OK) {
+		return lua_toboolean(L, -1);
+	} else {
+		lua_pop(L, 1);
+		return -1;
+	}
+	*/
+}
+
 static EMU_STATUS handleBreakpoint(lua_State *L, struct breakpoint *bp)
 {
 // icount: ignore until 0, -1: disabled
 // ecount: disable when 0, -1: delete next time
 
-	if (bp->icount == -1) return EMU_OK; //disabled
+	if (bp->icount == -1) goto nobreak; //disabled
 	if (bp->icount > 0) {
 		//Decrement ignore count and continue
 		bp->icount -= 1;
-		return EMU_OK;
+		goto nobreak;
 	}
 	if (bp->condition != LUA_REFNIL) {
 		//check condition
 		int ret = evaluateCondition(L, bp);
 		if (ret == -1) return EMU_ERR;
-		else if (ret == 0 && bp->type == TYPE_BREAK) return EMU_OK;
+		else if (ret == 0 && bp->type == TYPE_BREAK) goto nobreak;
 	}
 	if (bp->ecount == -1) {
-		//delete breakpoint
+		//TODO delete breakpoint
 	} else if (bp->ecount > 0) {
 		if ((--bp->ecount) == 0) bp->icount = -1;
 	}
-	return (bp->type == TYPE_BREAK) ? EMU_BREAK : EMU_OK;
+	if (bp->type == TYPE_BREAK) return EMU_BREAK;
+
+nobreak:
+	if (bp->next != NULL) {
+		return handleBreakpoint(L, bp->next);
+	} else {
+		return EMU_OK;
+	}
 }
 
 static void registerBreakpoint(struct breakpoint *bp, struct breakpoint **table)
