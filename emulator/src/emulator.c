@@ -23,7 +23,7 @@ static void context_mem_write_callback(int param, ushort address, byte data);
 static byte context_io_read_callback(int param, ushort address);
 static void context_io_write_callback(int param, ushort address, byte data);
 
-static int running;
+static int breakflag; //TODO also store the watchpoint that was triggered
 
 char lastTtyChar = 0;
 
@@ -110,15 +110,15 @@ next:
 	}
 }
 
-static void registerBreakpoint(struct breakpoint *bp, struct breakpoint **table)
+static void registerBreakpoint(struct breakpoint *bp, struct breakpoint **table, int address)
 {
 	bp->prev = NULL;
 	bp->next = NULL;
 
-	if (table[bp->address] == NULL) {
-		table[bp->address] = bp;
+	if (table[address] == NULL) {
+		table[address] = bp;
 	} else {
-		struct breakpoint *last = table[bp->address];
+		struct breakpoint *last = table[address];
 		while (last->next != NULL) last = last->next;
 		last->next = bp;
 		bp->prev = last;
@@ -127,12 +127,14 @@ static void registerBreakpoint(struct breakpoint *bp, struct breakpoint **table)
 
 void emu_registerBreakpoint(struct breakpoint *bp)
 {
-	registerBreakpoint(bp, zi28.breakpoints);
+	registerBreakpoint(bp, zi28.breakpoints, bp->address);
 }
 
 void emu_registerWatchpoint(struct breakpoint *bp)
 {
-	registerBreakpoint(bp, zi28.watchpoints);
+	for (int i = 0; i < bp->size; i++) {
+		registerBreakpoint(bp, zi28.watchpoints, bp->address + i);
+	}
 }
 
 void emu_init() {
@@ -164,12 +166,13 @@ void emu_init() {
 		sdModule.card = NULL;
 	}
 
+	breakflag = 0;
+
 	zi28.context.memRead = context_mem_read_callback;
 	zi28.context.memWrite = context_mem_write_callback;
 	zi28.context.ioRead = context_io_read_callback;
 	zi28.context.ioWrite = context_io_write_callback;
 	emu_reset();
-	running = 0;
 	zi28.clockCycles = 0;
 	for (int i = 0; i < 0x10000; i++) {
 		zi28.breakpoints[i] = NULL;
@@ -246,6 +249,10 @@ static EMU_STATUS doStep(lua_State *L)
 		EMU_STATUS ret = handleBreakpoint(L, zi28.breakpoints[zi28.context.PC]);
 		if (ret != EMU_OK) return ret;
 	}
+	if (breakflag) {
+		breakflag = 0;
+		return EMU_BREAK;
+	}
 	if (zi28.context.tstates >= 80000) {
 		struct timeval tv2;
 		gettimeofday(&tv2, NULL);
@@ -278,6 +285,7 @@ static byte context_mem_read_callback(int param, ushort address) {
 }
 
 static void context_mem_write_callback(int param, ushort address, byte data) {
+	if (zi28.watchpoints[address]) breakflag = 1;
 	if (address < 0x4000) {
 		//rom
 		if (!romProtect) {
