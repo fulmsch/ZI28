@@ -78,30 +78,35 @@ static EMU_STATUS handleBreakpoint(lua_State *L, struct breakpoint *bp)
 // icount: ignore until 0, -1: disabled
 // ecount: disable when 0, -1: delete next time
 
-	if (bp->icount == -1) goto nobreak; //disabled
+	EMU_STATUS status = EMU_OK;
+
+	if (bp->icount == -1) goto next; //disabled
 	if (bp->icount > 0) {
 		//Decrement ignore count and continue
 		bp->icount -= 1;
-		goto nobreak;
+		goto next;
 	}
 	if (bp->condition != LUA_REFNIL) {
 		//check condition
 		int ret = evaluateCondition(L, bp);
 		if (ret == -1) return EMU_ERR;
-		else if (ret == 0 && bp->type == TYPE_BREAK) goto nobreak;
+		else if (ret == 0 && bp->type == TYPE_BREAK) goto next;
 	}
 	if (bp->ecount == -1) {
 		//TODO delete breakpoint
 	} else if (bp->ecount > 0) {
 		if ((--bp->ecount) == 0) bp->icount = -1;
 	}
-	if (bp->type == TYPE_BREAK) return EMU_BREAK;
+	if (bp->type == TYPE_BREAK) {
+		status = EMU_BREAK;
+	}
 
-nobreak:
+next:
 	if (bp->next != NULL) {
-		return handleBreakpoint(L, bp->next);
+		EMU_STATUS ret = handleBreakpoint(L, bp->next);
+		return (ret != EMU_OK) ? ret : status;
 	} else {
-		return EMU_OK;
+		return status;
 	}
 }
 

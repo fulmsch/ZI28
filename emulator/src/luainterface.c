@@ -214,53 +214,59 @@ static int luaF_ptr(lua_State *L)
 	return 1;
 }
 
-static int luaF_newBreakpoint(lua_State *L)
+static struct breakpoint *createBreakpoint(lua_State *L, BREAK_TYPE type)
 {
-	struct memPointer pointer;
-	int index;
 	//1: pointer, 2: [condition]
+	struct memPointer pointer;
+
 	//Check arguments
 	lua_settop(L, 2);
-	if((lua_type(L, 2) != LUA_TNIL &&
+	if(((lua_type(L, 2) != LUA_TNIL || type == TYPE_TRACE) &&
 	    lua_type(L, 2) != LUA_TSTRING &&
 	    lua_type(L, 2) != LUA_TFUNCTION)
 	    || getMemPointer(L, 1, &pointer)) {
 		luaL_error(L, "invalid arguments(s)");
 	}
 
-	//Create entry in Lua table
-	lua_getglobal(L, "breakpoints"); //index 3
-	lua_len(L, 3); //length of breakpoints table
-	index = 1 + lua_tointeger(L, -1);
-	lua_pushinteger(L, index); //index 4
+	//Allocate and set up a new breakpoint structure
+	lua_getglobal(L, "breakpoints");
+	lua_len(L, -1); //length of breakpoints table
+	int index = 1 + lua_tointeger(L, -1);
+	lua_pushinteger(L, index);
 	struct breakpoint *bp = lua_newuserdata(L, sizeof(struct breakpoint));
 	lua_rawgeti(L, LUA_REGISTRYINDEX, breakpointMetatable);
-
 	lua_setmetatable(L, -2);
+	lua_rawset(L, 3); //store the new breakpoint
 
 	bp->index = index;
-	bp->type = TYPE_BREAK;
 	bp->address = pointer.address;
 	bp->size = pointer.size;
 	bp->icount = 0;
 	bp->ecount = 0;
+	bp->type = type;
 	lua_pushvalue(L, 2);
 	bp->condition = luaL_ref(L, LUA_REGISTRYINDEX);
 
-	lua_rawset(L, 3); //store the new breakpoint
+	return bp;
+}
 
-	//Create entry in C array
+static int luaF_newBreakpoint(lua_State *L)
+{
+	struct breakpoint *bp = createBreakpoint(L, TYPE_BREAK);
 	emu_registerBreakpoint(bp);
-
 	return 0;
 }
 
 static int luaF_newTracepoint(lua_State *L)
 {
+	struct breakpoint *bp = createBreakpoint(L, TYPE_TRACE);
+	emu_registerBreakpoint(bp);
 	return 0;
 }
 
 static int luaF_newWatchpoint(lua_State *L)
 {
+	struct breakpoint *bp = createBreakpoint(L, TYPE_WATCH);
+	emu_registerWatchpoint(bp);
 	return 0;
 }
