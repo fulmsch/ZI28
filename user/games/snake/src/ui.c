@@ -11,12 +11,36 @@ void drawGrid()
 {
 	int i;
 	for (i = 0; i < grid_width * grid_height; i++) {
-		updateField(i);
+		grid[i].type == EMPTY || updateField(i);
 	}
 }
 
 void updateField(int field)
 {
+	vt100_set_cursor((field / grid_width) + 1, (field % grid_width * 2) + 1);
+	switch (grid[field].type) {
+		case EMPTY:
+			printf("  ");
+			break;
+		case FOOD:
+			printf("\33[43m  \33[m");
+			break;
+		case SNAKE:
+			printf("\33[42m  \33[m");
+			break;
+		case SNAKE_HEAD:
+			printf("\33[42m  \33[m");
+			break;
+		case BORDER:
+			printf("\33[7m  \33[m");
+			break;
+		case COLLISION:
+			printf("\33[41m  \33[m");
+			break;
+		default:
+			break;
+	}
+	/*
 	vt100_set_cursor((field / grid_width) + 1, (field % grid_width) + 1);
 	switch (grid[field].type) {
 		case EMPTY:
@@ -40,6 +64,7 @@ void updateField(int field)
 		default:
 			break;
 	}
+	*/
 }
 
 void showScore(int score)

@@ -42,6 +42,8 @@ void handleKey(char key)
 			break;
 		case 'n':
 			break;
+		case 'p':
+			while (getchar() != 'p');
 		default:
 			break;
 	}
@@ -51,7 +53,7 @@ void keyPoll(void)
 {
 #define DATA_PORT 0x00
 #define STATUS_PORT 0x01
-	int count = 250 - 5 * (score <= 10 ? score : 10);
+	int count = 150 - 5 * (score <= 20 ? score : 20);
 
 	while (count --> 0) {
 		t_delay(80000); //~10ms

@@ -11,9 +11,9 @@
 
 
 int gameOver, score;
-int grid_width = 13, grid_height = 7;
+int grid_width = 32, grid_height = 16;
 
-struct field grid[13*7];
+struct field grid[32*16];
 
 static int snake_head, snake_tail;
 static int snake_newDir;

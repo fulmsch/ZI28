@@ -2,7 +2,6 @@ include ../../../config.mk
 
 PKGNAME = SNAKE
 BINDIR = $(BUILDDIR)/BIN
-PUZZLEDIR = $(BUILDDIR)/DATA/SNAKE
 
 BUILDDIR = build
 
