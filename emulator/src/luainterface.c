@@ -60,6 +60,7 @@ static void createBreakpointTable(lua_State *L)
 
 
 static int luaF_run(lua_State *L);
+static int luaF_step(lua_State *L);
 static int luaF_reset(lua_State *L);
 static int luaF_quit(lua_State *L);
 static int luaF_newBreakpoint(lua_State *L);
@@ -75,6 +76,7 @@ struct luaFunction {
 
 static struct luaFunction luaFunctionTable[] = {
 	{"run",        luaF_run          },
+	{"step",       luaF_step         },
 	{"reset",      luaF_reset        },
 	{"quit",       luaF_quit         },
 	{"ptr",        luaF_ptr          },
@@ -130,6 +132,18 @@ static int luaF_reset(lua_State *L)
 static int luaF_run(lua_State *L)
 {
 	emu_run(L, EMU_RUN, 0);
+	return 0;
+}
+
+static int luaF_step(lua_State *L)
+{
+	int steps, isnum;
+	if(lua_gettop(L) <= 0) steps = 1;
+	else {
+		steps = lua_tointegerx(L, 1, &isnum);
+		if(!isnum || steps < 1) steps = 1;
+	}
+	emu_run(L, EMU_STEP, steps);
 	return 0;
 }
 

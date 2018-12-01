@@ -13,6 +13,7 @@
 #include "sd.h"
 #include "libz80/z80.h"
 #include "luainterface.h"
+#include "ui.h"
 
 sig_atomic_t interruptFlag = 0;
 
@@ -219,13 +220,26 @@ static EMU_STATUS mode_continue(lua_State *L, int arg)
 	return ret;
 }
 
+static EMU_STATUS mode_step(lua_State *L, int arg)
+{
+	EMU_STATUS ret;
+	if (arg < 1) arg = 1;
+	do {
+		ret = doStep(L);
+	} while (--arg > 0 && ret == EMU_OK);
+
+	printInstruction(&zi28.context);
+
+	return ret;
+}
+
 static EMU_STATUS (*mode_functions[])(lua_State *, int) = {
-	mode_run, mode_continue
+	mode_run, mode_continue, mode_step
 };
 
 EMU_STATUS emu_run(lua_State *L, EMU_MODE mode, int arg)
 {
-	if (mode < 0 || mode >= sizeof(mode_functions)/sizeof(EMU_STATUS (*)(int))-1) {
+	if (mode < 0 || mode >= sizeof(mode_functions)/sizeof(EMU_STATUS (*)(int))) {
 		return EMU_ERR;
 	}
 
@@ -246,8 +260,16 @@ static EMU_STATUS doStep(lua_State *L)
 	}
 	Z80Execute(&zi28.context);
 	if (zi28.breakpoints[zi28.context.PC] != NULL) {
-		EMU_STATUS ret = handleBreakpoint(L, zi28.breakpoints[zi28.context.PC]);
-		if (ret != EMU_OK) return ret;
+		switch (handleBreakpoint(L, zi28.breakpoints[zi28.context.PC])) {
+			case EMU_BREAK:
+				printInstruction(&zi28.context);
+				return EMU_BREAK;
+			case EMU_OK:
+				break;
+			case EMU_ERR:
+			default:
+				return EMU_ERR;
+		}
 	}
 	if (breakflag) {
 		breakflag = 0;
