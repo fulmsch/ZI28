@@ -14,8 +14,7 @@ with the included emulator. See the quick start guide for instructions.
 ## Prerequisites
 
 It is assumed that you have a standard Linux develompent environment
-(gcc, make, etc.) setup already. To build the emulator, you also need Gtk+
-version 3.16 or higher and its development headers.
+(gcc, make, etc.) setup already. To build the emulator, you also need Lua 5.3.
 
 The Z80 software requires Z88DK v1.99B in order to be built. Make sure to have
 all of the Z88DK binaries in your path. You don't need to worry about the ZCCCFG
