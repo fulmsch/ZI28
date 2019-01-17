@@ -73,6 +73,13 @@ void interpreter_run()
 		if (status == LUA_OK) {
 			status = docall(L, 0, LUA_MULTRET);
 		}
+
+		if (status == LUA_OK) {
+			if (lua_isfunction(L, -1)) {
+				status = docall(L, 0, LUA_MULTRET);
+			}
+		}
+
 		if (status == LUA_OK) l_print(L);
 		else report(L, status);
 	}
@@ -135,9 +142,9 @@ static int addreturn (lua_State *L) {
 		lua_remove(L, -2);  /* remove modified line */
 		if (line[0] != '\0' && line[0] != ' ')  /* non empty? */
 			add_history(line);  /* keep history */
-	}
-	else
+	} else {
 		lua_pop(L, 2);  /* pop result from 'luaL_loadbuffer' and modified line */
+	}
 	return status;
 }
 
