@@ -15,12 +15,12 @@ WARN = -Wall
 
 #PTHREAD = -pthread
 
-CCFLAGS = $(DEBUG) $(OPT) $(WARN) $(PTHREAD) -I$(INCDIR) -I. -pipe `pkg-config --cflags lua`
+CCFLAGS = $(DEBUG) $(OPT) $(WARN) $(PTHREAD) -I$(INCDIR) -I. -pipe `pkg-config --cflags lua53`
 
 # linker
 LD = gcc
 LDFLAGS = $(PTHREAD) -export-dynamic
-LIBS = -lutil -lreadline `pkg-config --libs lua`
+LIBS = -lutil -lreadline `pkg-config --libs lua53`
 
 OBJS = main.o config.o ui.o interpreter.o emulator.o sd.o command.o luainterface.o libz80/libz80.o
 
