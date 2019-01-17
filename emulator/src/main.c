@@ -13,7 +13,6 @@
 #include "ui.h"
 #include "interpreter.h"
 #include "emulator.h"
-#include "sd.h"
 #include "libz80/z80.h"
 
 int romProtect = 0;
@@ -21,7 +20,6 @@ int romProtect = 0;
 int quit_req = 0;
 
 char *romFileName = NULL;
-char *sdFileName  = NULL;
 
 int breakpointsEnabled = 1;
 
@@ -103,7 +101,6 @@ int main(int argc, char **argv) {
 			{"help",      no_argument,       0, 'h'},
 			{"text-mode", no_argument,       0, 't'},
 			{"rom-file",  required_argument, 0, 'r'},
-			{"sd-image",  required_argument, 0, 'c'},
 			{"silent",    no_argument,       0, 's'},
 			{0, 0, 0, 0}
 		};
@@ -121,9 +118,6 @@ int main(int argc, char **argv) {
 			case 'r':
 				romFile_flag = 1;
 				romFileName = optarg;
-				break;
-			case 'c':
-				sdFileName = optarg;
 				break;
 			case 's':
 				silent_flag = 1;
@@ -143,7 +137,6 @@ int main(int argc, char **argv) {
 			" -h, --help       Display this help message.\n"
 			" -t, --text-mode  Launch without a graphical interface.\n"
 			" -r, --rom-file   Specify a binary file that is loaded into ROM.\n"
-			" -c, --sd-image   Specify a SD-Card image file.\n"
 			" -s, --silent     Don't write anything to stdout.\n"
 		);
 		return 0;

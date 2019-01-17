@@ -3,7 +3,6 @@
 #include <string.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-#include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
 
@@ -15,7 +14,7 @@
 
 int quitRequest;
 
-static lua_State *luaState;
+lua_State *globalLuaState;
 
 static int incomplete (lua_State *L, int status);
 static int pushline (lua_State *L, int firstline);
@@ -31,7 +30,7 @@ void interpreter_init()
 	quitRequest = 0;
 
 	lua_State *L = luaL_newstate();
-	luaState = L;
+	globalLuaState = L;
 	luaL_openlibs(L);
 
 	setupLuaEnv(L);
@@ -56,7 +55,7 @@ void interpreter_init()
 
 void interpreter_run()
 {
-	lua_State *L = luaState;
+	lua_State *L = globalLuaState;
 	int status;
 	while (!quitRequest) {
 		lua_settop(L, 0);

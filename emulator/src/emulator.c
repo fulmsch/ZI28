@@ -10,9 +10,9 @@
 
 #include "main.h"
 #include "emulator.h"
-#include "sd.h"
 #include "libz80/z80.h"
 #include "luainterface.h"
+#include "interpreter.h"
 #include "ui.h"
 
 sig_atomic_t interruptFlag = 0;
@@ -31,8 +31,6 @@ char lastTtyChar = 0;
 FILE *memFile;
 
 int breakpoints[0x10000];
-struct SdCard sd;
-struct SdModule sdModule;
 struct pollfd pty[1];
 struct termios ptyTermios;
 
@@ -155,17 +153,6 @@ void emu_init() {
 	pty[0].events = POLLIN;
 
 	romProtect = 1;
-
-	if (sdFileName != NULL) {
-		if (!(sd.imgFile = fopen(sdFileName, "r+"))) {
-			fprintf(stderr, "Error: can't open SD image file.\n");
-			exit(1);
-		}
-		sd.status = IDLE;
-		sdModule.card = &sd;
-	} else {
-		sdModule.card = NULL;
-	}
 
 	breakflag = 0;
 
@@ -328,10 +315,20 @@ static byte context_io_read_callback(int param, ushort address) {
 	address = address & 0xff;
 
 	if (address >= 0x80) {
-//		int base = (address - 0x80) / 0x10;
-		ushort offs = (address - 0x80) % 0x10;
-		data = SdModule_read(&sdModule, offs);
-
+		int module = (address - 0x80) / 0x10;
+		int offs = (address - 0x80) % 0x10;
+		lua_State *L = globalLuaState;
+		int top = lua_gettop(L);
+		lua_getglobal(L, "modules");
+		lua_geti(L, -1, module + 1);
+		lua_getfield(L, -1, "read");
+		if (lua_isfunction(L, -1)) {
+			lua_insert(L, -2);
+			lua_pushinteger(L, offs);
+			lua_call(L, 2, 1);
+			data = lua_tointeger(L, -1);
+		}
+		lua_settop(L, top);
 	} else {
 		switch (address) {
 			case 0x00:
@@ -362,10 +359,20 @@ static byte context_io_read_callback(int param, ushort address) {
 static void context_io_write_callback(int param, ushort address, byte data) {
 	address = address & 0xff; // port address
 	if (address >= 0x80) {
-//		int base = (address - 0x80) / 0x10;
-		ushort offs = (address - 0x80) % 0x10;
-		SdModule_write(&sdModule, offs, data);
-
+		int module = (address - 0x80) / 0x10;
+		int offs = (address - 0x80) % 0x10;
+		lua_State *L = globalLuaState;
+		int top = lua_gettop(L);
+		lua_getglobal(L, "modules");
+		lua_geti(L, -1, module + 1);
+		lua_getfield(L, -1, "write");
+		if (lua_isfunction(L, -1)) {
+			lua_insert(L, -2);
+			lua_pushinteger(L, offs);
+			lua_pushinteger(L, data);
+			lua_call(L, 3, 0);
+		}
+		lua_settop(L, top);
 	} else {
 		switch (address) {
 			case 0x00:

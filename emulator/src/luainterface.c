@@ -66,6 +66,7 @@ static int luaF_quit(lua_State *L);
 static int luaF_newBreakpoint(lua_State *L);
 static int luaF_newTracepoint(lua_State *L);
 static int luaF_newWatchpoint(lua_State *L);
+static int luaF_addmodule(lua_State *L);
 
 static int luaF_ptr(lua_State *L);
 
@@ -83,6 +84,7 @@ static struct luaFunction luaFunctionTable[] = {
 	{"breakpoint", luaF_newBreakpoint},
 	{"tracepoint", luaF_newTracepoint},
 	{"watchpoint", luaF_newWatchpoint},
+	{"addmodule",  luaF_addmodule    },
 };
 
 void setupLuaEnv(lua_State *L)
@@ -99,6 +101,9 @@ void setupLuaEnv(lua_State *L)
 	lua_pushcfunction(L, luaF_readonly);
 	lua_setfield(L, -2, "__newindex");
 	breakpointMetatable = luaL_ref(L, LUA_REGISTRYINDEX);
+
+	lua_createtable(L, 8, 0);
+	lua_setglobal(L, "modules");
 }
 
 static int getMemPointer(lua_State *L, int index, struct memPointer *ptr)
@@ -283,4 +288,8 @@ static int luaF_newWatchpoint(lua_State *L)
 	struct breakpoint *bp = createBreakpoint(L, TYPE_WATCH);
 	emu_registerWatchpoint(bp);
 	return 0;
+}
+
+static int luaF_addmodule(lua_State *L)
+{
 }
