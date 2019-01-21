@@ -70,12 +70,7 @@ static int luaF_addmodule(lua_State *L);
 
 static int luaF_ptr(lua_State *L);
 
-struct luaFunction {
-	char *name;
-	lua_CFunction function;
-};
-
-static struct luaFunction luaFunctionTable[] = {
+static luaL_Reg luaFunctionTable[] = {
 	{"run",        luaF_run          },
 	{"step",       luaF_step         },
 	{"reset",      luaF_reset        },
@@ -89,10 +84,10 @@ static struct luaFunction luaFunctionTable[] = {
 
 void setupLuaEnv(lua_State *L)
 {
-	for (int i = 0; i < sizeof(luaFunctionTable)/sizeof(struct luaFunction); i++) {
-		lua_pushcfunction(L, luaFunctionTable[i].function);
-		lua_setglobal(L, luaFunctionTable[i].name);
-	}
+	lua_getglobal(L, "_G");
+	luaL_setfuncs(L, luaFunctionTable, 0);
+	lua_pop(L, 1);
+
 	//Global breakpoint table
 	createBreakpointTable(L);
 	lua_createtable(L, 0, 2);
@@ -306,7 +301,7 @@ static int luaF_newWatchpoint(lua_State *L)
 
 static int luaF_addmodule(lua_State *L)
 {
-	int slot;
+	int slot = 0;
 	if (lua_isnoneornil(L, 2)) {
 		//Find first free slot
 		lua_getglobal(L, "modules");
