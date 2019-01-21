@@ -102,6 +102,20 @@ void setupLuaEnv(lua_State *L)
 	lua_setfield(L, -2, "__newindex");
 	breakpointMetatable = luaL_ref(L, LUA_REGISTRYINDEX);
 
+	//Module paths
+	lua_getglobal(L, "package");
+	lua_getfield(L, -1, "cpath");
+	lua_pushstring(L, ";./emulator/modules/?/?.so");
+	lua_concat(L, 2);
+	lua_setfield(L, -2, "cpath");
+
+	lua_getfield(L, -1, "path");
+	lua_pushstring(L, ";./emulator/modules/?/?.lua");
+	lua_concat(L, 2);
+	lua_setfield(L, -2, "path");
+	lua_pop(L, 1);
+
+
 	lua_createtable(L, 8, 0);
 	lua_setglobal(L, "modules");
 }
@@ -292,4 +306,41 @@ static int luaF_newWatchpoint(lua_State *L)
 
 static int luaF_addmodule(lua_State *L)
 {
+	int slot;
+	if (lua_isnoneornil(L, 2)) {
+		//Find first free slot
+		lua_getglobal(L, "modules");
+		for (int i = 1; i <= 8; i++) {
+			if (lua_geti(L, -1, i) == LUA_TNIL) {
+				lua_pop(L, 1);
+				slot = i;
+				break;
+			}
+			lua_pop(L, 1);
+		}
+		lua_pop(L, 1);
+		if (slot == 0) {
+			return luaL_error(L, "no free slot");
+		}
+	} else {
+		int isnum;
+		slot = lua_tointegerx(L, 2, &isnum);
+		if (!isnum || slot < 1 || slot > 8) {
+			return luaL_error(L, "invalid argument");
+		}
+	}
+
+	lua_getglobal(L, "modules");
+
+	//Call require(modname)
+	lua_getglobal(L, "require");
+	lua_pushvalue(L, 1);
+	lua_call(L, 1, 1);
+	//Call the new() method
+	lua_getfield(L, -1, "new");
+	lua_call(L, 0, 1);
+
+	lua_pushvalue(L, -1);
+	lua_seti(L, -4, slot);
+	return 1;
 }
