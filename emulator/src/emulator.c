@@ -26,8 +26,6 @@ static void context_io_write_callback(int param, ushort address, byte data);
 
 static int breakflag; //TODO also store the watchpoint that was triggered
 
-char lastTtyChar = 0;
-
 FILE *memFile;
 
 int breakpoints[0x10000];
@@ -215,13 +213,73 @@ static EMU_STATUS mode_step(lua_State *L, int arg)
 		ret = doStep(L);
 	} while (--arg > 0 && ret == EMU_OK);
 
-	printInstruction(&zi28.context);
+	return ret;
+}
+
+static EMU_STATUS mode_finish(lua_State *L, int arg)
+{
+	//seems to work, TODO more extensive testing
+	EMU_STATUS ret;
+	unsigned short prevSP;
+	int possibleReturn;
+	do {
+		prevSP = zi28.context.R1.wr.SP;
+		switch(zi28.ram[zi28.context.PC]) {
+			case 0xC0: case 0xD0: case 0xE0: case 0xF0:
+			case 0xC8: case 0xD8: case 0xE8: case 0xF8:
+			case 0xC9:
+				possibleReturn = 1;
+				break;
+			case 0xED:
+				switch(zi28.ram[zi28.context.PC + 1]) {
+					case 0x45: case 0x55: case 0x65: case 0x75:
+					case 0x4D: case 0x5D: case 0x6D: case 0x7D:
+						possibleReturn = 1;
+						break;
+					default:
+						possibleReturn = 0;
+						break;
+				}
+			default:
+				possibleReturn = 0;
+				break;
+		}
+		ret = doStep(L);
+	} while (ret == EMU_OK && !possibleReturn && zi28.context.R1.wr.SP == prevSP);
+
+	return ret;
+}
+
+static EMU_STATUS mode_next(lua_State *L, int arg)
+{
+	//TODO testing
+	EMU_STATUS ret;
+	unsigned short prevSP;
+	int possibleCall;
+	if (arg < 1) arg = 1;
+	do {
+		prevSP = zi28.context.R1.wr.SP;
+		switch(zi28.ram[zi28.context.PC]) {
+			case 0xC4: case 0xD4: case 0xE4: case 0xF4:
+			case 0xCC: case 0xDC: case 0xEC: case 0xFC:
+			case 0xCD:
+				possibleCall = 1;
+				break;
+			default:
+				possibleCall = 0;
+				break;
+		}
+		ret = doStep(L);
+		if (!possibleCall && zi28.context.R1.wr.SP == prevSP) {
+			ret = mode_finish(L, 0);
+		}
+	} while (--arg > 0 && ret == EMU_OK);
 
 	return ret;
 }
 
 static EMU_STATUS (*mode_functions[])(lua_State *, int) = {
-	mode_run, mode_continue, mode_step
+	mode_run, mode_continue, mode_step, mode_next, mode_finish
 };
 
 EMU_STATUS emu_run(lua_State *L, EMU_MODE mode, int arg)
@@ -234,6 +292,8 @@ EMU_STATUS emu_run(lua_State *L, EMU_MODE mode, int arg)
 	zi28.context.tstates = 0;
 	EMU_STATUS ret = mode_functions[mode](L, arg);
 	zi28.clockCycles += zi28.context.tstates;
+
+	printInstruction(&zi28.context);
 
 	return ret;
 }
@@ -310,6 +370,7 @@ static void context_mem_write_callback(int param, ushort address, byte data) {
 }
 
 static byte context_io_read_callback(int param, ushort address) {
+	static char lastTtyChar;
 	char data=0xff;
 	int ret;
 	address = address & 0xff;

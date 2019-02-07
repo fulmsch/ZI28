@@ -11,13 +11,19 @@ struct command {
 };
 
 static void cmd_step(lua_State *L);
+static void cmd_next(lua_State *L);
+static void cmd_finish(lua_State *L);
 static void cmd_quit(lua_State *L);
 
 static struct command commandTable[] = {
-	{"s",    cmd_step},
-	{"step", cmd_step},
-	{"q",    cmd_quit},
-	{"quit", cmd_quit},
+	{"s",      cmd_step},
+	{"step",   cmd_step},
+	{"n",      cmd_next},
+	{"next",   cmd_next},
+	{"f",      cmd_finish},
+	{"finish", cmd_finish},
+	{"q",      cmd_quit},
+	{"quit",   cmd_quit},
 };
 
 int asCommand(lua_State *L)
@@ -41,6 +47,18 @@ int asCommand(lua_State *L)
 static void cmd_step(lua_State *L)
 {
 	emu_run(L, EMU_STEP, 1);
+	return;
+}
+
+static void cmd_next(lua_State *L)
+{
+	emu_run(L, EMU_NEXT, 1);
+	return;
+}
+
+static void cmd_finish(lua_State *L)
+{
+	emu_run(L, EMU_FINISH, 1);
 	return;
 }
 
