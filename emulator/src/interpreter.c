@@ -10,7 +10,6 @@
 #include "config.h"
 #include "emulator.h"
 #include "luainterface.h"
-#include "command.h"
 
 int quitRequest;
 
@@ -61,9 +60,7 @@ void interpreter_run()
 		lua_settop(L, 0);
 		if (!pushline(L, 1))
 			break;  /* no input */
-		if (asCommand(L)) {
-			continue;
-		} else if ((status = addreturn(L)) != LUA_OK) { /* 'return ...' did not work? */
+		if ((status = addreturn(L)) != LUA_OK) { /* 'return ...' did not work? */
 			status = multiline(L);  /* try as command, maybe with continuation lines */
 		}
 		lua_remove(L, 1);  /* remove line from the stack */
