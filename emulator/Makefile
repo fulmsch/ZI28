@@ -13,18 +13,16 @@ OPT = -O0
 # warnings
 WARN = -Wall
 
-PTHREAD = -pthread
+#PTHREAD = -pthread
 
-CCFLAGS = $(DEBUG) $(OPT) $(WARN) $(PTHREAD) -I$(INCDIR) -I. -pipe
-
-GTKLIB = `pkg-config --cflags --libs gtk+-3.0`
+CCFLAGS = $(DEBUG) $(OPT) $(WARN) $(PTHREAD) -I$(INCDIR) -I. -pipe `pkg-config --cflags lua53`
 
 # linker
 LD = gcc
-LDFLAGS = $(PTHREAD) $(GTKLIB) -export-dynamic
-LIBS = -lutil
+LDFLAGS = $(PTHREAD) -export-dynamic
+LIBS = -lutil -lreadline `pkg-config --libs lua53`
 
-OBJS = main.o resources.o emulator.o sd.o libz80/libz80.o
+OBJS = main.o config.o ui.o interpreter.o emulator.o luainterface.o libz80/libz80.o
 
 .PHONY: all clean distclean install
 
@@ -36,14 +34,11 @@ $(TARGET): $(OBJS)
 install: $(TARGET)
 	install $(TARGET) $(INSTALLDIR)
 
-src/resources.c: glade/resources.xml glade/window_main.glade
-	cd glade && glib-compile-resources --target=../$(SRCDIR)/resources.c --generate-source resources.xml
-
 %.o: $(SRCDIR)/%.c
 	$(CC) -c $(CCFLAGS) $(GTKLIB) $< -o $@
 
 clean:
-	@$(RM) -f *.o $(SRCDIR)/resources.c libz80/libz80.o \
+	@$(RM) -f *.o libz80/libz80.o \
 	          libz80/codegen/mktables libz80/codegen/opcodes_decl.h \
 	          libz80/codegen/opcodes_table.h libz80/codegen/opcodes_impl.c
 
