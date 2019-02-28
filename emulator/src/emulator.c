@@ -278,8 +278,37 @@ static EMU_STATUS mode_next(lua_State *L, int arg)
 	return ret;
 }
 
+static EMU_STATUS mode_advance(lua_State *L, int arg)
+{
+	EMU_STATUS ret = EMU_OK;
+	if (arg < 0 || arg > 0xffff) {
+		return EMU_ERR;
+	}
+	while (ret == EMU_OK && zi28.context.PC != arg) {
+		ret = doStep(L);
+	}
+	return ret;
+}
+
+static EMU_STATUS mode_out(lua_State *L, int arg)
+{
+	EMU_STATUS ret = EMU_OK;
+	int address;
+	if (arg > 0 && arg < 0xffff) {
+		address = arg;
+	} else {
+		char dump[20];
+		Z80Debug(&zi28.context, dump, NULL);
+		address = zi28.context.PC + (strlen(dump) / 2);
+	}
+	while (ret == EMU_OK && zi28.context.PC != address) {
+		ret = doStep(L);
+	}
+	return ret;
+}
+
 static EMU_STATUS (*mode_functions[])(lua_State *, int) = {
-	mode_run, mode_continue, mode_step, mode_next, mode_finish
+	mode_run, mode_continue, mode_step, mode_next, mode_finish, mode_advance, mode_out
 };
 
 EMU_STATUS emu_run(lua_State *L, EMU_MODE mode, int arg)

@@ -48,7 +48,7 @@ typedef enum {
 } EMU_STATUS;
 
 typedef enum {
-	EMU_RUN, EMU_CONT, EMU_STEP, EMU_NEXT, EMU_FINISH
+	EMU_RUN, EMU_CONTINUE, EMU_STEP, EMU_NEXT, EMU_FINISH, EMU_ADVANCE, EMU_OUT
 } EMU_MODE;
 
 void emu_init(void);

@@ -70,6 +70,10 @@ static int luaF_newTracepoint(lua_State *L);
 static int luaF_newWatchpoint(lua_State *L);
 static int luaF_addmodule(lua_State *L);
 
+static int luaF_continue(lua_State *L);
+static int luaF_advance(lua_State *L);
+static int luaF_out(lua_State *L);
+
 static int luaF_ptr(lua_State *L);
 
 static luaL_Reg luaFunctionTable[] = {
@@ -80,6 +84,12 @@ static luaL_Reg luaFunctionTable[] = {
 	{"next",       luaF_next         },
 	{"f",          luaF_finish       },
 	{"finish",     luaF_finish       },
+	{"c",          luaF_continue     },
+	{"continue",   luaF_continue     },
+	{"a",          luaF_advance      },
+	{"advance",    luaF_advance      },
+	{"o",          luaF_out          },
+	{"out",        luaF_out          },
 	{"reset",      luaF_reset        },
 	{"q",          luaF_quit         },
 	{"quit",       luaF_quit         },
@@ -184,6 +194,57 @@ static int luaF_next(lua_State *L)
 static int luaF_finish(lua_State *L)
 {
 	emu_run(L, EMU_FINISH, 0);
+	return 0;
+}
+
+static int luaF_continue(lua_State *L)
+{
+	int ignorecount = luaL_optinteger(L, 1, 1);
+	emu_run(L, EMU_CONTINUE, ignorecount);
+	return 0;
+}
+
+static int luaF_advance(lua_State *L)
+{
+	int address = -1;
+	if (lua_type(L, 1) == LUA_TTABLE) {
+		struct memPointer pointer;
+		if (getMemPointer(L, 1, &pointer) == 0) {
+			address = pointer.address;
+		}
+	} else {
+		address = luaL_optinteger(L, 1, -1);
+	}
+
+	if (address < 0 || address > 0xffff) {
+		return luaL_error(L, "invalid argument");
+	}
+
+	emu_run(L, EMU_ADVANCE, address);
+
+	return 0;
+}
+
+static int luaF_out(lua_State *L)
+{
+	int address = -1;
+	if (lua_gettop(L) > 0) {
+		if (lua_type(L, 1) == LUA_TTABLE) {
+			struct memPointer pointer;
+			if (getMemPointer(L, 1, &pointer) == 0) {
+				address = pointer.address;
+			}
+		} else {
+			address = luaL_optinteger(L, 1, -1);
+		}
+
+		if (address < 0 || address > 0xffff) {
+			return luaL_error(L, "invalid argument");
+		}
+	}
+
+	emu_run(L, EMU_OUT, address);
+
 	return 0;
 }
 
