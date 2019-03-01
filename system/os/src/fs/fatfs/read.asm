@@ -50,6 +50,62 @@ fat_read:
 	jr nz, isDir
 
 	;regular file -> limit remCount to file size
+
+;#################### New Code #######################
+;	ld d, ixh
+;	ld e, ixl
+;	ld hl, fileTableOffset
+;	add hl, de
+;	push hl ;offset
+;	ld de, fileTableSize-(fileTableOffset)
+;	add hl, de
+;	;hl = size
+;
+;	ld de, regA
+;	call ld32
+;
+;	pop hl ;offset
+;	call sub32
+;
+;	;(de) = regA = size - offset
+;	;TODO check if offset > size
+;	inc de
+;	inc de
+;	inc de
+;	ld a, (de)
+;	cp 0
+;	jr nz, notRootDir
+;	
+;	dec de
+;	ld a, (de)
+;	cp 0
+;	jr nz, notRootDir
+;	dec de
+;
+;	;the two MSB were 0 -> less than 0xffff bytes remain to be read
+;
+;	;if remCount > remSize -> remCount = remSize
+;	ld a, (de) ;16bit MSB of remSize
+;	cp (fat_rw_remCount + 1)
+;	jr c, limitCount
+;	jr nz, notRootDir
+;
+;	;compare LSB
+;	dec de
+;	ld a, (de)
+;	cp (fat_rw_remCount)
+;	jr nc, notRootDir
+;
+;limitCount:
+;	ex de, hl
+;	ld e, (hl)
+;	inc hl
+;	ld l, (hl)
+;	ld (fat_rw_remCount), de
+;	jr notRootDir
+;
+;#################### End of new code ###################
+
 	;return de=0 if offset >= filesize
 
 	;add count to offset
