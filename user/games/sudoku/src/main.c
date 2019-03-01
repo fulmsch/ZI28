@@ -16,9 +16,10 @@
 static int c;
 int gameOver;
 int boardGenerated;
+int win;
 
 int main(int argc, char **argv) {
-	if (vt100_get_status()) return 1;
+//	if (vt100_get_status()) return 1;
 	//TODO check screen size
 
 #ifdef __Z88DK
@@ -57,10 +58,29 @@ int main(int argc, char **argv) {
 			case 'l':
 				moveCursor(RIGHT);
 				break;
+			case 'r':
+				resetPuzzle();
+				drawInitialBoard();
+				updateCursor();
+				break;
+			case 'n':
+				loadPuzzle();
+				drawInitialBoard();
+				updateCursor();
+				break;
 			default:
 				if (c >= '0' && c <= '9') {
 					setField(c - '0');
+					win = checkBoard();
+					vt100_set_cursor(15, 1);
+					printf("%d \n", win);
 				}
+		}
+		if (win == 1) {
+			vt100_set_cursor(15, 1);
+			printf("Puzzle completed!\n");
+			vt100_show_cursor();
+			return 0;
 		}
 	}
 	vt100_set_cursor(15, 1);

@@ -25,6 +25,7 @@ void drawField(int field) {
 
 void drawInitialBoard() {
 	int i, j;
+	vt100_set_cursor(0, 0);
 	for (i = 0; i < 4; i++) {
 		printf("+-------+-------+-------+\n");
 		for (j = 0; j < 3 && i < 3; j++)
