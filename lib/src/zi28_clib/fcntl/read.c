@@ -1,5 +1,6 @@
 #include <fcntl.h>
 #include <sys/os.h>
+#include <errno.h>
 
 size_t read(int fd, void *buf, size_t count) {
 	#asm
@@ -23,6 +24,9 @@ size_t read(int fd, void *buf, size_t count) {
 	ret
 read_error:
 	ld hl, -1
+	ld (_errno), a
+	xor a
+	ld (_errno + 1), a
 	ret
 	#endasm
 }
