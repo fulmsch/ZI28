@@ -147,7 +147,7 @@ void emu_init() {
 	symlink(ptsName, "/tmp/zi28tty");
 	free(ptsName);
 
-	pty[0].fd = ptm;
+	pty[0].fd = STDIN_FILENO;
 	pty[0].events = POLLIN;
 
 	romProtect = 1;
@@ -317,10 +317,22 @@ EMU_STATUS emu_run(lua_State *L, EMU_MODE mode, int arg)
 		return EMU_ERR;
 	}
 
+	struct termios orig_termios;
+	tcgetattr(STDIN_FILENO, &orig_termios);
+	struct termios raw = orig_termios;
+	//raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+	//raw.c_oflag &= ~(OPOST);
+	//raw.c_cflag |= (CS8);
+	//raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+	raw.c_lflag &= ~(ECHO | ICANON);
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+
 	gettimeofday(&zi28.startTime, NULL);
 	zi28.context.tstates = 0;
 	EMU_STATUS ret = mode_functions[mode](L, arg);
 	zi28.clockCycles += zi28.context.tstates;
+
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
 
 	printInstruction(&zi28.context);
 
@@ -426,6 +438,7 @@ static byte context_io_read_callback(int param, ushort address) {
 				if ((ret > 0) && (pty[0].revents & POLLIN)) {
 					//new char available
 					read(pty[0].fd, &data, 1);
+					if (data == 127) data = 8;
 					lastTtyChar = data;
 				} else {
 					data = lastTtyChar;
