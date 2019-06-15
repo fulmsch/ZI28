@@ -1,7 +1,7 @@
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "string.h"
-INCLUDE "process.h"
+INCLUDE "cli.h"
 
 PUBLIC realpath
 
@@ -112,7 +112,7 @@ rootdir:
 relative:
 	;copy working directory, append path, clean up
 	push hl
-	ld hl, process_workingDir
+	ld hl, env_workingPath
 	call strcpy
 	pop hl
 

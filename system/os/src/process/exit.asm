@@ -9,9 +9,8 @@ INCLUDE "math.h"
 
 PUBLIC u_exit
 
-;EXTERN kernel_stackSave
+EXTERN kernel_stackSave
 EXTERN k_read, k_lseek
-EXTERN swap_fd
 
 
 u_exit:
@@ -32,80 +31,18 @@ u_exit:
 
 	ld (exit_returnCode), a
 
-	ld a, (process_pid)
-	cp 1
-	jp z, 0x0000
+;restore sp
+	ld sp, (kernel_stackSave)
 
 ;TODO close all fds
 
-	ld sp, sysStack
-
-;restore process memory from swap
-	;offset = (pid - 2) << 16
-	ld hl, regA
-	call clear32
-	ex de, hl
-	ld a, (process_pid)
-	dec a
-	dec a
-	ld (regA + 2), a
-
-	ld a, (swap_fd)
-	ld h, SEEK_SET
-	call k_lseek
-
-	ld a, 0x00 | 0x08 ;make sure OS rom bank stays selected
+	ld a, 0x08
 	out (BANKSEL_PORT), a
-
-	ld a, (swap_fd)
-	ld de, process_dataSection
-	ld hl, 0x8000
-	call k_read
-
-
-	or a, 0x01 | 0x08 ;make sure OS rom bank stays selected
-	out (BANKSEL_PORT), a
-
-	ld a, (swap_fd)
-	ld de, 0xc000
-	ld hl, 0x4000
-	call k_read
-
-
-	or a, 0x02 | 0x08 ;make sure OS rom bank stays selected
-	out (BANKSEL_PORT), a
-
-	ld a, (swap_fd)
-	ld de, 0xc000
-	ld hl, 0x4000
-	call k_read
-
-
-	ld a, (process_bank)
-	or a, 0x08
-	out (BANKSEL_PORT), a
-
-
-;restore fds
-	ld hl, u_fdTable
-	ld de, process_fdTable
-	ld bc, fdTableEntries
-	ldir
-
-
-;restore sp
-	ld sp, (process_sp)
 
 	ld a, (exit_returnCode)
 	ld e, a
-	ld a, 1
+	xor a
 	ret
-
-
-
-;	ld sp, (kernel_stackSave)
-;	xor a
-;	ret
 
 SECTION ram_os
 exit_returnCode:

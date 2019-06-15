@@ -3,7 +3,7 @@ MODULE chdir
 SECTION rom_code
 INCLUDE "os.h"
 INCLUDE "string.h"
-INCLUDE "process.h"
+INCLUDE "cli.h"
 
 PUBLIC u_chdir, k_chdir
 
@@ -32,7 +32,7 @@ k_chdir:
 
 	pop hl
 	call realpath
-	ld de, process_workingDir
+	ld de, env_workingPath
 	call strcpy
 	;de points to dest null terminator
 	dec de
@@ -44,7 +44,7 @@ k_chdir:
 
 removeSlash:
 	xor a
-	ld hl, process_workingDir
+	ld hl, env_workingPath
 	sbc hl, de
 	ret z
 	ld (de), a

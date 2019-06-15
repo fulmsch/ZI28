@@ -51,7 +51,7 @@ DEFS 0x0100 - ASMPC
 PUBLIC syscallTable, syscallTableEnd
 EXTERN u_open, u_close, u_read, u_write, u_seek, u_lseek, u_stat, u_fstat
 EXTERN u_readdir, u_dup, u_mount, u_unmount, u_unlink
-EXTERN u_bsel, u_fork, u_execv, u_exit
+EXTERN u_bsel, u_execv, u_exit
 EXTERN u_chdir, u_getcwd
 syscallTable:
 	DEFW u_open
@@ -68,7 +68,6 @@ syscallTable:
 	DEFW u_unmount
 	DEFW u_unlink
 	DEFW u_bsel
-	DEFW u_fork
 	DEFW u_execv
 	DEFW u_exit
 	DEFW u_chdir

@@ -1,6 +1,6 @@
 SECTION rom_code
 INCLUDE "string.h"
-INCLUDE "process.h"
+INCLUDE "cli.h"
 
 PUBLIC u_getcwd, k_getcwd
 
@@ -15,7 +15,7 @@ k_getcwd:
 ;; : a - errno
 
 	ex de, hl
-	ld hl, process_workingDir
+	ld hl, env_workingPath
 	call strcpy
 	xor a
 	ret

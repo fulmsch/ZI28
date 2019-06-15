@@ -2,7 +2,6 @@ IFNDEF PROCESS_H
 DEFINE PROCESS_H
 
 INCLUDE "memmap.h"
-INCLUDE "os.h"
 
 DEFC process_fdTableEntries = 8
 
@@ -17,6 +16,5 @@ DEFC process_fdTable = process_argVector - process_fdTableEntries
 DEFC process_pid = process_fdTable - 1
 DEFC process_sp = process_pid - 2
 DEFC process_bank = process_sp - 1
-DEFC process_workingDir = process_bank - PATH_MAX
 
 ENDIF

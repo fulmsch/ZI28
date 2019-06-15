@@ -16,7 +16,6 @@ extern char *environ[];
 #define unlink(a) remove(a)
 
 extern int __LIB__ __CALLEE__ execv(char *path, char **argv);
-extern int __LIB__ fork(void);
 extern int __LIB__ __FASTCALL__ chdir(char *path);
 extern char __LIB__ __FASTCALL__ *getcwd(char *buf);
 

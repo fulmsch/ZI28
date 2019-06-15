@@ -7,6 +7,17 @@ src/drive/mountRoot.o
 src/drive/storeAndCallFsInit.o
 src/drive/unmount.o
 src/bank/bsel.o
+src/shell/cli.o
+src/shell/builtins/mount.o
+src/shell/builtins/ver.o
+src/shell/builtins/chdir.o
+src/shell/builtins/monitor.o
+src/shell/builtins/test.o
+src/shell/builtins/cls.o
+src/shell/builtins/echo.o
+src/shell/builtins/exit.o
+src/shell/builtins/help.o
+src/shell/builtins/pwd.o
 src/string/toupper.o
 src/string/strcat.o
 src/string/strncat.o
@@ -91,7 +102,6 @@ src/interrupt.o
 src/process/process.o
 src/process/execv.o
 src/process/exit.o
-src/process/fork.o
 src/getcwd.o
 src/syscall.o
 src/drivers/sd/init.o
@@ -105,4 +115,3 @@ src/drivers/ft240/read.o
 src/drivers/ft240/ft240.o
 src/drivers/ft240/write.o
 src/get_drive_and_path.o
-src/swap.o

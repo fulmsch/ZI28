@@ -6,7 +6,7 @@ INCLUDE "string.h"
 
 PUBLIC u_execv, k_execv
 
-EXTERN k_open, k_read, k_close, udup
+EXTERN k_open, k_read, k_close, udup, u_exit
 EXTERN kernel_stackSave
 
 u_execv:
@@ -166,7 +166,9 @@ argvEnd:
 
 	ld (kernel_stackSave), sp
 	ld sp, MEM_user_top
-	;push addr of exit so that the program can terminate with a ret?
+	;push addr of exit so that the program can terminate with a ret
+	ld bc, u_exit
+	push bc
 	ld bc, (execv_argc)
 	ld b, 0
 	ld hl, process_argVector
