@@ -18,3 +18,4 @@
 *~*
 include/errno.h
 include/sys/os.h
+include/sys/iomap.h

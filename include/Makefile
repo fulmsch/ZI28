@@ -1,6 +1,6 @@
 .PHONY: all clean distclean
 
-all: sys/os.h errno.h
+all: sys/os.h sys/iomap.h errno.h
 
 sys/os.h: asm/os.h
 	@echo '#ifndef OS_H' > sys/os.h
@@ -9,6 +9,14 @@ sys/os.h: asm/os.h
 	@sed -e 's/DEFC\s\+\(\w\+\)\s\+=\s\+\(\w\+\)/\#define \1 \2/' -e 's/;/\/\//g' -e '/^\(IFNDEF\|DEFINE\|ENDIF\)/d' asm/os.h >> sys/os.h
 	@echo '' >> sys/os.h
 	@echo '#endif' >> sys/os.h
+
+sys/iomap.h: asm/iomap.h
+	@echo '#ifndef IOMAP_H' > sys/iomap.h
+	@echo '#define IOMAP_H' >> sys/iomap.h
+	@echo '' >> sys/iomap.h
+	@sed -e 's/DEFC\s\+\(\w\+\)\s\+=\s\+\(\w\+\)/\#define \1 \2/' -e 's/;/\/\//g' -e '/^\(IFNDEF\|DEFINE\|ENDIF\)/d' asm/iomap.h >> sys/iomap.h
+	@echo '' >> sys/iomap.h
+	@echo '#endif' >> sys/iomap.h
 
 errno.h: asm/errno.h
 	@echo '#ifndef ERRNO_H' > errno.h
