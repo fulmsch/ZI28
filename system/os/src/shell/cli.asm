@@ -89,32 +89,51 @@ handleLine:
 	ld (argc), a
 
 	;break the input into individual strings
+findArg:
 	ld a, (hl)
 	cp 0x00
-	jr z, commandDispatch;finished the input string
+	jr z, commandDispatch ;finished the input string
+	cp '"'
+	jr z, quotedArg
 	cp ' '
-	jr z, nextArgSpace
+	jr nz, foundArg
+	inc hl
+	jr findArg
+
+
+foundArg:
 	call addArg
-	inc hl
 
-nextArg:
+insideOfArgLoop:
+	inc hl
 	ld a, (hl)
 	cp 0x00
-	jr z, commandDispatch;finished the input string
+	jr z, commandDispatch ;finished the input string
 	cp ' '
-	jr z, nextArgSpace
-	inc hl
-	jr nextArg
+	jr nz, insideOfArgLoop
 
-nextArgSpace:
-	ld a, 0x00
+	xor a
 	ld (hl), a
 	inc hl
-	ld a, (hl)
-	cp ' '
-	jr z, nextArgSpace
+	jr findArg
+
+
+quotedArg:
+	inc hl
 	call addArg
-	jr nextArg
+
+insideOfQuotedArgLoop:
+	inc hl
+	ld a, (hl)
+	cp 0x00
+	jr z, commandDispatch ;finished the input string
+	cp '"'
+	jr nz, insideOfQuotedArgLoop
+
+	xor a
+	ld (hl), a
+	inc hl
+	jr findArg
 
 addArg:
 	;increment argc
@@ -131,6 +150,7 @@ addArg:
 	ld (de), a
 	inc de
 	ret
+
 
 argOverflow:
 	ld hl, argOverflowStr
