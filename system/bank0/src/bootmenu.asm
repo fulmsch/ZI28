@@ -1,49 +1,24 @@
-ORG 0x0000
+SECTION rom_code
 
-;DEFINE DEBUG
+EXTERN getc, putc, romUtil, romUtilEnd
 
-; Jump Table -------------------------------------------------
-coldStart:
-	jp      _coldStart   ;RST 0x00
-	DEFB    0x00
-	jp      0x00         ;CALL 0x04
-	DEFB    0x00
-putc:
-	jp      _putc        ;RST 0x08
-	DEFB    0x00
-	jp      0x00         ;CALL 0x0C
-	DEFB    0x00
-getc:
-	jp      _getc        ;RST 0x10
-	DEFB    0x00
-	jp      0x00         ;CALL 0x14
-	DEFB    0x00
-	jp      0x00         ;RST 0x18
-	DEFB    0x00
-	jp      0x00         ;CALL 0x1C
-	DEFB    0x00
-	jp      0x00         ;RST 0x20
-	DEFB    0x00
-	jp      0x00         ;CALL 0x24
-	DEFB    0x00
-	jp      0x00         ;RST 0x28
-	DEFB    0x00
-	jp      0x00         ;CALL 0x2C
-	DEFB    0x00
-	jp      0x00         ;RST 0x30
-	DEFB    0x00
-	jp      0x00         ;CALL 0x34
-	DEFB    0x00
-	jp      0x00         ;RST 0x38
-
+PUBLIC _coldStart, _getc, _putc
 
 _coldStart:
 	ld sp, 0x8000
-	ld hl, welcomeMsg
+
+	cp 0
+	jr nz, warmStart
+
+	ld hl, nameStr
+	call printStr
+	ld hl, coldStartStr
+	call printStr
+	ld hl, bootMenuStr
 	call printStr
 
 	ld bc, 0x1000
-	ld d, 5
+	ld d, 3
 delayLoop:
 	ex (sp), hl
 	ex (sp), hl
@@ -54,38 +29,39 @@ delayLoop:
 	dec c
 	jr nz, delayLoop
 	ld a, 1
-	rst getc
+	call getc
 	jr z, bootMenu
 	djnz delayLoop
-	ld a, '.'
-	rst putc
 	dec d
 	jr nz, delayLoop
 
-IFDEF DEBUG
-	jr delayLoop
-ENDIF
 	jr bootOS
 
-bootMenu:
-	ld a, 1
-	rst getc
-	jr nz, emptyBuffer
-	xor a
-	rst getc
-emptyBuffer:
+
+warmStart:
+	ld hl, nameStr
+	call printStr
+	ld hl, warmStartStr
+	call printStr
 	ld hl, bootMenuStr
 	call printStr
+	jr bootMenuLoop
+
+bootMenu:
+	ld hl, bootAbortStr
+	call printStr
+
 bootMenuLoop:
 	xor a
-	rst getc
+	call getc
 	cp '1'
-	cp '2'
-	jr z, loadRomUtil
-	cp '3'
 	jr z, bootOS
+	cp '2'
+	;jp z, monitor
+	cp '3'
+	;jp z, basic
 	cp '4'
-	cp '5'
+	jr z, loadRomUtil
 	jr bootMenuLoop
 
 loadRomUtil:
@@ -108,18 +84,25 @@ bootOS:
 bootOSstr:
 	DEFM "\n\nBooting OS...\n", 0x00
 
+nameStr:
+	DEFM "\n### ZI-28 Boot Menu V0.0 ###\n"
+	DEFM "\n", 0x00
 
-welcomeMsg:
-	DEFM "\nPress any key for boot menu", 0x00
+coldStartStr:
+	DEFM "Press any key to stop automatic boot or select option:\n", 0x00
+
+warmStartStr:
+	DEFM "Select option:\n", 0x00
 
 bootMenuStr:
-	DEFM  "\n\n"
-	DEFM  "Select option:\n"
-	DEFM  "  1 - Monitor\n"
-	DEFM  "  2 - Burn EEPROM\n"
-	DEFM  "  3 - Boot into ZI-OS\n"
-	DEFM  "  4 - Launch BASIC\n"
-	DEFM "  5 - Selftest\n", 0x00
+	DEFM "  [1] Boot ZI-OS\n"
+	DEFM "  [2] Monitor\n"
+	DEFM "  [3] Launch BASIC\n"
+	DEFM "  [4] Burn EEPROM\n", 0x00
+
+bootAbortStr:
+	DEFM "\nAutomatic boot aborted\n", 0x00
+
 
 DEFC FT240_DATA_PORT   = 0
 DEFC FT240_STATUS_PORT = 1
@@ -168,7 +151,7 @@ printStr:
 	ld a, (hl)
 	cp 00h
 	ret z
-	rst putc
+	call putc
 	inc hl
 	jr printStr
 
@@ -176,7 +159,7 @@ printStr:
 bankSwitch:
 	ld a, 0x08
 	out (0x02), a
-	rst 0
+	jp 0
 bankSwitchEnd:
 
 romUtil:

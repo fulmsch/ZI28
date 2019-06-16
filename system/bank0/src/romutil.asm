@@ -502,4 +502,3 @@ convertToUpper:
 	ret nc
 	sub 0x20
 	ret
-	
