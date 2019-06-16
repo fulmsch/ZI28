@@ -193,6 +193,7 @@ checkIfFullpath:
 	cp 0x00
 	jr nz, checkIfFullpath
 
+
 	ld bc, dispatchTable
 	pop hl ;contains pointer to first string
 
@@ -355,5 +356,5 @@ pathBuffer: defs PATH_MAX
 PUBLIC env_workingPath
 env_workingPath: defs PATH_MAX
 
-cli_programName: defs 13
+cli_programName: defs PATH_MAX
 execStat:        defs STAT_LEN
