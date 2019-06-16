@@ -422,7 +422,7 @@ static byte context_io_read_callback(int param, ushort address) {
 		lua_State *L = globalLuaState;
 		int top = lua_gettop(L);
 		lua_getglobal(L, "modules");
-		lua_geti(L, -1, module + 1);
+		if (lua_geti(L, -1, module + 1) == LUA_TNIL) return data;
 		lua_getfield(L, -1, "read");
 		if (lua_isfunction(L, -1)) {
 			lua_insert(L, -2);
@@ -467,7 +467,7 @@ static void context_io_write_callback(int param, ushort address, byte data) {
 		lua_State *L = globalLuaState;
 		int top = lua_gettop(L);
 		lua_getglobal(L, "modules");
-		lua_geti(L, -1, module + 1);
+		if (lua_geti(L, -1, module + 1) == LUA_TNIL) return;
 		lua_getfield(L, -1, "write");
 		if (lua_isfunction(L, -1)) {
 			lua_insert(L, -2);
