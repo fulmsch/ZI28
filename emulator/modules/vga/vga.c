@@ -9,7 +9,7 @@
 #define LUA_LIB
 
 
-struct gpumod {
+struct vgamod {
 	bool isVisible;
 	uint8_t vram[0x8000];
 	uint8_t vram_old[0x8000];
@@ -17,12 +17,12 @@ struct gpumod {
 };
 
 
-static int gpu_read(lua_State *L) {
+static int vga_read(lua_State *L) {
 	// x11x: read from vram
 	// x1x1: advance coord registers
 	// x0xx: status register
 	lua_settop(L, 2);
-	struct gpumod *module = lua_touserdata(L, 1);
+	struct vgamod *module = lua_touserdata(L, 1);
 	int isnum;
 	unsigned int address = lua_tointegerx(L, 2, &isnum);
 	if (module == NULL || !isnum) {
@@ -50,12 +50,12 @@ static int gpu_read(lua_State *L) {
 	return 1;
 }
 
-static int gpu_write(lua_State *L) {
+static int vga_write(lua_State *L) {
 	// x0x1: write to xreg
 	// x01x: write to yreg
 	// x11x: write to vram
 	// x1x1: advance coord registers
-	struct gpumod *module = lua_touserdata(L, 1);
+	struct vgamod *module = lua_touserdata(L, 1);
 	int isnum1, isnum2;
 	unsigned int address = lua_tointegerx(L, 2, &isnum1);
 	unsigned char data = lua_tointegerx(L, 3, &isnum2);
@@ -85,20 +85,20 @@ static int gpu_write(lua_State *L) {
 	return 0;
 }
 
-static int gpu_hideWindow(lua_State *L) {
-	struct gpumod *module = lua_touserdata(L, 1);
+static int vga_hideWindow(lua_State *L) {
+	struct vgamod *module = lua_touserdata(L, 1);
 	module->isVisible = false;
 	return 0;
 }
 
-static int gpu_showWindow(lua_State *L) {
-	struct gpumod *module = lua_touserdata(L, 1);
+static int vga_showWindow(lua_State *L) {
+	struct vgamod *module = lua_touserdata(L, 1);
 	module->isVisible = true;
 	return 0;
 }
 
-static int gpuMain(void *data) {
-	struct gpumod *module = (struct gpumod *)data;
+static int vgaMain(void *data) {
+	struct vgamod *module = (struct vgamod *)data;
 	bool windowVisible = true;
 	bool done = false;
 	SDL_Event event;
@@ -171,36 +171,36 @@ static int gpuMain(void *data) {
 	return 0;
 }
 
-static const luaL_Reg gpu_interface[] = {
-	{"read",   gpu_read},
-	{"write",  gpu_write},
-	{"show",   gpu_showWindow},
-	{"hide",   gpu_hideWindow},
+static const luaL_Reg vga_interface[] = {
+	{"read",   vga_read},
+	{"write",  vga_write},
+	{"show",   vga_showWindow},
+	{"hide",   vga_hideWindow},
 	{NULL, NULL}
 };
 
 
 
-static int gpu_new(lua_State *L) {
+static int vga_new(lua_State *L) {
 	// Constructor
-	SDL_Thread *gpuThread;
+	SDL_Thread *vgaThread;
 	lua_settop(L, 0);
-	struct gpumod *module = lua_newuserdata(L, sizeof(struct gpumod));
+	struct vgamod *module = lua_newuserdata(L, sizeof(struct vgamod));
 	module->isVisible = true;
-	gpuThread = SDL_CreateThread(gpuMain, "gpu", (void *)module);
+	vgaThread = SDL_CreateThread(vgaMain, "vga", (void *)module);
 	lua_createtable(L, 0, 1); //last arg: number of entries
-	luaL_newlib(L, gpu_interface);
+	luaL_newlib(L, vga_interface);
 	lua_setfield(L, 2, "__index");
 	lua_setmetatable(L, 1);
 	return 1;
 }
 
-static const luaL_Reg module_gpu[] = {
-	{"new", gpu_new},
+static const luaL_Reg module_vga[] = {
+	{"new", vga_new},
 	{NULL, NULL}
 };
 
-LUAMOD_API int luaopen_gpu(lua_State *L) {
-  luaL_newlib(L, module_gpu);
+LUAMOD_API int luaopen_vga(lua_State *L) {
+  luaL_newlib(L, module_vga);
   return 1;
 }
