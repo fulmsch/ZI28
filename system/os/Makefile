@@ -7,7 +7,7 @@ ASMFILES = $(shell find $(SRCDIR)/ -type f -name '*.asm') \
            $(SRCDIR)/version.asm
 OBJFILES = $(ASMFILES:.asm=.o)
 
-.PHONY: all clean run distclean $(SRCDIR)/version.asm
+.PHONY: all clean distclean $(SRCDIR)/version.asm
 
 all: os.bin os.hex
 
@@ -35,6 +35,3 @@ clean:
 
 distclean: clean
 	@$(RM) *.bin os.hex
-
-run:
-	$(ROOTDIR)/emulator/zi28emu -r os.bin -c $(ROOTDIR)/user/sd.img& sleep 0.5 && picocom /tmp/zi28tty --omap crcrlf,delbs --send-cmd "ascii-xfr -snvde" --receive-cmd "ascii-xfr -rne"; killall zi28emu
