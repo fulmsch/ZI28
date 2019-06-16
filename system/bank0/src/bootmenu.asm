@@ -1,14 +1,16 @@
 SECTION rom_code
 
-EXTERN getc, putc, romUtil, romUtilEnd
+INCLUDE "bank0.h"
 
-PUBLIC _coldStart, _getc, _putc
+EXTERN romUtil, romUtilEnd, basic
+
+PUBLIC _coldStart, _getc, _putc, _warmStart
 
 _coldStart:
-	ld sp, 0x8000
-
 	cp 0
-	jr nz, warmStart
+	jr nz, _warmStart
+
+	ld sp, 0x8000
 
 	ld hl, nameStr
 	call printStr
@@ -29,7 +31,7 @@ delayLoop:
 	dec c
 	jr nz, delayLoop
 	ld a, 1
-	call getc
+	rst RST_getc
 	jr z, bootMenu
 	djnz delayLoop
 	dec d
@@ -38,7 +40,9 @@ delayLoop:
 	jr bootOS
 
 
-warmStart:
+_warmStart:
+	ld sp, 0x8000
+
 	ld hl, nameStr
 	call printStr
 	ld hl, warmStartStr
@@ -53,13 +57,13 @@ bootMenu:
 
 bootMenuLoop:
 	xor a
-	call getc
+	rst RST_getc
 	cp '1'
 	jr z, bootOS
 	cp '2'
 	;jp z, monitor
 	cp '3'
-	;jp z, basic
+	jp z, basic
 	cp '4'
 	jr z, loadRomUtil
 	jr bootMenuLoop
@@ -85,7 +89,7 @@ bootOSstr:
 	DEFM "\n\nBooting OS...\n", 0x00
 
 nameStr:
-	DEFM "\n### ZI-28 Boot Menu V0.0 ###\n"
+	DEFM "\n##############   ZI-28 Boot Menu V0.0   ##############\n"
 	DEFM "\n", 0x00
 
 coldStartStr:
@@ -151,7 +155,7 @@ printStr:
 	ld a, (hl)
 	cp 00h
 	ret z
-	call putc
+	rst RST_putc
 	inc hl
 	jr printStr
 
