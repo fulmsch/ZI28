@@ -6,7 +6,7 @@ INCLUDE "memmap.h"
 INCLUDE "vfs.h"
 INCLUDE "process.h"
 
-EXTERN dummyRoot, k_mount, k_open, k_dup, sd_init, mountRoot, k_chdir, b_cls, k_execv, cli, k_bsel
+EXTERN dummyRoot, k_mount, k_open, k_dup, mountRoot, k_chdir, b_cls, k_execv, cli, k_bsel
 
 PUBLIC _coldStart
 _coldStart:
@@ -48,9 +48,7 @@ _coldStart:
 	call k_dup
 
 
-	call sd_init ;TODO automatic init
-
-	;initialise main drive
+	;mount main drive
 	ld de, osDevName ;TODO configurable name in eeprom
 	ld a, FS_FAT
 	call mountRoot

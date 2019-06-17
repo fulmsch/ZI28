@@ -5,13 +5,13 @@ INCLUDE "math.h"
 INCLUDE "devfs.h"
 INCLUDE "drivers/sd.h"
 
+EXTERN sd_deviceDriver, devfs_addDev
+
 PUBLIC sd_init
 
 sd_init:
 ;; Initialises the SD-card
 ;;
-;; Input:
-;; : ix - devfs entry address
 
 	;TODO read mbr, find partitions
 
@@ -90,6 +90,18 @@ poll02:
 
 	call sd_disable
 
+
+
+	ld hl, sda1Name
+	ld de, sd_deviceDriver
+	ld a, 1
+	call devfs_addDev
+	call clear32
+
+; partition offset, should be read from the MBR
+	ld a, 0x80
+	call ld8
+
 	xor a
 	ret
 
@@ -97,3 +109,7 @@ error:
 	call sd_disable
 	ld a, -1
 	ret
+
+
+sda1Name:
+	DEFM "SDA1", 0x00

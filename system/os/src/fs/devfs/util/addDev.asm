@@ -51,6 +51,12 @@ freeEntryFound:
 
 	;register driver address
 	pop de ;driver address
+	ld b, d
+	ld c, e
+	;bc = device driver
+	inc de
+	inc de
+	;de = file driver
 	ld (hl), e
 	inc hl
 	ld (hl), d
@@ -60,6 +66,27 @@ freeEntryFound:
 	pop af
 	ld (hl), a
 	inc hl
+
+	push hl ;custom data start
+
+	;call init function if it exists
+	ld a, (bc)
+	ld l, a
+	inc bc
+	ld a, (bc)
+	ld h, a
+	xor a
+	cp h
+	jr nz, callInit
+	cp l
+	jr z, return
+callInit:
+	ld bc, return
+	push bc
+	jp (hl)
+return:
+
+	pop hl ;custom data start
 
 	or a
 	ret
