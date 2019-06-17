@@ -93,3 +93,7 @@ PUBLIC regA, regB, regC
 regA: defs 4
 regB: defs 4
 regC: defs 4
+
+PUBLIC kheap
+SECTION ram_kheap
+kheap:

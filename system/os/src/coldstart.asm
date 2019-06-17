@@ -7,6 +7,7 @@ INCLUDE "vfs.h"
 INCLUDE "process.h"
 
 EXTERN dummyRoot, k_mount, k_open, k_dup, mountRoot, k_chdir, b_cls, k_execv, cli, k_bsel
+EXTERN kalloc_nextBlock, kheap
 
 PUBLIC _coldStart
 _coldStart:
@@ -18,6 +19,9 @@ _coldStart:
 	ld bc, 0xbfff
 	ld (hl), 0x00
 	ldir
+
+	ld hl, kheap
+	ld (kalloc_nextBlock), hl
 
 	;clear the fd tables (set everything to 0xff)
 	ld hl, k_fdTable

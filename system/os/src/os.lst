@@ -116,3 +116,4 @@ src/drivers/ft240/ft240.o
 src/drivers/ft240/write.o
 src/get_drive_and_path.o
 src/font.o
+src/kalloc.o
