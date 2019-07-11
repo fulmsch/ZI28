@@ -115,6 +115,10 @@ src/drivers/unio.o
 src/drivers/ft240/read.o
 src/drivers/ft240/ft240.o
 src/drivers/ft240/write.o
+src/drivers/vt100/vt100.o
+src/drivers/vt100/init.o
+src/drivers/vt100/read.o
+src/drivers/vt100/write.o
 src/get_drive_and_path.o
 src/font.o
 src/kalloc.o

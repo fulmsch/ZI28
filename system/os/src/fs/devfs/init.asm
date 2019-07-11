@@ -5,7 +5,7 @@ INCLUDE "math.h"
 
 PUBLIC devfs_init
 
-EXTERN ft240_deviceDriver, devfs_addDev, sd_deviceDriver
+EXTERN ft240_deviceDriver, devfs_addDev, sd_deviceDriver, vt100_deviceDriver
 
 devfs_init:
 ;; Adds all permanently attached devices
@@ -16,9 +16,15 @@ devfs_init:
 	ld a, 0
 	call devfs_addDev
 
+
 	ld hl, sdaName
 	ld de, sd_deviceDriver
-	ld a, 0
+	ld a, 0x80
+	call devfs_addDev
+
+	ld hl, vgattyName
+	ld de, vt100_deviceDriver
+	ld a, 0x90
 	call devfs_addDev
 
 
@@ -30,3 +36,5 @@ tty0name:
 	DEFM "TTY0", 0x00
 sdaName:
 	DEFM "SDA", 0x00
+vgattyName:
+	DEFM "VGATTY", 0x00
