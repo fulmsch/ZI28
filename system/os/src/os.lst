@@ -24,6 +24,7 @@ src/string/strncat.o
 src/string/memset.o
 src/string/strncmp.o
 src/string/print.o
+src/string/printDec.o
 src/string/strbegins.o
 src/string/getc.o
 src/string/strlen.o

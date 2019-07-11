@@ -24,6 +24,7 @@ EXTERN strbegins
 EXTERN getc
 EXTERN putc
 EXTERN print
+EXTERN printDec8, printDec16
 
 EXTERN toupper
 
