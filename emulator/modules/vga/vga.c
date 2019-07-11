@@ -107,8 +107,8 @@ static int vgaMain(void *data) {
 	int x, y;
 
 	for (int i = 0; i < 0x8000; i++) {
-		module->vram[i] = 0;
-		module->vram_old[i] = 0;
+		module->vram[i] = rand();
+		module->vram_old[i] = module->vram[i];
 	}
 
 #define WIDTH 1024
