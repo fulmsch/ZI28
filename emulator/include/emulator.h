@@ -8,6 +8,9 @@
 
 #include "libz80/z80.h"
 
+byte readMem(ushort address);
+void writeMem(ushort address, byte data);
+
 typedef enum {
 	TYPE_BREAK, TYPE_TRACE, TYPE_WATCH
 } BREAK_TYPE;

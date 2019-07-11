@@ -5,6 +5,7 @@
 #include "luainterface.h"
 #include "emulator.h"
 #include "interpreter.h"
+#include "ui.h"
 
 
 static int breakpointMetatable;
@@ -69,6 +70,8 @@ static int luaF_newBreakpoint(lua_State *L);
 static int luaF_newTracepoint(lua_State *L);
 static int luaF_newWatchpoint(lua_State *L);
 static int luaF_addmodule(lua_State *L);
+static int luaF_regdump(lua_State *L);
+static int luaF_memdump(lua_State *L);
 
 static int luaF_continue(lua_State *L);
 static int luaF_advance(lua_State *L);
@@ -98,6 +101,9 @@ static luaL_Reg luaFunctionTable[] = {
 	{"tracepoint", luaF_newTracepoint},
 	{"watchpoint", luaF_newWatchpoint},
 	{"addmodule",  luaF_addmodule    },
+	{"rd",         luaF_regdump      },
+//	{"regdump",    luaF_regdump      },
+	{"dump",       luaF_memdump      },
 };
 
 void setupLuaEnv(lua_State *L)
@@ -425,4 +431,65 @@ static int luaF_addmodule(lua_State *L)
 	lua_pushvalue(L, -1);
 	lua_seti(L, -4, slot);
 	return 1;
+}
+
+static int luaF_regdump(lua_State *L)
+{
+	console("\n");
+	console("AF   BC   DE   HL   IX   IY   SP\n");
+	console("%04X %04X %04X %04X %04X %04X %04X\n",
+	         zi28.context.R1.wr.AF,
+	         zi28.context.R1.wr.BC,
+	         zi28.context.R1.wr.DE,
+	         zi28.context.R1.wr.HL,
+	         zi28.context.R1.wr.IX,
+	         zi28.context.R1.wr.IY,
+	         zi28.context.R1.wr.SP
+	       );
+	console("\n");
+	console("AF'  BC'  DE'  HL'\n");
+	console("%04X %04X %04X %04X\n",
+	         zi28.context.R2.wr.AF,
+	         zi28.context.R2.wr.BC,
+	         zi28.context.R2.wr.DE,
+	         zi28.context.R2.wr.HL
+	       );
+	console("\n");
+	return 0;
+}
+
+static int luaF_memdump(lua_State *L)
+{
+	int isnum1, isnum2;
+	uint16_t address = lua_tointegerx(L, 1, &isnum1);
+	int len = lua_tointegerx(L, 2, &isnum2);
+	if (!isnum1) return luaL_error(L, "Invalid argument");
+	if (!isnum2) len = 256;
+	printf("\n    + ");
+	for (int i = 0; i < 16; i++) {
+		console("%02X ", i);
+	}
+	printf("\n\n");
+	while (len > 0) {
+		console("%04X: ", address);
+		for (int i = 0; i < 16; i++) {
+			if (i < len) {
+				console("%02X ", readMem(address + i));
+			} else {
+				console("   ");
+			}
+		}
+		for (int i = 0; i < 16 && i < len; i++) {
+			if (i < len) {
+				uint8_t b = readMem(address + i);
+				console("%c", (b >= ' ' && b <= '~') ? b : '.');
+			} else {
+				console(" ");
+			}
+		}
+		console("\n");
+		len -= 16;
+		address += 16;
+	}
+	return 0;
 }

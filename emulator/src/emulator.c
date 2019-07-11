@@ -32,6 +32,36 @@ int breakpoints[0x10000];
 struct pollfd pty[1];
 struct termios ptyTermios;
 
+byte readMem(ushort address)
+{
+	if (address < 0x4000) {
+		//rom
+		return zi28.rom[address + zi28.romBank * 0x4000];
+	} else if (address >= 0xc000) {
+		//banked ram
+		return zi28.ram[address + 0x4000 + zi28.ramBank * 0x2000];
+	} else {
+		//regular ram
+		return zi28.ram[address - 0x4000];
+	}
+}
+
+void writeMem(ushort address, byte data)
+{
+	if (address < 0x4000) {
+		//rom
+		if (!romProtect) {
+			zi28.rom[address + zi28.romBank * 0x2000] = data;
+		}
+	} else if (address >= 0xc000) {
+		//banked ram
+		zi28.ram[address + 0x4000 + zi28.ramBank * 0x2000] = data;
+	} else {
+		//regular ram
+		zi28.ram[address - 0x4000] = data;
+	}
+}
+
 static int evaluateCondition(lua_State *L, struct breakpoint *bp)
 {
 	//Return -1 on error, 0 if false, 1 if true
@@ -382,32 +412,12 @@ static EMU_STATUS doStep(lua_State *L)
 }
 
 static byte context_mem_read_callback(int param, ushort address) {
-	if (address < 0x4000) {
-		//rom
-		return zi28.rom[address + zi28.romBank * 0x4000];
-	} else if (address >= 0xc000) {
-		//banked ram
-		return zi28.ram[address + 0x4000 + zi28.ramBank * 0x2000];
-	} else {
-		//regular ram
-		return zi28.ram[address - 0x4000];
-	}
+	return readMem(address);
 }
 
 static void context_mem_write_callback(int param, ushort address, byte data) {
 	if (zi28.watchpoints[address]) breakflag = 1;
-	if (address < 0x4000) {
-		//rom
-		if (!romProtect) {
-			zi28.rom[address + zi28.romBank * 0x2000] = data;
-		}
-	} else if (address >= 0xc000) {
-		//banked ram
-		zi28.ram[address + 0x4000 + zi28.ramBank * 0x2000] = data;
-	} else {
-		//regular ram
-		zi28.ram[address - 0x4000] = data;
-	}
+	writeMem(address, data);
 }
 
 static byte context_io_read_callback(int param, ushort address) {
