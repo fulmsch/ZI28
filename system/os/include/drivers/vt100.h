@@ -1,6 +1,0 @@
-IFNDEF VT100_H
-DEFINE VT100_H
-
-EXTERN vt100_init, vt100_read, vt100_write
-
-ENDIF

@@ -1,99 +1,134 @@
-;; OS entry and call table
-;ZI-28 OS
-;Florian Ulmschneider 2016-2017
+#include "macros.asm"
 
-;TODO:
+; RESET AND INTERRUPT VECTORS ===================
 
-; Jump Table -------------------------------------------------
+	org 0x0000   ; Entry point
 
-org 0x0000
+	di           ; RST 0x00
+	jp RESET
+	nop
+	nop
+	nop
+	nop
 
-EXTERN _coldStart, _putc, _getc, _strerror, _syscall, _monitor
+	jp putc      ; RST 0x08
+	nop
+	nop
+	nop
+	nop
+	nop
 
-	jp      _coldStart   ;RST 0x00
-	DEFB    0x00
-	jp      0x00         ;CALL 0x04
-	DEFB    0x00
-	jp      _putc        ;RST 0x08
-	DEFB    0x00
-	jp      0x00         ;CALL 0x0C
-	DEFB    0x00
-	jp      _getc        ;RST 0x10
-	DEFB    0x00
-	jp      0x00         ;CALL 0x14
-	DEFB    0x00
-	jp      0x00         ;RST 0x18
-	DEFB    0x00
-	jp      0x00         ;CALL 0x1C
-	DEFB    0x00
-	jp      0x00         ;RST 0x20
-	DEFB    0x00
-	jp      0x00         ;CALL 0x24
-	DEFB    0x00
-	jp      _strerror    ;RST 0x28
-	DEFB    0x00
-	jp      0x00         ;CALL 0x2C
-	DEFB    0x00
-	jp      _syscall     ;RST 0x30
-	DEFB    0x00
-	jp      0x00         ;CALL 0x34
-	DEFB    0x00
-	jp      _monitor     ;RST 0x38
+	jp getc      ; RST 0x10
+	nop
+	nop
+	nop
+	nop
+	nop
 
+	jp CKINCHAR  ; RST 0x18
+	nop
+	nop
+	nop
+	nop
+	nop
 
-;SECTION rom_nmi
-DEFS 0x66 - ASMPC
-EXTERN ISR_keyboard
-	DEFW ISR_keyboard
+RST_next:        ; RST 0x20
+	pop hl ; discard return address
+	ex de, hl
+	ld e, (hl)
+	inc hl
+	ld d, (hl)
+	inc hl
+	ex de, hl
+	jp (hl)
 
-;SECTION rom_syscallTable
-DEFS 0x0100 - ASMPC
-PUBLIC syscallTable, syscallTableEnd
-EXTERN u_open, u_close, u_read, u_write, u_seek, u_lseek, u_stat, u_fstat
-EXTERN u_readdir, u_dup, u_mount, u_unmount, u_unlink
-EXTERN u_bsel, u_execv, u_exit
-EXTERN u_chdir, u_getcwd
-syscallTable:
-	DEFW u_open
-	DEFW u_close
-	DEFW u_read
-	DEFW u_write
-	DEFW u_seek
-	DEFW u_lseek
-	DEFW u_stat
-	DEFW u_fstat
-	DEFW u_readdir
-	DEFW u_dup
-	DEFW u_mount
-	DEFW u_unmount
-	DEFW u_unlink
-	DEFW u_bsel
-	DEFW u_execv
-	DEFW u_exit
-	DEFW u_chdir
-	DEFW u_getcwd
-syscallTableEnd:
-DEFB 0
+	nop         ; RST 0x28
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
 
-SECTION rom_code
-SECTION rom_data
+	nop         ; RST 0x30
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
 
+	nop         ; RST 0x38
 
-SECTION RAM ;0x4000 - 0x7fff, 16kB
-	org 0x4000
+;------------------------------------------------------------------------------
 
-SECTION ram_driveTable
-SECTION ram_fileTable
-SECTION ram_fdTable
+FT240_DATA_PORT   = 0
+FT240_STATUS_PORT = 1
 
-SECTION ram_os
+getc:
+_getc_blocking:
+	in a, (FT240_STATUS_PORT)
+	bit 1, a
+	jr nz, _getc_blocking
+	in a, (FT240_DATA_PORT)
+	cp 0x0d ;'\r'
+	jr z, _getc_blocking
+	ret
 
-;32bit registers
-PUBLIC regA, regB, regC
-regA: defs 4
-regB: defs 4
-regC: defs 4
+putc:
+	push af
+_putc_poll:
+	in a, (FT240_STATUS_PORT)
+	bit 0, a
+	jr nz, _putc_poll
+	pop af
+	cp 0x0a ;'\n'
+	call z, _putc_newline
+	out (FT240_DATA_PORT), a
+	ret
+_putc_newline:
+	ld a, 0x0d ;'\r'
+	out (FT240_DATA_PORT), a
+	ld a, 0x0a ;'\n'
+	ret
 
-PUBLIC kheap
-SECTION ram_kheap
-kheap:
+CKINCHAR:
+	in a, (FT240_STATUS_PORT)
+	bit 1, a
+	ret
+
+;------------------------------------------------------------------------------
+
+RAMEND = 0xFFFF
+RESET:  ld hl,RAMEND
+	ld l,0       ;    = end of avail.mem (EM)
+	dec h        ; EM-0x100
+	ld sp,hl     ;      = top of param stack
+	inc h        ; EM
+	push hl
+	pop ix       ;      = top of return stack
+	dec h        ; EM-0x200
+	dec h
+	push hl
+	pop iy       ;      = bottom of user area
+	ld de,1      ; do reset if COLD returns
+	jp COLD      ; enter top-level Forth word
+
+; Memory map:
+;   0-0x2000    Forth kernel = start of 
+;     ? h       Forth dictionary (user RAM)
+;   EM-0x280    Terminal Input Buffer, 128 bytes
+;   EM-0x200    User area, 128 bytes
+;   EM-0x180    Parameter stack, 128B, grows down
+;   EM-0x100    HOLD area, 40 bytes, grows down
+;   EM-0x0D8    PAD buffer, 88 bytes
+;   EM-80h      Return stack, 128 B, grows down
+;   EM          End of RAM = changes based on 32k vs 64k
+; See also the definitions of U0, S0, and R0
+; in the "system variables & constants" area.
+; A task w/o terminal input requires 0x200 bytes.
+; Double all except TIB and PAD for 32-bit CPUs.
+
+#include "forthdict.asm"
