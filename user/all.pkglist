@@ -2,5 +2,7 @@ basefs
 coreutil
 tests
 msbasic
+vgatest
+vgatestc
 
 @games/games.pkglist
