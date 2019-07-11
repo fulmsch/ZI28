@@ -18,6 +18,7 @@ src/shell/builtins/echo.o
 src/shell/builtins/exit.o
 src/shell/builtins/help.o
 src/shell/builtins/pwd.o
+src/shell/builtins/forth.o
 src/string/toupper.o
 src/string/strcat.o
 src/string/strncat.o

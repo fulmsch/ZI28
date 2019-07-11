@@ -339,6 +339,7 @@ chdirStr:   DEFM "CD", 0x00
 clsStr:     DEFM "CLS", 0x00
 echoStr:    DEFM "ECHO", 0x00
 exitStr:    DEFM "EXIT", 0x00
+forthStr:   DEFM "FORTH", 0x00
 helpStr:    DEFM "HELP", 0x00
 monStr:     DEFM "MONITOR", 0x00
 mountStr:   DEFM "MOUNT", 0x00
@@ -348,12 +349,13 @@ verStr:     DEFM "VER", 0x00
 nullStr:    DEFM 0x00
 
 PUBLIC dispatchTable
-EXTERN b_chdir, b_cls, b_echo, b_exit, b_help, b_monitor, b_mount, b_pwd, b_test, b_ver
+EXTERN b_chdir, b_cls, b_echo, b_exit, b_forth, b_help, b_monitor, b_mount, b_pwd, b_test, b_ver
 dispatchTable:
 	DEFW chdirStr,  b_chdir
 	DEFW clsStr,    b_cls
 	DEFW echoStr,   b_echo
 	DEFW exitStr,   b_exit
+	DEFW forthStr,  b_forth
 	DEFW helpStr,   b_help
 	DEFW monStr,    b_monitor
 	DEFW mountStr,  b_mount
