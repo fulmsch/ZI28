@@ -158,4 +158,3 @@ attempts:
 
 invalid:
 	DEFM "Invalid Entry!\n", 0x00
-lbl invalid
