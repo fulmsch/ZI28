@@ -14,6 +14,7 @@
 #include "interpreter.h"
 #include "emulator.h"
 #include "libz80/z80.h"
+#include "config.h"
 
 int romProtect = 0;
 
@@ -91,7 +92,9 @@ int main(int argc, char **argv) {
 	int help_flag = 0;
 	int romFile_flag = 0;
 	int silent_flag = 0;
+	int configFlag = 0;
 	int c;
+	char *configFile = NULL;
 	atexit(cleanup);
 	signal(SIGINT, sigHandler);
 	signal(SIGTERM, sigHandler);
@@ -102,6 +105,7 @@ int main(int argc, char **argv) {
 			{"text-mode", no_argument,       0, 't'},
 			{"rom-file",  required_argument, 0, 'r'},
 			{"silent",    no_argument,       0, 's'},
+			{"config",    required_argument, 0, 'c'},
 			{0, 0, 0, 0}
 		};
 		int option_index = 0;
@@ -121,6 +125,10 @@ int main(int argc, char **argv) {
 				break;
 			case 's':
 				silent_flag = 1;
+				break;
+			case 'c':
+				configFlag = 1;
+				configFile = optarg;
 				break;
 			case '?':
 				fprintf(stderr, "Invalid invocation.\nUse '--help' for help.\n");
@@ -158,150 +166,20 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Error: Could not open '%s'.\n", romFileName);
 		exit(1);
 	}
-	interpreter_init();
+
+	if (!configFlag) {
+		char initFileName[] = "init.lua";
+		char *configDir = getConfigDir();
+		configFile = malloc(strlen(configDir) + strlen(initFileName) + 1);
+		strcpy(configFile, configDir);
+		strcat(configFile, initFileName);
+		free(configDir);
+	}
+	interpreter_init(configFile);
+	if (!configFlag && configFile != NULL) {
+		free(configFile);
+	}
 	interpreter_run();
 
 	return 0;
 }
-
-//gint timeout_update(gpointer data) {
-//	if (CONT == status) {
-//		if (breakpointsEnabled) {
-//			if (emu_runCycles(80000, 1)) {
-//				console("Break at 0x%04X.\n", zi28.context.PC);
-//				status = PAUSE;
-//			}
-//		} else {
-//			emu_runCycles(80000, 0);
-//		}
-//	}
-//	updateRegisters();
-//	return 1;
-//}
-//
-//
-//void on_Continue_clicked() {
-//	clearRegisters();
-//	console("Running...\n");
-//	status = CONT;
-//}
-//
-//void on_Pause_clicked() {
-//	console("Paused at: 0x%04X.\n", zi28.context.PC);
-//	status = PAUSE;
-//};
-//
-//void on_Step_clicked() {
-//	status = PAUSE;
-//	emu_runCycles(1, 1);
-//}
-//
-//void on_Reset_clicked() {
-//	console("System reset.\n");
-//	emu_reset();
-//}
-//
-//void on_break_enable_toggled(GtkToggleButton *toggle_button) {
-////	breakpointsEnabled = gtk_toggle_button_get_active(toggle_button);
-//}
-//
-//void on_break_add_clicked() {
-//	/*
-//	const char *str = gtk_entry_get_text(g_field_break);
-//	char *endptr;
-//	unsigned int val = strtoul(str, &endptr, 16);
-//	if ('\0'== *endptr ) {
-//		if (!breakpoints[val]) {
-//			breakpoints[val] = 1;
-//			console("Added breakpoint at address 0x%04X.\n", val);
-//		} else {
-//			console("There's already a breakpoint at address 0x%04X.\n", val);
-//		}
-//	} else {
-//		console("Invalid address.\n");
-//	}
-//	*/
-//}
-//
-//void on_break_rem_all_clicked() {
-//	memset(&breakpoints[0], 0, sizeof(breakpoints));
-//}
-//
-//void on_menu_mem_romProtect_toggled(GtkCheckMenuItem *check_menu_item) {
-//	romProtect = gtk_check_menu_item_get_active(check_menu_item);
-//	if (romProtect) {
-//		console("ROM Write-Protection on.\n");
-//	} else {
-//		console("ROM Write-Protection off.\n");
-//	}
-//}
-//
-//void on_menu_mem_romLoad_activate() {
-//	GtkWidget *dialog;
-//	gint res;
-//
-//	dialog = gtk_file_chooser_dialog_new ("Open ROM-Image",
-//										  GTK_WINDOW(window),
-//										  GTK_FILE_CHOOSER_ACTION_OPEN,
-//										  "_Cancel",
-//										  GTK_RESPONSE_CANCEL,
-//										  "_Open",
-//										  GTK_RESPONSE_ACCEPT,
-//										  NULL);
-//
-//	res = gtk_dialog_run (GTK_DIALOG (dialog));
-//	if (res == GTK_RESPONSE_ACCEPT) {
-//		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-//		romFileName = gtk_file_chooser_get_filename (chooser);
-//		if (!emu_loadRom(romFileName))
-//			console("Loaded the contents of '%s' into ROM.\n", romFileName);
-//		else
-//			console("Could not open '%s'.\n", romFileName);
-//	}
-//
-//	gtk_widget_destroy (dialog);
-//}
-//
-//void on_menu_mem_romReload_activate() {
-//	if (romFileName) {
-//		if (!emu_loadRom(romFileName))
-//			console("Could not open '%s'.\n", romFileName);
-//		else
-//			console("ROM-File reloaded.\n");
-//	} else {
-//		console("Warning: No ROM-file specified.\n");
-//	}
-//}
-//
-//void on_menu_mem_ramClear_activate() {
-//	for (int i = 0; i < 0x20000; i++) {
-//		zi28.ram[i] = 0;
-//	}
-//	console("RAM cleared.\n");
-//}
-//
-//void on_menu_mem_ramRand_activate() {
-//	for (int i = 0; i < 0x20000; i++) {
-//		zi28.ram[i] = rand();
-//	}
-//	console("RAM randomized.\n");
-//}
-//
-//void on_menu_mem_editor_activate() {
-//	/*
-//	GtkWidget *memEditorWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-//	HexDocument *hexdoc = hex_document_new();
-//	hex_document_set_data(hexdoc, 0,
-//								  0x10000, 0, memory,
-//								  FALSE);
-//	GtkWidget *hexeditor = gtk_hex_new(hexdoc);
-//	gtk_hex_show_offsets(GTK_HEX(hexeditor), TRUE);
-//	gtk_container_add(GTK_CONTAINER(memEditorWindow), hexeditor);
-//	gtk_widget_show_all(memEditorWindow);
-//	*/
-//}
-//
-//void on_menu_help_about_activate() {
-//	gtk_dialog_run(GTK_DIALOG(window_about));
-//	gtk_widget_hide(window_about);
-//}
