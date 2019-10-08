@@ -50,9 +50,9 @@ void writeMem(ushort address, byte data)
 {
 	if (address < 0x4000) {
 		//rom
-		if (!romProtect) {
-			zi28.rom[address + zi28.romBank * 0x2000] = data;
-		}
+		//if (!romProtect) {
+			zi28.rom[address + zi28.romBank * 0x4000] = data;
+		//}
 	} else if (address >= 0xc000) {
 		//banked ram
 		zi28.ram[address + 0x4000 + zi28.ramBank * 0x2000] = data;
@@ -180,7 +180,7 @@ void emu_init() {
 	pty[0].fd = STDIN_FILENO;
 	pty[0].events = POLLIN;
 
-	romProtect = 1;
+	//romProtect = 1;
 
 	breakflag = 0;
 

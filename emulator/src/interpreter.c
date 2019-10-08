@@ -7,7 +7,6 @@
 #include <lualib.h>
 
 #include "interpreter.h"
-#include "config.h"
 #include "emulator.h"
 #include "luainterface.h"
 
@@ -24,7 +23,7 @@ static void l_print (lua_State *L);
 static int report (lua_State *L, int status);
 static int msghandler (lua_State *L);
 
-void interpreter_init()
+void interpreter_init(char *configFile)
 {
 	quitRequest = 0;
 
@@ -34,20 +33,12 @@ void interpreter_init()
 
 	setupLuaEnv(L);
 
-	//Load configuration files
-	char initFileName[] = "init.lua";
-	char *configDir = getConfigDir();
-	char *globalConfigFile = malloc(strlen(configDir) + strlen(initFileName) + 1);
-	strcpy(globalConfigFile, configDir);
-	strcat(globalConfigFile, initFileName);
+	//Load configuration file
 	//TODO create stub if config file doesn't exist yet
-	if (luaL_loadfile(L, globalConfigFile) || lua_pcall(L, 0, 0, 0)) {
+	if (luaL_loadfile(L, configFile) || lua_pcall(L, 0, 0, 0)) {
 		fprintf(stderr, "%s\n", lua_tostring(L, -1));
 		lua_pop(L, 1);  /* pop error message from the stack */
 	}
-
-	free(globalConfigFile);
-	free(configDir);
 
 	using_history();
 }
