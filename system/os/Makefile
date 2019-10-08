@@ -7,7 +7,7 @@ ASMFILES = $(shell find $(SRCDIR)/ -type f -name '*.asm') \
 
 .PHONY: all clean distclean $(SRCDIR)/version.asm
 
-all: os.bin os.hex
+all: os.bin os.hex romdisk.bin
 
 $(SRCDIR)/version.asm:
 	@echo 'version:' >> $@
@@ -19,6 +19,8 @@ os.bin: $(ASMFILES)
 os.hex: os.bin
 	objcopy -I binary -O ihex os.bin os.hex
 
+romdisk.bin: romdisk.fs
+	$(UTILDIR)/text2block.py $^ > $@
 
 clean:
 	@$(RM) $(SRCDIR)/version.asm

@@ -20,7 +20,7 @@
 ; See also "defining words" at end of this file
 
 ;C EXIT     --      exit a colon definition
-    defcode EXIT,4,EXIT,0
+    defcode EXIT,4,exit,0
 	ld e,(ix+0)    ; pop old IP from ret stk
 	inc ix
 	ld d,(ix+0)
@@ -29,7 +29,7 @@
 
 ;Z LIT      -- x    fetch inline literal to stack
 ; This is the primtive compiled by LITERAL.
-    defcode LIT,3,LIT,0
+    defcode LIT,3,lit,0
 	push bc        ; push old TOS
 	ld a,(de)      ; fetch cell at IP to TOS,
 	ld c,a         ;        advancing IP
@@ -41,7 +41,7 @@
 
 ;C EXECUTE   i*x xt -- j*x   execute Forth word
 ;C                           at 'xt'
-    defcode EXECUTE,7,EXECUTE,0
+    defcode EXECUTE,7,execute,0
 	ld h,b          ; address of word -> HL
 	ld l,c
 	pop bc          ; get new TOS
@@ -66,7 +66,7 @@ enter:  dec ix         ; push old IP on ret stack
 ;   CREATE 1 CELLS ALLOT ;
 ; Action of RAM variable is identical to CREATE,
 ; so we don't need a DOES> clause to change it.
-    defword VARIABLE,8,VARIABLE,0
+    defword VARIABLE,8,variable,0
 	dw CREATE,LIT,1,CELLS,ALLOT,EXIT
 ; DOVAR, code action of VARIABLE, entered by CALL
 ; DOCREATE, code action of newly created words
@@ -80,7 +80,7 @@ dovar:  ; -- a-addr
 
 ;C CONSTANT   n --      define a Forth constant
 ;   CREATE , DOES> (machine code fragment)
-    defword CONSTANT,8,CONSTANT,0
+    defword CONSTANT,8,constant,0
 	dw CREATE,COMMA,XDOES
 ; DOCON, code action of CONSTANT,
 ; entered by CALL DOCON
@@ -94,7 +94,7 @@ docon:  ; -- x
 
 ;Z USER     n --        define user variable 'n'
 ;   CREATE , DOES> (machine code fragment)
-    defword USER,4,USER,0
+    defword USER,4,user,0
 	dw CREATE,COMMA,XDOES
 ; DOUSER, code action of USER,
 ; entered by CALL DOUSER
@@ -133,14 +133,14 @@ dodoes: ; -- a-addr
 	next
 
 ;C EMIT     c --    output character to console
-    defcode EMIT,4,EMIT,0
+    defcode EMIT,4,emit,0
 	ld a, c      ; grab the character from TOS, put in A
 	pop bc       ; pop it off the stack
 	rst 0x08     ; call SBC TXA to output to serial
 	next
 
 ;X KEY?     -- f    return true if char waiting
-    defcode QUERYKEY,4,KEY?,0
+    defcode QUERYKEY,4,key?,0
 	rst 0x18     ; call SBC CHKINCHAR on serial
 	push bc      ; push old TOS
 	ld b, 0
@@ -148,7 +148,7 @@ dodoes: ; -- a-addr
 	next
 
 ;C KEY      -- c    get character from keyboard
-    defcode KEY,3,KEY,0
+    defcode KEY,3,key,0
 	rst 0x10       ; call SBC RXA to read from serial
 	push bc           ; push TOS down
 	ld b, 0
@@ -159,24 +159,24 @@ dodoes: ; -- a-addr
 ; STACK OPERATIONS ==============================
 
 ;C DUP      x -- x x      duplicate top of stack
-    defcode DUP,3,DUP,0
+    defcode DUP,3,dup,0
 pushtos: push bc
 	next
 
 ;C ?DUP     x -- 0 | x x    DUP if nonzero
-    defcode QDUP,4,?DUP,0
+    defcode QDUP,4,?dup,0
 	ld a,b
 	or c
 	jr nz,pushtos
 	next
 
 ;C DROP     x --          drop top of stack
-    defcode DROP,4,DROP,0
+    defcode DROP,4,drop,0
 poptos: pop bc
 	next
 
 ;C SWAP     x1 x2 -- x2 x1    swap top two items
-    defcode SWOP,4,SWAP,0
+    defcode SWOP,4,swap,0
 	pop hl
 	push bc
 	ld b,h
@@ -184,7 +184,7 @@ poptos: pop bc
 	next
 
 ;C OVER    x1 x2 -- x1 x2 x1   per stack diagram
-    defcode OVER,4,OVER,0
+    defcode OVER,4,over,0
 	pop hl
 	push hl
 	push bc
@@ -193,7 +193,7 @@ poptos: pop bc
 	next
 
 ;C ROT    x1 x2 x3 -- x2 x3 x1  per stack diagram
-    defcode ROT,3,ROT,0
+    defcode ROT,3,rot,0
 	; x3 is in TOS
 	pop hl          ; x2
 	ex (sp),hl      ; x2 on stack, x1 in hl
@@ -203,15 +203,15 @@ poptos: pop bc
 	next
 
 ;X NIP    x1 x2 -- x2           per stack diagram
-    defword NIP,3,NIP,0
+    defword NIP,3,nip,0
 	dw SWOP,DROP,EXIT
 
 ;X TUCK   x1 x2 -- x2 x1 x2     per stack diagram
-    defword TUCK,4,TUCK,0
+    defword TUCK,4,tuck,0
 	dw SWOP,OVER,EXIT
 
 ;C >R    x --   R: -- x   push to return stack
-    defcode TOR,2,>R,0
+    defcode TOR,2,>r,0
 	dec ix          ; push TOS onto rtn stk
 	ld (ix+0),b
 	dec ix
@@ -220,7 +220,7 @@ poptos: pop bc
 	next
 
 ;C R>    -- x    R: x --   pop from return stack
-    defcode RFROM,2,R>,0
+    defcode RFROM,2,r>,0
 	push bc         ; push old TOS
 	ld c,(ix+0)     ; pop top rtn stk item
 	inc ix          ;       to TOS
@@ -229,14 +229,14 @@ poptos: pop bc
 	next
 
 ;C R@    -- x     R: x -- x   fetch from rtn stk
-    defcode RFETCH,2,R@,0
+    defcode RFETCH,2,r@,0
 	push bc         ; push old TOS
 	ld c,(ix+0)     ; fetch top rtn stk item
 	ld b,(ix+1)     ;       to TOS
 	next
 
 ;Z SP@  -- a-addr       get data stack pointer
-    defcode SPFETCH,3,SP@,0
+    defcode SPFETCH,3,sp@,0
 	push bc
 	ld hl,0
 	add hl,sp
@@ -245,7 +245,7 @@ poptos: pop bc
 	next
 
 ;Z SP!  a-addr --       set data stack pointer
-    defcode SPSTORE,3,SP!,0
+    defcode SPSTORE,3,sp!,0
 	ld h,b
 	ld l,c
 	ld sp,hl
@@ -253,14 +253,14 @@ poptos: pop bc
 	next
 
 ;Z RP@  -- a-addr       get return stack pointer
-    defcode RPFETCH,3,RP@,0
+    defcode RPFETCH,3,rp@,0
 	push bc
 	push ix
 	pop bc
 	next
 
 ;Z RP!  a-addr --       set return stack pointer
-    defcode RPSTORE,3,RP!,0
+    defcode RPSTORE,3,rp!,0
 	push bc
 	pop ix
 	pop bc
@@ -280,7 +280,7 @@ poptos: pop bc
 	next
 
 ;C C!      char c-addr --    store char in memory
-    defcode CSTORE,2,C!,0
+    defcode CSTORE,2,c!,0
 	ld h,b          ; address in hl
 	ld l,c
 	pop bc          ; data in bc
@@ -298,21 +298,21 @@ poptos: pop bc
 	next
 
 ;C C@     c-addr -- char   fetch char from memory
-    defcode CFETCH,2,C@,0
+    defcode CFETCH,2,c@,0
 	ld a,(bc)
 	ld c,a
 	ld b,0
 	next
 
 ;Z PC!     char c-addr --    output char to port
-    defcode PCSTORE,3,PC!,0
+    defcode PCSTORE,3,pc!,0
 	pop hl          ; char in L
 	out (c),l       ; to port (BC)
 	pop bc          ; pop new TOS
 	next
 
 ;Z PC@     c-addr -- char   input char from port
-    defcode PCFETCH,3,PC@,0
+    defcode PCFETCH,3,pc@,0
 	in c,(c)        ; read port (BC) to C
 	ld b,0
 	next
@@ -328,7 +328,7 @@ poptos: pop bc
 	next
 
 ;X M+       d n -- d         add single to double
-    defcode MPLUS,2,M+,0
+    defcode MPLUS,2,m+,0
 	ex de,hl
 	pop de          ; hi cell
 	ex (sp),hl      ; lo cell, save IP
@@ -351,7 +351,7 @@ mplus1: pop de          ; restore saved IP
 	next
 
 ;C AND    x1 x2 -- x3            logical AND
-    defcode AND,3,AND,0
+    defcode AND,3,and,0
 	pop hl
 	ld a,b
 	and h
@@ -362,7 +362,7 @@ mplus1: pop de          ; restore saved IP
 	next
 
 ;C OR     x1 x2 -- x3           logical OR
-    defcode OR,2,OR,0
+    defcode OR,2,or,0
 	pop hl
 	ld a,b
 	or h
@@ -373,7 +373,7 @@ mplus1: pop de          ; restore saved IP
 	next
 
 ;C XOR    x1 x2 -- x3            logical XOR
-    defcode XOR,3,XOR,0
+    defcode XOR,3,xor,0
 	pop hl
 	ld a,b
 	xor h
@@ -384,7 +384,7 @@ mplus1: pop de          ; restore saved IP
 	next
 
 ;C INVERT   x1 -- x2            bitwise inversion
-    defcode INVERT,6,INVERT,0
+    defcode INVERT,6,invert,0
 	ld a,b
 	cpl
 	ld b,a
@@ -394,7 +394,7 @@ mplus1: pop de          ; restore saved IP
 	next
 
 ;C NEGATE   x1 -- x2            two's complement
-    defcode NEGATE,6,NEGATE,0
+    defcode NEGATE,6,negate,0
 	ld a,b
 	cpl
 	ld b,a
@@ -434,7 +434,7 @@ mplus1: pop de          ; restore saved IP
 	next
 
 ;C LSHIFT  x1 u -- x2    logical L shift u places
-    defcode LSHIFT,6,LSHIFT,0
+    defcode LSHIFT,6,lshift,0
 	ld b,c        ; b = loop counter
 	pop hl        ;   NB: hi 8 bits ignored!
 	inc b         ; test for counter=0 case
@@ -446,7 +446,7 @@ lsh2:   djnz lsh1
 	next
 
 ;C RSHIFT  x1 u -- x2    logical R shift u places
-    defcode RSHIFT,6,RSHIFT,0
+    defcode RSHIFT,6,rshift,0
 	ld b,c        ; b = loop counter
 	pop hl        ;   NB: hi 8 bits ignored!
 	inc b         ; test for counter=0 case
@@ -526,7 +526,7 @@ revsense: jp m,tosfalse ; OV: if -ve, reslt false
 	dw SWOP,LESS,EXIT
 
 ;C U<    u1 u2 -- flag       test u1<n2, unsigned
-    defcode ULESS,2,<U<>,0
+    defcode ULESS,2,<u<>,0
 	pop hl
 	or a
 	sbc hl,bc       ; u1-u2 in HL, SZVC valid
@@ -536,13 +536,13 @@ revsense: jp m,tosfalse ; OV: if -ve, reslt false
 	next
 
 ;X U>    u1 u2 -- flag     u1>u2 unsgd (not ANSI)
-    defword UGREATER,2,<U>>,0
+    defword UGREATER,2,<u>>,0
 	dw SWOP,ULESS,EXIT
 
 ; LOOP AND BRANCH OPERATIONS ====================
 
 ;Z branch   --                  branch always
-    defcode BRANCH,6,BRANCH,0
+    defcode BRANCH,6,branch,0
 dobranch: ld a,(de)     ; get inline value => IP
 	ld l,a
 	inc de
@@ -551,7 +551,7 @@ dobranch: ld a,(de)     ; get inline value => IP
 	nexthl
 
 ;Z ?branch   x --              branch if TOS zero
-    defcode QBRANCH,7,?BRANCH,0
+    defcode QBRANCH,7,?branch,0
 	ld a,b
 	or c            ; test old TOS
 	pop bc          ; pop new TOS
@@ -570,7 +570,7 @@ dobranch: ld a,(de)     ; get inline value => IP
 ; I learned this trick from Laxen & Perry F83.
 ; fudge factor = 0x8000-limit, to be added to
 ; the start value.
-    defcode XDO,4,<(DO)>,0
+    defcode XDO,4,<(do)>,0
 	ex de,hl
 	ex (sp),hl   ; IP on stack, limit in HL
 	ex de,hl
@@ -622,7 +622,7 @@ loopterm: ; terminate the loop
 ; Add n to the loop index.  If loop terminates,
 ; clean up the return stack and skip the branch.
 ; Else take the inline branch.
-    defcode XPLUSLOOP,7,<(+LOOP)>,0
+    defcode XPLUSLOOP,7,<(+loop)>,0
 	pop hl      ; this will be the new TOS
 	push bc
 	ld b,h
@@ -633,7 +633,7 @@ loopterm: ; terminate the loop
 
 ;C I        -- n   R: sys1 sys2 -- sys1 sys2
 ;C                  get the innermost loop index
-    defcode II,1,I,0
+    defcode II,1,i,0
 	push bc     ; push old TOS
 	ld l,(ix+0) ; get current loop index
 	ld h,(ix+1)
@@ -647,7 +647,7 @@ loopterm: ; terminate the loop
 
 ;C J        -- n   R: 4*sys -- 4*sys
 ;C                  get the second loop index
-    defcode JJ,1,J,0
+    defcode JJ,1,j,0
 	push bc     ; push old TOS
 	ld l,(ix+4) ; get current loop index
 	ld h,(ix+5)
@@ -660,7 +660,7 @@ loopterm: ; terminate the loop
 	next
 
 ;C UNLOOP   --   R: sys1 sys2 --  drop loop parms
-    defcode UNLOOP,6,UNLOOP,0
+    defcode UNLOOP,6,unloop,0
 	inc ix
 	inc ix
 	inc ix
@@ -670,7 +670,7 @@ loopterm: ; terminate the loop
 ; MULTIPLY AND DIVIDE ===========================
 
 ;C UM*     u1 u2 -- ud   unsigned 16x16->32 mult.
-    defcode UMSTAR,3,UM*,0
+    defcode UMSTAR,3,um*,0
 	push bc
 	exx
 	pop bc      ; u2 in BC
@@ -693,7 +693,7 @@ noadd:  dec a
 	next
 
 ;C UM/MOD   ud u1 -- u2 u3   unsigned 32/16->16
-    defcode UMSLASHMOD,6,UM/MOD,0
+    defcode UMSLASHMOD,6,um/mod,0
 	push bc
 	exx
 	pop bc      ; BC = divisor
@@ -735,7 +735,7 @@ udiv4:  rl e        ; rotate result bit into DE,
 ; BLOCK AND STRING OPERATIONS ===================
 
 ;C FILL   c-addr u char --  fill memory with char
-    defcode FILL,4,FILL,0
+    defcode FILL,4,fill,0
 	ld a,c          ; character in a
 	exx             ; use alt. register set
 	pop bc          ; count in bc
@@ -760,7 +760,7 @@ filldone: exx           ; back to main reg set
 ; On byte machines, CMOVE and CMOVE> are logical
 ; factors of MOVE.  They are easy to implement on
 ; CPUs which have a block-move instruction.
-    defcode CMOVE,5,CMOVE,0
+    defcode CMOVE,5,cmove,0
 	push bc
 	exx
 	pop bc      ; count
@@ -776,7 +776,7 @@ cmovedone: exx
 
 ;X CMOVE>  c-addr1 c-addr2 u --  move from top
 ; as defined in the ANSI optional String word set
-    defcode CMOVEUP,6,CMOVE>,0
+    defcode CMOVEUP,6,cmove>,0
 	push bc
 	exx
 	pop bc      ; count
@@ -801,7 +801,7 @@ umovedone: exx
 ; ideal factors of WORD and FIND, they closely
 ; follow the string operations available on many
 ; CPUs, and so are easy to implement and fast.
-    defcode SKIP,4,SKIP,0
+    defcode SKIP,4,skip,0
 	ld a,c      ; skip character
 	exx
 	pop bc      ; count
@@ -825,7 +825,7 @@ skipdone: push hl   ; updated address
 
 ;Z SCAN    c-addr u c -- c-addr' u'
 ;Z                      find matching char
-    defcode SCAN,4,SCAN,0
+    defcode SCAN,4,scan,0
 	ld a,c      ; scan character
 	exx
 	pop bc      ; count
@@ -847,7 +847,7 @@ scandone: push hl   ; updated address
 
 ;Z S=    c-addr1 c-addr2 u -- n   string compare
 ;Z             n<0: s1<s2, n=0: s1=s2, n>0: s1>s2
-    defcode SEQUAL,2,S=,0
+    defcode SEQUAL,2,s=,0
 	push bc
 	exx
 	pop bc      ; count
@@ -896,38 +896,38 @@ snext:  next
 ; and so are defined as CODE words.
 
 ;C ALIGN    --                         align HERE
-    defcode ALIGN,5,ALIGN,0
+    defcode ALIGN,5,align,0
 noop:   next
 
 ;C ALIGNED  addr -- a-addr       align given addr
-    defcode ALIGNED,7,ALIGNED,0
+    defcode ALIGNED,7,aligned,0
 	jr noop
 
 ;Z CELL     -- n                 size of one cell
-    defconst CELL,4,CELL,0,2
+    defconst CELL,4,cell,0,2
 
 ;C CELL+    a-addr1 -- a-addr2      add cell size
 ;   2 + ;
-    defcode CELLPLUS,5,CELL+,0
+    defcode CELLPLUS,5,cell+,0
 	inc bc
 	inc bc
 	next
 
 ;C CELLS    n1 -- n2            cells->adrs units
-    defcode CELLS,5,CELLS,0
+    defcode CELLS,5,cells,0
 	jp TWOSTAR
 
 ;C CHAR+    c-addr1 -- c-addr2   add char size
-    defcode CHARPLUS,5,CHAR+,0
+    defcode CHARPLUS,5,char+,0
 	jp ONEPLUS
 
 ;C CHARS    n1 -- n2            chars->adrs units
-    defcode CHARS,5,CHARS,0
+    defcode CHARS,5,chars,0
 	jr noop
 
 ;C >BODY    xt -- a-addr      adrs of param field
 ;   3 + ;                     Z80 (3 byte CALL)
-    defword TOBODY,5,>BODY,0
+    defword TOBODY,5,>body,0
 	dw LIT,3,PLUS,EXIT
 
 ;X COMPILE,  xt --         append execution token
@@ -935,7 +935,7 @@ noop:   next
 ; it is defined in the ANSI standard as COMPILE,.
 ; On a DTC Forth this simply appends xt (like , )
 ; but on an STC Forth this must append 'CALL xt'.
-    defcode COMMAXT,8,<COMPILE,>,0
+    defcode COMMAXT,8,<compile,>,0
 	jp COMMA
 
 ;Z !CF    adrs cfa --   set code action of a word
@@ -943,13 +943,13 @@ noop:   next
 ;   1+ ! ;              Z80 VERSION
 ; Depending on the implementation this could
 ; append CALL adrs or JUMP adrs.
-    defword STORECF,3,!CF,0
+    defword STORECF,3,!cf,0
 	dw LIT,0CDH,OVER,CSTORE
 	dw ONEPLUS,STORE,EXIT
 
 ;Z ,CF    adrs --       append a code field
 ;   HERE !CF 3 ALLOT ;  Z80 VERSION (3 bytes)
-    defword COMMACF,3,<,CF>,0
+    defword COMMACF,3,<,cf>,0
 	dw HERE,STORECF,LIT,3,ALLOT,EXIT
 
 ;Z !COLON   --      change code field to docolon
@@ -957,7 +957,7 @@ noop:   next
 ; This should be used immediately after CREATE.
 ; This is made a distinct word, because on an STC
 ; Forth, colon definitions have no code field.
-    defword STORCOLON,6,<!COLON>,0
+    defword STORCOLON,6,<!colon>,0
 	dw LIT,-3,ALLOT
 	dw LIT,docolon,COMMACF,EXIT
 
@@ -965,7 +965,7 @@ noop:   next
 ;   ['] EXIT ,XT ;
 ; This is made a distinct word, because on an STC
 ; Forth, it appends a RET instruction, not an xt.
-    defword CEXIT,5,<,EXIT>,0
+    defword CEXIT,5,<,exit>,0
 	dw LIT,EXIT,COMMAXT,EXIT
 
 ; CONTROL STRUCTURES ============================
@@ -976,21 +976,21 @@ noop:   next
 ; xt is the branch operator to use, e.g. qbranch
 ; or (loop).  It does NOT append the destination
 ; address.  On the Z80 this is equivalent to ,XT.
-    defcode COMMABRANCH,7,<,BRANCH>,0
+    defcode COMMABRANCH,7,<,branch>,0
 	jp COMMA
 
 ;Z ,DEST   dest --        append a branch address
 ; This appends the given destination address to
 ; the branch instruction.  On the Z80 this is ','
 ; ...other CPUs may use relative addressing.
-    defcode COMMADEST,5,<,DEST>,0
+    defcode COMMADEST,5,<,dest>,0
 	jp COMMA
 
 ;Z !DEST   dest adrs --    change a branch dest'n
 ; Changes the destination address found at 'adrs'
 ; to the given 'dest'.  On the Z80 this is '!'
 ; ...other CPUs may need relative addressing.
-    defcode STOREDEST,5,<!DEST>,0
+    defcode STOREDEST,5,<!dest>,0
 	jp STORE
 
 ; HEADER STRUCTURE ==============================
@@ -1018,76 +1018,94 @@ noop:   next
 ; SYSTEM VARIABLES & CONSTANTS ==================
 
 ;C BL      -- char            an ASCII space
-    defconst BL,2,BL,0,0x20
+    defconst BL,2,bl,0,0x20
 
 ;Z tibsize  -- n         size of TIB
-    defconst TIBSIZE,7,TIBSIZE,0,124 ; 2 chars safety zone
+    defconst TIBSIZE,7,tibsize,0,124 ; 2 chars safety zone
 
 ;X tib     -- a-addr     Terminal Input Buffer
 ;  HEX -80 USER TIB      others: below user area
-    defvar TIB,3,TIB,0,-0x80
+    defvar TIB,3,tib,0,-0x80
 
 ;Z u0      -- a-addr       current user area adrs
 ;  0 USER U0
-    defvar U0,2,U0,0,0
+    defvar U0,2,u0,0,0
 
 ;C >IN     -- a-addr        holds offset into TIB
 ;  2 USER >IN
-    defvar TOIN,3,>IN,0,2
+    defvar TOIN,3,>in,0,2
 
 ;C BASE    -- a-addr       holds conversion radix
 ;  4 USER BASE
-    defvar BASE,4,BASE,0,4
+    defvar BASE,4,base,0,4
 
 ;C STATE   -- a-addr       holds compiler state
 ;  6 USER STATE
-    defvar STATE,5,STATE,0,6
+    defvar STATE,5,state,0,6
 
 ;Z dp      -- a-addr       holds dictionary ptr
 ;  8 USER DP
-    defvar DP,2,DP,0,8
+    defvar DP,2,dp,0,8
 
 ;Z 'source  -- a-addr      two cells: len, adrs
 ; 10 USER 'SOURCE
-;    defvar TICKSOURCE,7,'SOURCE,0
+;    defvar TICKSOURCE,7,'source,0
 	dw link                 ; must expand
 	db 0                    ; manually
 link    defl $                  ; because of
-	db 7,0x27,'SOURCE'       ; tick character
+	db 7,0x27,'source'       ; tick character
 TICKSOURCE: call douser         ; in name!
 	dw 10
 
 ;Z latest    -- a-addr     last word in dict.
 ;   14 USER LATEST
-    defvar LATEST,6,LATEST,0,14
+    defvar LATEST,6,latest,0,14
 
 ;Z hp       -- a-addr     HOLD pointer
 ;   16 USER HP
-    defvar HP,2,HP,0,16
+    defvar HP,2,hp,0,16
 
 ;Z LP       -- a-addr     Leave-stack pointer
 ;   18 USER LP
-    defvar LP,2,LP,0,18
+    defvar LP,2,lp,0,18
+
+;F block-read-vector  -- a-addr
+	defvar BLOCK_READ_VECTOR,17,block-read-vector,0,20
+
+;F block-write-vector  -- a-addr
+	defvar BLOCK_WRITE_VECTOR,18,block-write-vector,0,22
+
+;F block-buffer-nr  -- a-addr
+	defvar BLOCK_BUFFER_NR,15,block-buffer-nr,0,24
+
+;F block-buffer-status  -- a-addr
+	defvar BLOCK_BUFFER_STATUS,19,block-buffer-status,0,26
+
+;F scr  -- a-addr
+	defvar SCR,3,scr,0,28
 
 ;Z s0       -- a-addr     end of parameter stack
-    defvar S0,2,S0,0,0x100
+    defvar S0,2,s0,0,0x100
 
 ;X PAD       -- a-addr    user PAD buffer
 ;                         = end of hold area!
-    defvar PAD,3,PAD,0,0x128
+    defvar PAD,3,pad,0,0x128
 
 ;Z l0       -- a-addr     bottom of Leave stack
-    defvar L0,2,L0,0,0x180
+    defvar L0,2,l0,0,0x180
 
 ;Z r0       -- a-addr     end of return stack
-    defvar R0,2,R0,0,0x200
+    defvar R0,2,r0,0,0x200
+
+;F block-buffer  -- a-addr
+	defvar BLOCK_BUFFER,12,block-buffer,0,0x200
 
 ;Z uinit    -- addr  initial values for user area
 ;    head UINIT,5,UINIT,docreate
 	dw link
 	db 0
 link    defl $
-	db 5,'UINIT'
+	db 5,'uinit'
 UINIT:
 	call docreate
 	dw 0,0,10,0     ; reserved,>IN,BASE,STATE
@@ -1095,50 +1113,54 @@ UINIT:
 	dw 0,0          ; SOURCE init'd elsewhere
 	dw lastword     ; LATEST
 	dw 0            ; HP init'd elsewhere
+	dw 0
+	dw ROM_BLOCK_READ
+	dw ROM_BLOCK_WRITE
+	dw 0,0,0
 
 ;Z #init    -- n    #bytes of user area init data
-    defconst NINIT,5,#INIT,0,18
+    defconst NINIT,5,#init,0,30
 
 ; ARITHMETIC OPERATORS ==========================
 
 ;C S>D    n -- d          single -> double prec.
 ;   DUP 0< ;
-    defword STOD,3,S>D,0
+    defword STOD,3,s>d,0
 	dw DUP,ZEROLESS,EXIT
 
 ;Z ?NEGATE  n1 n2 -- n3  negate n1 if n2 negative
 ;   0< IF NEGATE THEN ;        ...a common factor
-    defword QNEGATE,7,?NEGATE,0
+    defword QNEGATE,7,?negate,0
 	dw ZEROLESS,QBRANCH,QNEG1,NEGATE
 QNEG1:  dw EXIT
 
 ;C ABS     n1 -- +n2     absolute value
 ;   DUP ?NEGATE ;
-    defword ABS,3,ABS,0
+    defword ABS,3,abs,0
 	dw DUP,QNEGATE,EXIT
 
 ;X DNEGATE   d1 -- d2     negate double precision
 ;   SWAP INVERT SWAP INVERT 1 M+ ;
-    defword DNEGATE,7,DNEGATE,0
+    defword DNEGATE,7,dnegate,0
 	dw SWOP,INVERT,SWOP,INVERT,LIT,1,MPLUS
 	dw EXIT
 
 ;Z ?DNEGATE  d1 n -- d2   negate d1 if n negative
 ;   0< IF DNEGATE THEN ;       ...a common factor
-    defword QDNEGATE,8,?DNEGATE,0
+    defword QDNEGATE,8,?dnegate,0
 	dw ZEROLESS,QBRANCH,DNEG1,DNEGATE
 DNEG1:  dw EXIT
 
 ;X DABS     d1 -- +d2    absolute value dbl.prec.
 ;   DUP ?DNEGATE ;
-    defword DABS,4,DABS,0
+    defword DABS,4,dabs,0
 	dw DUP,QDNEGATE,EXIT
 
 ;C M*     n1 n2 -- d    signed 16*16->32 multiply
 ;   2DUP XOR >R        carries sign of the result
 ;   SWAP ABS SWAP ABS UM*
 ;   R> ?DNEGATE ;
-    defword MSTAR,2,M*,0
+    defword MSTAR,2,m*,0
 	dw TWODUP,XOR,TOR
 	dw SWOP,ABS,SWOP,ABS,UMSTAR
 	dw RFROM,QDNEGATE,EXIT
@@ -1150,7 +1172,7 @@ DNEG1:  dw EXIT
 ;   SWAP R> ?NEGATE
 ;   SWAP R> ?NEGATE ;
 ; Ref. dpANS-6 section 3.2.2.1.
-    defword SMSLASHREM,6,SM/REM,0
+    defword SMSLASHREM,6,sm/rem,0
 	dw TWODUP,XOR,TOR,OVER,TOR
 	dw ABS,TOR,DABS,RFROM,UMSLASHMOD
 	dw SWOP,RFROM,QNEGATE,SWOP,RFROM,QNEGATE
@@ -1164,7 +1186,7 @@ DNEG1:  dw EXIT
 ;       SWAP 1-           decrement quotient
 ;   ELSE R> DROP THEN ;
 ; Ref. dpANS-6 section 3.2.2.1.
-    defword FMSLASHMOD,6,FM/MOD,0
+    defword FMSLASHMOD,6,fm/mod,0
 	dw DUP,TOR,SMSLASHREM
 	dw DUP,ZEROLESS,QBRANCH,FMMOD1
 	dw SWOP,RFROM,PLUS,SWOP,ONEMINUS
@@ -1179,7 +1201,7 @@ FMMOD2: dw EXIT
 
 ;C /MOD   n1 n2 -- n3 n4    signed divide/rem'dr
 ;   >R S>D R> FM/MOD ;
-    defword SLASHMOD,4,/MOD,0
+    defword SLASHMOD,4,/mod,0
 	dw TOR,STOD,RFROM,FMSLASHMOD,EXIT
 
 ;C /      n1 n2 -- n3       signed divide
@@ -1189,12 +1211,12 @@ FMMOD2: dw EXIT
 
 ;C MOD    n1 n2 -- n3       signed remainder
 ;   /MOD DROP ;
-    defword MOD,3,MOD,0
+    defword MOD,3,mod,0
 	dw SLASHMOD,DROP,EXIT
 
 ;C */MOD  n1 n2 n3 -- n4 n5    n1*n2/n3, rem&quot
 ;   >R M* R> FM/MOD ;
-    defword SSMOD,5,*/MOD,0
+    defword SSMOD,5,*/mod,0
 	dw TOR,MSTAR,RFROM,FMSLASHMOD,EXIT
 
 ;C */     n1 n2 n3 -- n4        n1*n2/n3
@@ -1204,13 +1226,13 @@ FMMOD2: dw EXIT
 
 ;C MAX    n1 n2 -- n3       signed maximum
 ;   2DUP < IF SWAP THEN DROP ;
-    defword MAX,3,MAX,0
+    defword MAX,3,max,0
 	dw TWODUP,LESS,QBRANCH,MAX1,SWOP
 MAX1:   dw DROP,EXIT
 
 ;C MIN    n1 n2 -- n3       signed minimum
 ;   2DUP > IF SWAP THEN DROP ;
-    defword MIN,3,MIN,0
+    defword MIN,3,min,0
 	dw TWODUP,GREATER,QBRANCH,MIN1,SWOP
 MIN1:   dw DROP,EXIT
 
@@ -1230,22 +1252,22 @@ MIN1:   dw DROP,EXIT
 
 ;C 2DROP  x1 x2 --          drop 2 cells
 ;   DROP DROP ;
-    defword TWODROP,5,2DROP,0
+    defword TWODROP,5,2drop,0
 	dw DROP,DROP,EXIT
 
 ;C 2DUP   x1 x2 -- x1 x2 x1 x2   dup top 2 cells
 ;   OVER OVER ;
-    defword TWODUP,4,2DUP,0
+    defword TWODUP,4,2dup,0
 	dw OVER,OVER,EXIT
 
 ;C 2SWAP  x1 x2 x3 x4 -- x3 x4 x1 x2  per diagram
 ;   ROT >R ROT R> ;
-    defword TWOSWAP,5,2SWAP,0
+    defword TWOSWAP,5,2swap,0
 	dw ROT,TOR,ROT,RFROM,EXIT
 
 ;C 2OVER  x1 x2 x3 x4 -- x1 x2 x3 x4 x1 x2
 ;   >R >R 2DUP R> R> 2SWAP ;
-    defword TWOOVER,5,2OVER,0
+    defword TWOOVER,5,2over,0
 	dw TOR,TOR,TWODUP,RFROM,RFROM
 	dw TWOSWAP,EXIT
 
@@ -1253,35 +1275,35 @@ MIN1:   dw DROP,EXIT
 
 ;C COUNT   c-addr1 -- c-addr2 u  counted->adr/len
 ;   DUP CHAR+ SWAP C@ ;
-    defword COUNT,5,COUNT,0
+    defword COUNT,5,count,0
 	dw DUP,CHARPLUS,SWOP,CFETCH,EXIT
 
 ;C CR      --               output newline
 ;   0A EMIT ;
-    defword CR,2,CR,0
+    defword CR,2,cr,0
 	dw LIT,0x0a,EMIT,EXIT
 
 ;C SPACE   --               output a space
 ;   BL EMIT ;
-    defword SPACE,5,SPACE,0
+    defword SPACE,5,space,0
 	dw BL,EMIT,EXIT
 
 ;C SPACES   n --            output n spaces
 ;   BEGIN DUP WHILE SPACE 1- REPEAT DROP ;
-    defword SPACES,6,SPACES,0
+    defword SPACES,6,spaces,0
 SPCS1:  dw DUP,QBRANCH,SPCS2
 	dw SPACE,ONEMINUS,BRANCH,SPCS1
 SPCS2:  dw DROP,EXIT
 
 ;Z umin     u1 u2 -- u      unsigned minimum
 ;   2DUP U> IF SWAP THEN DROP ;
-    defword UMIN,4,UMIN,0
+    defword UMIN,4,umin,0
 	dw TWODUP,UGREATER,QBRANCH,UMIN1,SWOP
 UMIN1:  dw DROP,EXIT
 
 ;Z umax    u1 u2 -- u       unsigned maximum
 ;   2DUP U< IF SWAP THEN DROP ;
-    defword UMAX,4,UMAX,0
+    defword UMAX,4,umax,0
 	dw TWODUP,ULESS,QBRANCH,UMAX1,SWOP
 UMAX1:  dw DROP,EXIT
 
@@ -1295,7 +1317,7 @@ UMAX1:  dw DROP,EXIT
 ;       THEN            -- sa ea a
 ;   REPEAT              -- sa ea a c
 ;   DROP NIP SWAP - ;
-    defword ACCEPT,6,ACCEPT,0
+    defword ACCEPT,6,accept,0
 	dw OVER,PLUS,ONEMINUS,OVER
 ACC1:   dw KEY,DUP,LIT,0AH,NOTEQUAL,QBRANCH,ACC5
 	dw DUP,EMIT,DUP,LIT,8,EQUAL,QBRANCH,ACC3
@@ -1309,7 +1331,7 @@ ACC5:   dw DROP,NIP,SWOP,MINUS,EXIT
 ;   ?DUP IF
 ;     OVER + SWAP DO I C@ EMIT LOOP
 ;   ELSE DROP THEN ;
-    defword TYPE,4,TYPE,0
+    defword TYPE,4,type,0
 	dw QDUP,QBRANCH,TYP4
 	dw OVER,PLUS,SWOP,XDO
 TYP3:   dw II,CFETCH,EMIT,XLOOP,TYP3
@@ -1319,14 +1341,14 @@ TYP5:   dw EXIT
 
 ;Z (S")     -- c-addr u   run-time code for S"
 ;   R> COUNT 2DUP + ALIGNED >R  ;
-    defword XSQUOTE,4,<(S")>,0
+    defword XSQUOTE,4,<(s")>,0
 	dw RFROM,COUNT,TWODUP,PLUS,ALIGNED,TOR
 	dw EXIT
 
 ;C S"       --         compile in-line string
 ;   COMPILE (S")  [ HEX ]
 ;   22 WORD C@ 1+ ALIGNED ALLOT ; IMMEDIATE
-    defword SQUOTE,2,<S">,F_IMMED
+    defword SQUOTE,2,<s">,F_IMMED
 	dw LIT,XSQUOTE,COMMAXT
 	dw LIT,22H,WORD,CFETCH,ONEPLUS
 	dw ALIGNED,ALLOT,EXIT
@@ -1347,19 +1369,19 @@ TYP5:   dw EXIT
 
 ;Z UD/MOD   ud1 u2 -- u3 ud4   32/16->32 divide
 ;   >R 0 R@ UM/MOD  ROT ROT R> UM/MOD ROT ;
-    defword UDSLASHMOD,6,UD/MOD,0
+    defword UDSLASHMOD,6,ud/mod,0
 	dw TOR,LIT,0,RFETCH,UMSLASHMOD,ROT,ROT
 	dw RFROM,UMSLASHMOD,ROT,EXIT
 
 ;Z UD*      ud1 d2 -- ud3      32*16->32 multiply
 ;   DUP >R UM* DROP  SWAP R> UM* ROT + ;
-    defword UDSTAR,3,UD*,0
+    defword UDSTAR,3,ud*,0
 	dw DUP,TOR,UMSTAR,DROP
 	dw SWOP,RFROM,UMSTAR,ROT,PLUS,EXIT
 
 ;C HOLD  char --        add char to output string
 ;   -1 HP +!  HP @ C! ;
-    defword HOLD,4,HOLD,0
+    defword HOLD,4,hold,0
 	dw LIT,-1,HP,PLUSSTORE
 	dw HP,FETCH,CSTORE,EXIT
 
@@ -1370,7 +1392,7 @@ TYP5:   dw EXIT
 
 ;Z >digit   n -- c      convert to 0..9A..Z
 ;   [ HEX ] DUP 9 > 7 AND + 30 + ;
-    defword TODIGIT,6,>DIGIT,0
+    defword TODIGIT,6,>digit,0
 	dw DUP,LIT,9,GREATER,LIT,7,AND,PLUS
 	dw LIT,30H,PLUS,EXIT
 
@@ -1382,7 +1404,7 @@ TYP5:   dw EXIT
 
 ;C #S    ud1 -- ud2     convert remaining digits
 ;   BEGIN # 2DUP OR 0= UNTIL ;
-    defword NUMS,2,#S,0
+    defword NUMS,2,#s,0
 NUMS1:  dw NUM,TWODUP,OR,ZEROEQUAL,QBRANCH,NUMS1
 	dw EXIT
 
@@ -1393,13 +1415,13 @@ NUMS1:  dw NUM,TWODUP,OR,ZEROEQUAL,QBRANCH,NUMS1
 
 ;C SIGN  n --           add minus sign if n<0
 ;   0< IF 2D HOLD THEN ;
-    defword SIGN,4,SIGN,0
+    defword SIGN,4,sign,0
 	dw ZEROLESS,QBRANCH,SIGN1,LIT,2DH,HOLD
 SIGN1:  dw EXIT
 
 ;C U.    u --           display u unsigned
 ;   <# 0 #S #> TYPE SPACE ;
-    defword UDOT,2,U.,0
+    defword UDOT,2,u.,0
 	dw LESSNUM,LIT,0,NUMS,NUMGREATER,TYPE
 	dw SPACE,EXIT
 
@@ -1411,24 +1433,24 @@ SIGN1:  dw EXIT
 
 ;C DECIMAL  --      set number base to decimal
 ;   10 BASE ! ;
-    defword DECIMAL,7,DECIMAL,0
+    defword DECIMAL,7,decimal,0
 	dw LIT,10,BASE,STORE,EXIT
 
 ;X HEX     --       set number base to hex
 ;   16 BASE ! ;
-    defword HEX,3,HEX,0
+    defword HEX,3,hex,0
 	dw LIT,16,BASE,STORE,EXIT
 
 ; DICTIONARY MANAGEMENT =========================
 
 ;C HERE    -- addr      returns dictionary ptr
 ;   DP @ ;
-    defword HERE,4,HERE,0
+    defword HERE,4,here,0
 	dw DP,FETCH,EXIT
 
 ;C ALLOT   n --         allocate n bytes in dict
 ;   DP +! ;
-    defword ALLOT,5,ALLOT,0
+    defword ALLOT,5,allot,0
 	dw DP,PLUSSTORE,EXIT
 
 ; Note: , and C, are only valid for combined
@@ -1441,7 +1463,7 @@ SIGN1:  dw EXIT
 
 ;C C,   char --        append char to dict
 ;   HERE C! 1 CHARS ALLOT ;
-    defword CCOMMA,2,<C,>,0
+    defword CCOMMA,2,<c,>,0
 	dw HERE,CSTORE,LIT,1,CHARS,ALLOT,EXIT
 
 ; INTERPRETER ===================================
@@ -1452,17 +1474,17 @@ SIGN1:  dw EXIT
 
 ;C SOURCE   -- adr n    current input buffer
 ;   'SOURCE 2@ ;        length is at lower adrs
-    defword SOURCE,6,SOURCE,0
+    defword SOURCE,6,source,0
 	dw TICKSOURCE,TWOFETCH,EXIT
 
 ;X /STRING  a u n -- a+n u-n   trim string
 ;   ROT OVER + ROT ROT - ;
-    defword SLASHSTRING,7,/STRING,0
+    defword SLASHSTRING,7,/string,0
 	dw ROT,OVER,PLUS,ROT,ROT,MINUS,EXIT
 
 ;Z >counted  src n dst --     copy to counted str
 ;   2DUP C! CHAR+ SWAP CMOVE ;
-    defword TOCOUNTED,8,>COUNTED,0
+    defword TOCOUNTED,8,>counted,0
 	dw TWODUP,CSTORE,CHARPLUS,SWOP,CMOVE,EXIT
 
 ;C WORD   char -- c-addr n   word delim'd by char
@@ -1475,7 +1497,7 @@ SIGN1:  dw EXIT
 ;   HERE >counted               --
 ;   HERE                        -- a
 ;   BL OVER COUNT + C! ;    append trailing blank
-    defword WORD,4,WORD,0
+    defword WORD,4,word,0
 	dw DUP,SOURCE,TOIN,FETCH
 	dw SLASHSTRING
 	dw DUP,TOR,ROT,SKIP
@@ -1488,17 +1510,17 @@ WORD1:  dw RFROM,RFROM,ROT,MINUS,TOIN,PLUSSTORE
 
 ;Z NFA>LFA   nfa -- lfa    name adr -> link field
 ;   3 - ;
-    defword NFATOLFA,7,NFA>LFA,0
+    defword NFATOLFA,7,nfa>lfa,0
 	dw LIT,3,MINUS,EXIT
 
 ;Z NFA>CFA   nfa -- cfa    name adr -> code field
 ;   COUNT 7F AND + ;       mask off 'smudge' bit
-    defword NFATOCFA,7,NFA>CFA,0
+    defword NFATOCFA,7,nfa>cfa,0
 	dw COUNT,LIT,07FH,AND,PLUS,EXIT
 
 ;Z IMMED?    nfa -- f      fetch immediate flag
 ;   1- C@ ;                     nonzero if immed
-    defword IMMEDQ,6,IMMED?,0
+    defword IMMEDQ,6,immed?,0
 	dw ONEMINUS,CFETCH,EXIT
 
 ;C FIND   c-addr -- c-addr 0   if not found
@@ -1517,7 +1539,7 @@ WORD1:  dw RFROM,RFROM,ROT,MINUS,TOIN,PLUSSTORE
 ;       SWAP IMMED?            -- xt iflag
 ;       0= 1 OR                -- xt 1/-1
 ;   THEN ;
-    defword FIND,4,FIND,0
+    defword FIND,4,find,0
 	dw LATEST,FETCH
 FIND1:  dw TWODUP,OVER,CFETCH,CHARPLUS
 	dw SEQUAL,DUP,QBRANCH,FIND2
@@ -1532,7 +1554,7 @@ FIND3:  dw EXIT
 ;   STATE @ IF ['] LIT ,XT , THEN ; IMMEDIATE
 ; This tests STATE so that it can also be used
 ; interpretively.  (ANSI doesn't require this.)
-    defword LITERAL,7,LITERAL,F_IMMED
+    defword LITERAL,7,literal,F_IMMED
 	dw STATE,FETCH,QBRANCH,LITER1
 	dw LIT,LIT,COMMAXT,COMMA
 LITER1: dw EXIT
@@ -1542,7 +1564,7 @@ LITER1: dw EXIT
 ;   [ HEX ] DUP 39 > 100 AND +     silly looking
 ;   DUP 140 > 107 AND -   30 -     but it works!
 ;   DUP BASE @ U< ;
-    defword DIGITQ,6,DIGIT?,0
+    defword DIGITQ,6,digit?,0
 	dw DUP,LIT,39H,GREATER,LIT,100H,AND,PLUS
 	dw DUP,LIT,140H,GREATER,LIT,107H,AND
 	dw MINUS,LIT,30H,MINUS
@@ -1555,7 +1577,7 @@ LITER1: dw EXIT
 ;   DUP IF 1+               -- +=0, -=+2
 ;       >R 1 /STRING R>     -- adr' n' f
 ;   THEN ;
-    defword QSIGN,5,?SIGN,0
+    defword QSIGN,5,?sign,0
 	dw OVER,CFETCH,LIT,2CH,MINUS,DUP,ABS
 	dw LIT,1,EQUAL,AND,DUP,QBRANCH,QSIGN1
 	dw ONEPLUS,TOR,LIT,1,SLASHSTRING,RFROM
@@ -1571,7 +1593,7 @@ QSIGN1: dw EXIT
 ;       R> M+ 2SWAP
 ;       1 /STRING
 ;   REPEAT ;
-    defword TONUMBER,7,>NUMBER,0
+    defword TONUMBER,7,>number,0
 TONUM1: dw DUP,QBRANCH,TONUM3
 	dw OVER,CFETCH,DIGITQ
 	dw ZEROEQUAL,QBRANCH,TONUM2,DROP,EXIT
@@ -1588,7 +1610,7 @@ TONUM3: dw EXIT
 ;   ELSE 2DROP NIP R>
 ;       IF NEGATE THEN  -1  -- n -1   (ok)
 ;   THEN ;
-    defword QNUMBER,7,?NUMBER,0
+    defword QNUMBER,7,?number,0
 	dw DUP,LIT,0,DUP,ROT,COUNT
 	dw QSIGN,TOR,TONUMBER,QBRANCH,QNUM1
 	dw RFROM,TWODROP,TWODROP,LIT,0
@@ -1615,7 +1637,7 @@ QNUM3:  dw EXIT
 ;           THEN
 ;       THEN
 ;   REPEAT DROP ;
-    defword INTERPRET,9,INTERPRET,0
+    defword INTERPRET,9,interpret,0
 	dw TICKSOURCE,TWOSTORE,LIT,0,TOIN,STORE
 INTER1: dw BL,WORD,DUP,CFETCH,QBRANCH,INTER9
 	dw FIND,QDUP,QBRANCH,INTER4
@@ -1635,7 +1657,7 @@ INTER9: dw DROP,EXIT
 ;   'SOURCE 2@ >R >R  >IN @ >R
 ;   INTERPRET
 ;   R> >IN !  R> R> 'SOURCE 2! ;
-    defword EVALUATE,8,EVALUATE,0
+    defword EVALUATE,8,evaluate,0
 	dw TICKSOURCE,TWOFETCH,TOR,TOR
 	dw TOIN,FETCH,TOR,INTERPRET
 	dw RFROM,TOIN,STORE,RFROM,RFROM
@@ -1648,32 +1670,32 @@ INTER9: dw DROP,EXIT
 ;       INTERPRET
 ;       STATE @ 0= IF CR ." OK" THEN
 ;   AGAIN ;
-    defword QUIT,4,QUIT,0
+    defword QUIT,4,quit,0
 	dw L0,LP,STORE
 	dw R0,RPSTORE,LIT,0,STATE,STORE
 QUIT1:  dw TIB,DUP,TIBSIZE,ACCEPT,SPACE
 	dw INTERPRET
 	dw STATE,FETCH,ZEROEQUAL,QBRANCH,QUIT2
 	dw XSQUOTE
-	db 3,'ok '
+	db 3,' ok'
 	dw TYPE,CR
 QUIT2:  dw BRANCH,QUIT1
 
 ;C ABORT    i*x --   R: j*x --   clear stk & QUIT
 ;   S0 SP!  QUIT ;
-    defword ABORT,5,ABORT,0
+    defword ABORT,5,abort,0
 	dw S0,SPSTORE,QUIT   ; QUIT never returns
 
 ;Z ?ABORT   f c-addr u --      abort & print msg
 ;   ROT IF TYPE ABORT THEN 2DROP ;
-    defword QABORT,6,?ABORT,0
+    defword QABORT,6,?abort,0
 	dw ROT,QBRANCH,QABO1,TYPE,ABORT
 QABO1:  dw TWODROP,EXIT
 
 ;C ABORT"  i*x 0  -- i*x   R: j*x -- j*x  x1=0
 ;C         i*x x1 --       R: j*x --      x1<>0
 ;   POSTPONE S" POSTPONE ?ABORT ; IMMEDIATE
-    defword ABORTQUOTE,6,<ABORT">,F_IMMED
+    defword ABORTQUOTE,6,<abort">,F_IMMED
 	dw SQUOTE
 	dw LIT,QABORT,COMMAXT
 	dw EXIT
@@ -1693,12 +1715,12 @@ TICK:   call docolon
 
 ;C CHAR   -- char           parse ASCII character
 ;   BL WORD 1+ C@ ;
-    defword CHAR,4,CHAR,0
+    defword CHAR,4,char,0
 	dw BL,WORD,ONEPLUS,CFETCH,EXIT
 
 ;C [CHAR]   --          compile character literal
 ;   CHAR  ['] LIT ,XT  , ; IMMEDIATE
-    defword BRACCHAR,6,[CHAR],F_IMMED
+    defword BRACCHAR,6,[char],F_IMMED
 	dw CHAR
 	dw LIT,LIT,COMMAXT
 	dw COMMA,EXIT
@@ -1715,7 +1737,7 @@ TICK:   call docolon
 ;   HERE LATEST !           new "latest" link
 ;   BL WORD C@ 1+ ALLOT         name field
 ;   docreate ,CF                code field
-    defword CREATE,6,CREATE,0
+    defword CREATE,6,create,0
 	dw LATEST,FETCH,COMMA,LIT,0,CCOMMA
 	dw HERE,LATEST,STORE
 	dw BL,WORD,CFETCH,ONEPLUS,ALLOT
@@ -1725,20 +1747,20 @@ TICK:   call docolon
 ;   R>              adrs of headless DOES> def'n
 ;   LATEST @ NFA>CFA    code field to fix up
 ;   !CF ;
-    defword XDOES,7,(DOES>),0
+    defword XDOES,7,(does>),0
 	dw RFROM,LATEST,FETCH,NFATOCFA,STORECF
 	dw EXIT
 
 ;C DOES>    --      change action of latest def'n
 ;   COMPILE (DOES>)
 ;   dodoes ,CF ; IMMEDIATE
-    defword DOES,5,DOES>,F_IMMED
+    defword DOES,5,does>,F_IMMED
 	dw LIT,XDOES,COMMAXT
 	dw LIT,dodoes,COMMACF,EXIT
 
 ;C RECURSE  --      recurse current definition
 ;   LATEST @ NFA>CFA ,XT ; IMMEDIATE
-    defword RECURSE,7,RECURSE,F_IMMED
+    defword RECURSE,7,recurse,F_IMMED
 	dw LATEST,FETCH,NFATOCFA,COMMAXT,EXIT
 
 ;C [        --      enter interpretive state
@@ -1753,19 +1775,19 @@ TICK:   call docolon
 
 ;Z HIDE     --      "hide" latest definition
 ;   LATEST @ DUP C@ 80 OR SWAP C! ;
-    defword HIDE,4,HIDE,0
+    defword HIDE,4,hide,0
 	dw LATEST,FETCH,DUP,CFETCH,LIT,80H,OR
 	dw SWOP,CSTORE,EXIT
 
 ;Z REVEAL   --      "reveal" latest definition
 ;   LATEST @ DUP C@ 7F AND SWAP C! ;
-    defword REVEAL,6,REVEAL,0
+    defword REVEAL,6,reveal,0
 	dw LATEST,FETCH,DUP,CFETCH,LIT,7FH,AND
 	dw SWOP,CSTORE,EXIT
 
 ;C IMMEDIATE   --   make last def'n immediate
 ;   1 LATEST @ 1- C! ;   set immediate flag
-    defword IMMEDIATE,9,IMMEDIATE,0
+    defword IMMEDIATE,9,immediate,0
 	dw LIT,1,LATEST,FETCH,ONEMINUS,CSTORE
 	dw EXIT
 
@@ -1810,7 +1832,7 @@ BRACTICK: call docolon
 ;       ['] ,XT ,XT         to current definition
 ;   ELSE  ,XT      immed: compile into cur. def'n
 ;   THEN ; IMMEDIATE
-    defword POSTPONE,8,POSTPONE,F_IMMED
+    defword POSTPONE,8,postpone,F_IMMED
 	dw BL,WORD,FIND,DUP,ZEROEQUAL,XSQUOTE
 	db 1,'?'
 	dw QABORT,ZEROLESS,QBRANCH,POST1
@@ -1825,7 +1847,7 @@ POST2:  dw EXIT
 ; this word was created to combine the actions
 ; of LIT and ,XT.  It takes an inline literal
 ; execution token and appends it to the dict.
-;    defword COMPILE,7,COMPILE,0
+;    defword COMPILE,7,compile,0
 ;        dw RFROM,DUP,CELLPLUS,TOR
 ;        dw FETCH,COMMAXT,EXIT
 ; N.B.: not used in the current implementation
@@ -1835,67 +1857,67 @@ POST2:  dw EXIT
 ;C IF       -- adrs    conditional forward BRANCH
 ;   ['] QBRANCH ,BRANCH  HERE DUP ,DEST ;
 ;   IMMEDIATE
-    defword IF,2,IF,F_IMMED
+    defword IF,2,if,F_IMMED
 	dw LIT,QBRANCH,COMMABRANCH
 	dw HERE,DUP,COMMADEST,EXIT
 
 ;C THEN     adrs --        resolve forward BRANCH
 ;   HERE SWAP !DEST ; IMMEDIATE
-    defword THEN,4,THEN,F_IMMED
+    defword THEN,4,then,F_IMMED
 	dw HERE,SWOP,STOREDEST,EXIT
 
 ;C ELSE     adrs1 -- adrs2    BRANCH for IF..ELSE
 ;   ['] BRANCH ,BRANCH  HERE DUP ,DEST
 ;   SWAP  POSTPONE THEN ; IMMEDIATE
-    defword ELSE,4,ELSE,F_IMMED
+    defword ELSE,4,else,F_IMMED
 	dw LIT,BRANCH,COMMABRANCH
 	dw HERE,DUP,COMMADEST
 	dw SWOP,THEN,EXIT
 
 ;C BEGIN    -- adrs        target for bwd. BRANCH
 ;   HERE ; IMMEDIATE
-    defcode BEGIN,5,BEGIN,F_IMMED
+    defcode BEGIN,5,begin,F_IMMED
 	jp HERE
 
 ;C UNTIL    adrs --   conditional backward BRANCH
 ;   ['] QBRANCH ,BRANCH  ,DEST ; IMMEDIATE
 ;   conditional backward BRANCH
-    defword UNTIL,5,UNTIL,F_IMMED
+    defword UNTIL,5,until,F_IMMED
 	dw LIT,QBRANCH,COMMABRANCH
 	dw COMMADEST,EXIT
 
 ;X AGAIN    adrs --      uncond'l backward BRANCH
 ;   ['] BRANCH ,BRANCH  ,DEST ; IMMEDIATE
 ;   unconditional backward BRANCH
-    defword AGAIN,5,AGAIN,F_IMMED
+    defword AGAIN,5,again,F_IMMED
 	dw LIT,BRANCH,COMMABRANCH
 	dw COMMADEST,EXIT
 
 ;C WHILE    -- adrs         BRANCH for WHILE loop
 ;   POSTPONE IF ; IMMEDIATE
-    defcode WHILE,5,WHILE,F_IMMED
+    defcode WHILE,5,while,F_IMMED
 	jp IF
 
 ;C REPEAT   adrs1 adrs2 --     resolve WHILE loop
 ;   SWAP POSTPONE AGAIN POSTPONE THEN ; IMMEDIATE
-    defword REPEAT,6,REPEAT,F_IMMED
+    defword REPEAT,6,repeat,F_IMMED
 	dw SWOP,AGAIN,THEN,EXIT
 
 ;Z >L   x --   L: -- x        move to leave stack
 ;   CELL LP +!  LP @ ! ;      (L stack grows up)
-    defword TOL,2,>L,0
+    defword TOL,2,>l,0
 	dw CELL,LP,PLUSSTORE,LP,FETCH,STORE,EXIT
 
 ;Z L>   -- x   L: x --      move from leave stack
 ;   LP @ @  CELL NEGATE LP +! ;
-    defword LFROM,2,L>,0
+    defword LFROM,2,l>,0
 	dw LP,FETCH,FETCH
 	dw CELL,NEGATE,LP,PLUSSTORE,EXIT
 
 ;C DO       -- adrs   L: -- 0
 ;   ['] xdo ,XT   HERE     target for bwd BRANCH
 ;   0 >L ; IMMEDIATE           marker for LEAVEs
-    defword DO,2,DO,F_IMMED
+    defword DO,2,do,F_IMMED
 	dw LIT,XDO,COMMAXT,HERE
 	dw LIT,0,TOL,EXIT
 
@@ -1904,7 +1926,7 @@ POST2:  dw EXIT
 ;   BEGIN L> ?DUP WHILE POSTPONE THEN REPEAT ;
 ;                                 resolve LEAVEs
 ; This is a common factor of LOOP and +LOOP.
-    defword ENDLOOP,7,ENDLOOP,0
+    defword ENDLOOP,7,endloop,0
 	dw COMMABRANCH,COMMADEST
 LOOP1:  dw LFROM,QDUP,QBRANCH,LOOP2
 	dw THEN,BRANCH,LOOP1
@@ -1912,19 +1934,19 @@ LOOP2:  dw EXIT
 
 ;C LOOP    adrs --   L: 0 a1 a2 .. aN --
 ;   ['] xloop ENDLOOP ;  IMMEDIATE
-    defword LOOP,4,LOOP,F_IMMED
+    defword LOOP,4,loop,F_IMMED
 	dw LIT,XLOOP,ENDLOOP,EXIT
 
 ;C +LOOP   adrs --   L: 0 a1 a2 .. aN --
 ;   ['] xplusloop ENDLOOP ;  IMMEDIATE
-    defword PLUSLOOP,5,+LOOP,F_IMMED
+    defword PLUSLOOP,5,+loop,F_IMMED
 	dw LIT,XPLUSLOOP,ENDLOOP,EXIT
 
 ;C LEAVE    --    L: -- adrs
 ;   ['] UNLOOP ,XT
 ;   ['] BRANCH ,BRANCH   HERE DUP ,DEST  >L
 ;   ; IMMEDIATE      unconditional forward BRANCH
-    defword LEAVE,5,LEAVE,F_IMMED
+    defword LEAVE,5,leave,F_IMMED
 	dw LIT,UNLOOP,COMMAXT
 	dw LIT,BRANCH,COMMABRANCH
 	dw HERE,DUP,COMMADEST,TOL,EXIT
@@ -1933,7 +1955,7 @@ LOOP2:  dw EXIT
 
 ;X WITHIN   n1|u1 n2|u2 n3|u3 -- f   n2<=n1<n3?
 ;  OVER - >R - R> U< ;          per ANS document
-    defword WITHIN,6,WITHIN,0
+    defword WITHIN,6,within,0
 	dw OVER,MINUS,TOR,MINUS,RFROM,ULESS,EXIT
 
 ;C MOVE    addr1 addr2 u --     smart move
@@ -1941,7 +1963,7 @@ LOOP2:  dw EXIT
 ;  >R 2DUP SWAP DUP R@ +     -- ... dst src src+n
 ;  WITHIN IF  R> CMOVE>        src <= dst < src+n
 ;       ELSE  R> CMOVE  THEN ;          otherwise
-    defword MOVE,4,MOVE,0
+    defword MOVE,4,move,0
 	dw TOR,TWODUP,SWOP,DUP,RFETCH,PLUS
 	dw WITHIN,QBRANCH,MOVE1
 	dw RFROM,CMOVEUP,BRANCH,MOVE2
@@ -1950,13 +1972,13 @@ MOVE2:  dw EXIT
 
 ;C DEPTH    -- +n        number of items on stack
 ;   SP@ S0 SWAP - 2/ ;   16-BIT VERSION!
-    defword DEPTH,5,DEPTH,0
+    defword DEPTH,5,depth,0
 	dw SPFETCH,S0,SWOP,MINUS,TWOSLASH,EXIT
 
 ;C ENVIRONMENT?  c-addr u -- false   system query
 ;                         -- i*x true
 ;   2DROP 0 ;       the minimal definition!
-    defword ENVIRONMENTQ,12,ENVIRONMENT?,0
+    defword ENVIRONMENTQ,12,environment?,0
 	dw TWODROP,LIT,0,EXIT
 
 ; UTILITY WORDS AND STARTUP =====================
@@ -1967,7 +1989,7 @@ MOVE2:  dw EXIT
 ;       NFA>LFA @
 ;   DUP 0= UNTIL
 ;   DROP ;
-    defword WORDS,5,WORDS,0
+    defword WORDS,5,words,0
 	dw LATEST,FETCH
 WDS1:   dw DUP,COUNT,TYPE,SPACE,NFATOLFA,FETCH
 	dw DUP,ZEROEQUAL,QBRANCH,WDS1
@@ -1977,7 +1999,7 @@ WDS1:   dw DUP,COUNT,TYPE,SPACE,NFATOLFA,FETCH
 ;   SP@ S0 - IF
 ;       SP@ S0 2 - DO I @ U. -2 +LOOP
 ;   THEN ;
-    defword DOTS,2,<.S>,0
+    defword DOTS,2,<.s>,0
 	dw SPFETCH,S0,MINUS,QBRANCH,DOTS2
 	dw SPFETCH,S0,LIT,2,MINUS,XDO
 DOTS1:  dw II,FETCH,UDOT,LIT,-2,XPLUSLOOP,DOTS1
@@ -1987,7 +2009,7 @@ DOTS2:  dw EXIT
 ;   UINIT U0 #INIT CMOVE      init user area
 ;   ." Z80 CamelForth etc."
 ;   ABORT ;
-    defword COLD,4,COLD,0
+    defword COLD,4,cold,0
 	dw UINIT,U0,NINIT,CMOVE
 	dw XSQUOTE
 	db 34,'Z80 CamelForth v1.01  25 Jan 1995'
@@ -1997,6 +2019,135 @@ DOTS2:  dw EXIT
 	db 0x0a
 	dw TYPE,ABORT       ; ABORT never returns
 
-lastword equ link   ; nfa of last word in dict.
-enddict equ 0x4000       ; user's code starts here
+; --- Block words ---
 
+romdiskReadStart:
+	; hl: source addr
+	; de: dest addr
+	ld a, 8 ; TODO preserve RAM bank
+	out (0x02), a
+	ld bc, 1024
+	ldir
+	xor a
+	out (0x02), a
+	ret
+romdiskReadEnd:
+
+;F ROM-BLOCK-READ  block# addr --
+	defcode ROM_BLOCK_READ,14,rom-block-read,0
+	pop hl ;block#
+	ld h, l ;multiply by 256
+	ld l, 0
+	sla h
+	sla h ;hl: rom address
+	push de
+	ld d, b
+	ld e, c
+	call romdiskRead
+	pop de
+	pop bc
+	next
+
+;F ROM-BLOCK-WRITE  block# addr --
+	defcode ROM_BLOCK_WRITE,15,rom-block-write,0
+	pop hl ;block#
+	ld h, l ;multiply by 256
+	ld l, 0
+	sla h
+	sla h ;hl: rom address
+	push de
+	ld d, b
+	ld e, c
+	ex de, hl
+	call romdiskRead
+	pop de
+	pop bc
+	next
+
+;F romdisk  ( -- read-vector write-vector )
+; ['] rom-block-read ['] rom-block-write ;
+	defword ROMDISK,7,romdisk,0
+	dw LIT, ROM_BLOCK_READ, LIT, ROM_BLOCK_WRITE, EXIT
+
+;Z CELL     -- n                 size of one cell
+    defconst BLOCK_EMPTY,11,block-empty,0,0
+    defconst BLOCK_CLEAN,11,block-clean,0,1
+    defconst BLOCK_DIRTY,11,block-dirty,0,2
+
+
+;F block-read ( block# buf-addr -- )
+; block-read-vector @ execute ;
+	defword BLOCK_READ,10,block-read,0
+	dw BLOCK_READ_VECTOR, FETCH, EXECUTE, EXIT
+
+;F block-write ( block# buf-addr -- )
+; block-write-vector @ execute ;
+	defword BLOCK_WRITE,11,block-write,0
+	dw BLOCK_WRITE_VECTOR, FETCH, EXECUTE, EXIT
+
+;F use ( -- )
+;    bl word count evaluate
+;    block-write-vector !
+;    block-read-vector ! ;
+	defword USE,3,use,0
+	dw BL, WORD, COUNT, EVALUATE
+	dw BLOCK_WRITE_VECTOR, STORE
+	dw BLOCK_READ_VECTOR, STORE
+
+
+; save-buffers ( -- )
+;    block-buffer-status @ dirty = if
+;        ( write to disk )
+;        block-buffer-nr @ block-buffer block-write
+;    then
+;    clean block-buffer-status ! ;
+	defword SAVE_BUFFERS,12,save-buffers,0
+	dw BLOCK_BUFFER_STATUS,FETCH,BLOCK_DIRTY,EQUAL,QBRANCH,SAVE_BUFFERS1
+	dw BLOCK_BUFFER_NR,FETCH,BLOCK_BUFFER,BLOCK_WRITE
+SAVE_BUFFERS1:
+	dw BLOCK_CLEAN,BLOCK_BUFFER_STATUS,STORE,EXIT
+
+; buffer ( block# -- addr )
+;    save-buffers
+;    block-buffer-nr !
+;    block-buffer ;
+	defword BUFFER,6,buffer,0
+	dw SAVE_BUFFERS,BLOCK_BUFFER_NR,STORE,BLOCK_BUFFER,EXIT
+
+
+; block ( block# -- addr )
+;    ( check if block is already in memory )
+;    dup block-buffer-nr @ = block-buffer-status @ empty <> and if
+;        drop
+;    else
+;        dup buffer block-read
+;        clean block-buffer-status !
+;    then block-buffer ;
+	defword BLOCK,5,block,0
+	dw DUP,BLOCK_BUFFER_NR,FETCH,EQUAL,BLOCK_BUFFER_STATUS,FETCH
+	dw BLOCK_EMPTY,NOTEQUAL,AND,QBRANCH,BLOCK1,DROP,BRANCH,BLOCK2
+BLOCK1:
+	dw DUP,BUFFER,BLOCK_READ,BLOCK_CLEAN,BLOCK_BUFFER_STATUS,STORE
+BLOCK2: dw BLOCK_BUFFER,EXIT
+
+
+; update ( -- ) dirty block-buffer-status ! ;
+	defword UPDATE,6,update,0
+	dw BLOCK_DIRTY,BLOCK_BUFFER_STATUS,STORE,EXIT
+
+; flush ( -- ) save-buffers empty block-buffer-status ! ;
+	defword FLUSH,5,flush,0
+	dw SAVE_BUFFERS,BLOCK_EMPTY,BLOCK_BUFFER_STATUS,STORE,EXIT
+
+; empty-buffers ( -- ) empty block-buffer-status ! ;
+	defword EMPTY_BUFFERS,13,empty-buffers,0
+	dw BLOCK_EMPTY,BLOCK_BUFFER_STATUS,STORE,EXIT
+
+; load ( block# -- ) block 1024 evaluate ;
+	defword LOAD,4,load,0
+	dw BLOCK,LIT,1024,EVALUATE,EXIT
+
+
+
+
+lastword equ link   ; nfa of last word in dict.

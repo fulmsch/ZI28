@@ -101,20 +101,52 @@ CKINCHAR:
 
 ;------------------------------------------------------------------------------
 
+
+userRamStart equ 0x4680
+romdiskRead  equ userRamStart
+enddict      equ romdiskRead + romdiskReadEnd - romdiskReadStart ; user's code starts here
+
 RAMEND = 0xFFFF
-RESET:  ld hl,RAMEND
-	ld l,0       ;    = end of avail.mem (EM)
-	dec h        ; EM-0x100
-	ld sp,hl     ;      = top of param stack
-	inc h        ; EM
+RESET:
+	ld hl, romdiskReadStart
+	ld de, romdiskRead
+	ld bc, romdiskReadEnd - romdiskReadStart
+	ldir
+
+	ld hl, 0x4180 ; top of param stack
+	ld sp, hl
+	inc h
 	push hl
-	pop ix       ;      = top of return stack
-	dec h        ; EM-0x200
+	pop ix        ; top of return stack
+	dec h
 	dec h
 	push hl
-	pop iy       ;      = bottom of user area
+	pop iy        ; bottom of user area
+
+
+;	ld hl,RAMEND
+;	ld l,0       ;    = end of avail.mem (EM)
+;	dec h        ; EM-0x100
+;	ld sp,hl     ;      = top of param stack
+;	inc h        ; EM
+;	push hl
+;	pop ix       ;      = top of return stack
+;	dec h        ; EM-0x200
+;	dec h
+;	push hl
+;	pop iy       ;      = bottom of user area
 	ld de,1      ; do reset if COLD returns
 	jp COLD      ; enter top-level Forth word
+
+; 0x0000 - 0x3FFF  EEPROM, Forth kernel
+; 0x4000 - 0x407F  TIB, 128 bytes
+; 0x4080 - 0x40FF  User area, 128 bytes
+; 0x4100 - 0x417F  Parameter stack, 128B, grows down
+; 0x4180 - 0x41A7  HOLD area, 40 bytes, grows down
+; 0x41A8 - 0x41FF  PAD buffer, 88 bytes
+; 0x4200 - 0x427F  Return stack, 128 B, grows down
+; 0x4280 - 0x467F  Block buffer
+; 0x4680 - 0xFFFF  User RAM
 
 ; Memory map:
 ;   0-0x2000    Forth kernel = start of 
