@@ -5,7 +5,7 @@ INCLUDE "math.h"
 INCLUDE "devfs.h"
 INCLUDE "drivers/sd.h"
 
-EXTERN sd_deviceDriver, devfs_addDev
+EXTERN sd_partitionDriver, devfs_addDev
 
 PUBLIC sd_init
 
@@ -93,7 +93,7 @@ poll02:
 
 
 	ld hl, sda1Name
-	ld de, sd_deviceDriver
+	ld de, sd_partitionDriver
 	ld a, 1
 	call devfs_addDev
 	call clear32

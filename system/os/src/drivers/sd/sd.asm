@@ -9,11 +9,16 @@ SECTION rom_code
 
 INCLUDE "drivers/sd.h"
 
-PUBLIC sd_deviceDriver, sd_blockCallback
+PUBLIC sd_deviceDriver, sd_partitionDriver, sd_blockCallback
 PUBLIC sd_enable, sd_disable, sd_transferByte, delay100
 
 sd_deviceDriver:
 	DEFW sd_init
+	DEFW sd_read
+	DEFW sd_write
+
+sd_partitionDriver:
+	DEFW 0
 	DEFW sd_read
 	DEFW sd_write
 

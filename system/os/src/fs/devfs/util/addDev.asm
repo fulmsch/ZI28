@@ -24,7 +24,7 @@ devfs_addDev:
 	ld a, 0
 	ld hl, devfsRoot
 	ld de, devfsEntrySize
-	ld bc, devfsEntries
+	ld b, devfsEntries
 
 findEntryLoop:
 	cp (hl)
