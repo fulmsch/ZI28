@@ -1,11 +1,4 @@
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "math.h"
-INCLUDE "vfs.h"
-
-EXTERN fdToFileEntry
-
-PUBLIC u_seek, k_seek, u_lseek, k_lseek
+#code ROM
 
 u_lseek:
 	add a, fdTableEntries
@@ -62,6 +55,7 @@ k_lseek:
 ;         2=whence is invalid
 ;         3=the resulting offset would be invalid
 
+#local
 	push hl ;h = whence
 	push de ;offset
 
@@ -129,7 +123,7 @@ addOffs:
 	xor a
 	ret
 
-
+	;; TODO fix error numbers
 invalidFd:
 	ld a, 1
 	ret
@@ -139,7 +133,8 @@ invalidWhence:
 invalidOffset:
 	ld a, 3
 	ret
+#endlocal
 
 
-SECTION ram_os
+#data RAM
 seek_new: defs 4

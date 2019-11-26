@@ -1,12 +1,12 @@
 .PHONY: all clean distclean
 
-all: sys/os.h sys/iomap.h errno.h
+all: sys/os.h sys/iomap.h errno.h z80asm/os.h z80asm/iomap.h z80asm/errno.h
 
 sys/os.h: asm/os.h
 	@echo '#ifndef OS_H' > sys/os.h
 	@echo '#define OS_H' >> sys/os.h
 	@echo '' >> sys/os.h
-	@sed -e 's/DEFC\s\+\(\w\+\)\s\+=\s\+\(\w\+\)/\#define \1 \2/' -e 's/;/\/\//g' -e '/^\(IFNDEF\|DEFINE\|ENDIF\)/d' asm/os.h >> sys/os.h
+	@sed -e 's/\(\w\+\)\s\+equ\s\+\(\w\+\)/\#define \1 \2/' -e 's/;/\/\//g' asm/os.h >> sys/os.h
 	@echo '' >> sys/os.h
 	@echo '#endif' >> sys/os.h
 
@@ -28,7 +28,21 @@ errno.h: asm/errno.h
 	@echo '' >> errno.h
 	@echo '#endif' >> errno.h
 
+
+z80asm/os.h: asm/os.h
+	@mkdir -p z80asm
+	@sed -e 's/#define\s\+\(\w\+\)\s\+\(\w\+\)/\DEFC \1 = \2/' asm/os.h >> z80asm/os.h
+
+z80asm/iomap.h: asm/iomap.h
+	@mkdir -p z80asm
+	@sed -e 's/#define\s\+\(\w\+\)\s\+\(\w\+\)/\DEFC \1 = \2/' asm/os.h >> z80asm/iomap.h
+
+z80asm/errno.h: asm/errno.h
+	@mkdir -p z80asm
+	@sed -e 's/#define\s\+\(\w\+\)\s\+\(\w\+\)/\DEFC \1 = \2/' asm/os.h >> z80asm/errno.h
+
+
 clean:
 
 distclean:
-	$(RM) sys/os.h errno.h
+	$(RM) -rf z80asm sys/os.h sys/iomap.h errno.h

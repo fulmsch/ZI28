@@ -1,11 +1,7 @@
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "string.h"
-INCLUDE "cli.h"
-INCLUDE "iomap.h"
+#code ROM
 
-PUBLIC b_exit
 b_exit:
+#local
 	ld a, (argc)
 	cp 1
 	jr nz, invalidCall
@@ -25,3 +21,4 @@ bankSwitchEnd:
 
 invalidCall:
 	ret
+#endlocal

@@ -1,15 +1,4 @@
-MODULE fatfs_open
-
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "vfs.h"
-INCLUDE "fatfs.h"
-INCLUDE "math.h"
-INCLUDE "string.h"
-
-PUBLIC fat_open
-
-EXTERN k_seek
+#code ROM
 
 fat_open:
 ;; Creates a new file table entry
@@ -27,6 +16,7 @@ fat_open:
 ;         5=file too large
 ; Destroyed: all
 
+#local
 	ld (fat_open_path), de
 	ld (fat_open_originalPath), de
 	ld (fat_open_flags), a
@@ -305,9 +295,9 @@ writeDirEntry:
 error:
 	ld a, 1
 	ret
+#endlocal
 
-
-SECTION ram_os
+#data RAM
 fat_open_path:           defs  2
 fat_open_originalPath:   defs  2
 fat_open_flags:          defs  1

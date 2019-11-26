@@ -1,23 +1,36 @@
-MODULE monitor
+#code ROM
 
-SECTION rom_code
 ;; Machine monitor, unstable and incomplete
 ;TODO:
 ;Change call to rst
 ;Only allow printable chars as input
 
-INCLUDE "iomap.h"
-INCLUDE "memmap.h"
-INCLUDE "os_memmap.h"
+#define prgm 0xc000
+#define monStack 0xa200
 
-PUBLIC _monitor
+;Monitor workspace
+#define monWorkspace            0xb200
+#define monInputBuffer          monWorkspace + 0
+#define monInputBufferSize      40h
+#define lineCounter             monInputBuffer + monInputBufferSize
 
-EXTERN print
+#define xmodemRecvPacketNumber  lineCounter + 1
+#define xmodemRecvPacketAddress xmodemRecvPacketNumber + 1
 
+#define header                  xmodemRecvPacketAddress + 1
+#define byteCountField          header + 0
+#define addressField            byteCountField + 2
+#define recordTypeField         addressField + 4
+
+#define outputDev               recordTypeField + 2
+#define inputDev                outputDev + 1
+
+#define stackSave               inputDev + 1
+#define registerStackBot        stackSave + 2
+#define registerStack           stackSave +14
 
 _monitor:
-
-DEFC prgm = 0xc000
+#local
 
 	ld (stackSave), sp
 
@@ -690,7 +703,7 @@ showRegisterLoop:
 	rst RST_putc
 	djnz showRegisterLoop
 
-	ld a, '\n'
+	ld a, 0x0a ;'\n'
 	rst RST_putc
 	jp prompt
 
@@ -867,3 +880,4 @@ loadStr:
 
 loadFinishedStr:
 	DEFM "h bytes transferred\n", 0x00
+#endlocal

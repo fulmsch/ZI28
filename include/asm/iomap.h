@@ -1,11 +1,6 @@
-IFNDEF IOMAP_H
-DEFINE IOMAP_H
+#define BANKSEL_PORT 0x02
 
-DEFC BANKSEL_PORT = 0x02
-
-DEFC CTCCH0       = 0x08
-DEFC CTCCH1       = 0x09
-DEFC CTCCH2       = 0x0A
-DEFC CTCCH3       = 0x0B
-
-ENDIF
+#define CTCCH0       0x08
+#define CTCCH1       0x09
+#define CTCCH2       0x0A
+#define CTCCH3       0x0B

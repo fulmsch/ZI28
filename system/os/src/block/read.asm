@@ -1,12 +1,4 @@
-MODULE block_read
-
-SECTION rom_code
-INCLUDE "math.h"
-INCLUDE "block.h"
-
-PUBLIC block_read
-
-EXTERN block_init, block_calcCopyPointers, block_nextBlock
+#code ROM
 
 block_read:
 ;; Translate random access into block based read.
@@ -21,6 +13,7 @@ block_read:
 ;; : de - count
 ;; : a - errno
 
+#local
 	ld (block_memPtr), de
 	ld e, (hl)
 	inc hl
@@ -134,3 +127,4 @@ partialReadReturn:
 error:
 	ld de, (block_totalCount)
 	ret
+#endlocal

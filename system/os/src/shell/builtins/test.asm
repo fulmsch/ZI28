@@ -1,10 +1,7 @@
-SECTION rom_code
-INCLUDE "cli.h"
+#code ROM
 
-EXTERN fontTable
-
-PUBLIC b_test
 b_test:
+#local
 	ld a, (argc)
 	cp 2
 	ret nz
@@ -84,7 +81,8 @@ blank1:
 	ld (hl), a
 	jr loop
 	ret
+#endlocal
 
-SECTION ram_os
+#data RAM
 xOffs: defb 0
 yOffs: defb 0

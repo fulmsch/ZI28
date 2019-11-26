@@ -1,13 +1,4 @@
-MODULE vfs_open
-
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "vfs.h"
-INCLUDE "drive.h"
-
-PUBLIC u_open, k_open
-
-EXTERN realpath, get_drive_and_path, getFdAddr
+#code ROM
 
 u_open:
 	ld hl, u_fdTable
@@ -77,6 +68,7 @@ open:
 ;; : e - file descriptor
 ;; : a - errno
 
+#local
 	ld (open_mode), a
 	ld (open_path), de
 
@@ -226,9 +218,10 @@ invalidDrive:
 invalidPath:
 	ld a, 0xf5
 	ret
+#endlocal
 
 
-SECTION ram_open
+#data RAM
 open_mode:      defs 1
 open_fd:        defs 1
 open_fileIndex: defs 1

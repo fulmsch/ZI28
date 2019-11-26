@@ -1,14 +1,3 @@
-MODULE vfs_unlink
-
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "vfs.h"
-INCLUDE "drive.h"
-
-PUBLIC u_unlink, k_unlink
-
-EXTERN k_open, fdToFileEntry
-
 u_unlink:
 
 k_unlink:
@@ -20,6 +9,7 @@ k_unlink:
 ;; Output:
 ;; : a - errno
 
+#local
 	ld a, O_WRONLY
 	call k_open
 	cp 0
@@ -89,3 +79,4 @@ clearEntry:
 error:
 	ld a, 1
 	ret
+#endlocal

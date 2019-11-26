@@ -1,10 +1,4 @@
-SECTION rom_code
-
-INCLUDE "iomap.h"
-INCLUDE "errno.h"
-INCLUDE "process.h"
-
-PUBLIC u_bsel, k_bsel
+#code ROM
 
 u_bsel:
 k_bsel:
@@ -24,6 +18,7 @@ k_bsel:
 ;; Errors:
 ;; : EINVAL - invalid bank index
 
+#local
 	cp 6
 	jr c, error
 
@@ -39,3 +34,4 @@ error:
 	ld e, a
 	ld a, EINVAL
 	ret
+#endlocal

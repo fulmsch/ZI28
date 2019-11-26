@@ -1,4 +1,4 @@
-INCLUDE "asm/os.h"
+INCLUDE "z80asm/os.h"
 
 DEFC TERMDR = 0x00
 DEFC TERMCR = 0x01

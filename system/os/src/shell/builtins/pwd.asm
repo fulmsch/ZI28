@@ -1,12 +1,7 @@
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "string.h"
-INCLUDE "cli.h"
+#code ROM
 
-EXTERN k_getcwd
-
-PUBLIC b_pwd
 b_pwd:
+#local
 	ld a, (argc)
 	cp 1
 	jr nz, invalidCall
@@ -22,3 +17,4 @@ b_pwd:
 
 invalidCall:
 	ret
+#endlocal

@@ -1,7 +1,4 @@
-SECTION rom_code
-PUBLIC _strerror
-
-DEFC errorTableSize = errorTableEnd - errorTable
+#code ROM
 
 _strerror:
 ;; Return a string describing an error number.
@@ -15,6 +12,7 @@ _strerror:
 ;; Destroyed:
 ;; : None
 
+#local
 	ld hl, invalidErrno_msg
 	cp 0 + (errorTableSize) / 2
 	ret nc
@@ -36,6 +34,7 @@ _strerror:
 invalidErrno_msg:
 	DEFM "Unknown error.", 0x00
 
+#define errorTableSize errorTableEnd - errorTable
 errorTable:
 	DEFW ENOERR_msg
 	DEFW EPERM_msg
@@ -82,10 +81,10 @@ errorTable:
 errorTableEnd:
 	DEFB 0
 
-SECTION rom_data
+;SECTION rom_data
 
 ENOERR_msg:
-	DEFM "", 0x00
+	DEFM 0x00
 
 EPERM_msg:
 	DEFM "Operation not permitted.", 0x00
@@ -209,3 +208,4 @@ EPROCLIM_msg:
 
 E2BIG_msg:
 	DEFM "Argument list too long.", 0x00
+#endlocal

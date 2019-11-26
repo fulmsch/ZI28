@@ -1,12 +1,7 @@
-MODULE builtin_chdir
+#code ROM
 
-SECTION rom_code
-INCLUDE "cli.h"
-
-EXTERN k_chdir
-
-PUBLIC b_chdir
 b_chdir:
+#local
 	ld a, (argc)
 	cp 2
 	jr nz, invalidCall
@@ -25,3 +20,4 @@ b_chdir:
 
 invalidCall:
 	ret
+#endlocal

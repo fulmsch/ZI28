@@ -1,19 +1,14 @@
 ;; Command line interface of the OS
 ;TODO change putc and getc to OS equivalents
-SECTION rom_code
 
-INCLUDE "os.h"
-INCLUDE "string.h"
+#code ROM
 
-EXTERN k_getcwd, k_execv, k_stat
-EXTERN _strerror
-
-DEFC inputBufferSize         = 128
-DEFC maxArgc                 = 32
+#define inputBufferSize 128
+#define maxArgc          32
 
 
-PUBLIC cli
 cli:
+#local
 prompt:
 	ld hl, promptStartStr
 	call print
@@ -36,7 +31,7 @@ handleChar:
 	rst RST_getc
 	cp 0x08
 	jr z, backspace
-	cp '\n'
+	cp 0x0a ;'\n'
 	jr z, handleLine
 	;Check if printable
 	cp 0x20
@@ -310,7 +305,7 @@ fullPath:
 
 	call _strerror
 	call print
-	ld a, '\n'
+	ld a, 0x0a ;'\n'
 	rst RST_putc
 	jp prompt
 
@@ -334,12 +329,13 @@ execPath:
 execExtension:
 	DEFM ".EX8", 0x00
 
+#endlocal
 ;Command strings
 chdirStr:   DEFM "CD", 0x00
 clsStr:     DEFM "CLS", 0x00
 echoStr:    DEFM "ECHO", 0x00
 exitStr:    DEFM "EXIT", 0x00
-forthStr:   DEFM "FORTH", 0x00
+;; forthStr:   DEFM "FORTH", 0x00
 helpStr:    DEFM "HELP", 0x00
 monStr:     DEFM "MONITOR", 0x00
 mountStr:   DEFM "MOUNT", 0x00
@@ -348,14 +344,13 @@ testStr:    DEFM "TEST", 0x00
 verStr:     DEFM "VER", 0x00
 nullStr:    DEFM 0x00
 
-PUBLIC dispatchTable
-EXTERN b_chdir, b_cls, b_echo, b_exit, b_forth, b_help, b_monitor, b_mount, b_pwd, b_test, b_ver
 dispatchTable:
+	;; Needs to be global for the 'help' builtin
 	DEFW chdirStr,  b_chdir
 	DEFW clsStr,    b_cls
 	DEFW echoStr,   b_echo
 	DEFW exitStr,   b_exit
-	DEFW forthStr,  b_forth
+	;; DEFW forthStr,  b_forth
 	DEFW helpStr,   b_help
 	DEFW monStr,    b_monitor
 	DEFW mountStr,  b_mount
@@ -364,19 +359,27 @@ dispatchTable:
 	DEFW verStr,    b_ver
 	DEFW nullStr
 
-SECTION ram_os
-PUBLIC argc, argv, inputBuffer
+#data RAM
 argc: defb 0
 argv: defs maxArgc * 2
 inputBuffer: defs inputBufferSize
 
-SECTION ram_os
-
-PUBLIC pathBuffer
 pathBuffer: defs PATH_MAX
 
-PUBLIC env_workingPath
 env_workingPath: defs PATH_MAX
 
 cli_programName: defs PATH_MAX
 execStat:        defs STAT_LEN
+
+
+#include "builtins/chdir.asm"
+#include "builtins/cls.asm"
+#include "builtins/echo.asm"
+#include "builtins/exit.asm"
+;; #include "forth.asm"
+#include "builtins/help.asm"
+#include "builtins/monitor.asm"
+#include "builtins/mount.asm"
+#include "builtins/pwd.asm"
+#include "builtins/test.asm"
+#include "builtins/ver.asm"

@@ -1,8 +1,16 @@
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "string.h"
-INCLUDE "cli.h"
-INCLUDE "vfs.h"
+#define process_fdTableEntries 8
+
+#define process_max_argc        16
+#define process_max_args_length 128
+
+
+#define process_dataSection 0x8000
+#define process_argString   0x8080
+#define process_argVector   process_argString - ((process_max_argc * 2) + 2)
+#define process_fdTable     process_argVector - process_fdTableEntries
+#define process_pid         process_fdTable - 1
+#define process_sp          process_pid - 2
+#define process_bank        process_sp - 1
 
 ;PUBLIC exec
 
@@ -144,8 +152,10 @@ INCLUDE "vfs.h"
 ;execExtension:
 ;	DEFM ".EX8", 0x00
 
-SECTION ram_os
+#data RAM
 ;exec_fd: defs 1
 ;exec_stack: defs 2
-PUBLIC kernel_stackSave
 kernel_stackSave: defs 2
+
+#include "execv.asm"
+#include "exit.asm"

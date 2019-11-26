@@ -1,106 +1,101 @@
-IFNDEF OS_H
-DEFINE OS_H
+#define RST_coldStart 0x0000
+#define RST_putc      0x0008
+#define RST_getc      0x0010
+#define RST_strerror  0x0028
+#define RST_syscall   0x0030
+#define RST_monitor   0x0038
 
-DEFC RST_coldStart = 0x0000
-DEFC RST_putc      = 0x0008
-DEFC RST_getc      = 0x0010
-DEFC RST_strerror  = 0x0028
-DEFC RST_syscall   = 0x0030
-DEFC RST_monitor   = 0x0038
-
-DEFC MEM_user      = 0x8100
-DEFC MEM_user_top  = 0xC000
+#define MEM_user      0x8100
+#define MEM_user_top  0xC000
 
 ; syscalls
-DEFC SYS_open    =  0
-DEFC SYS_close   =  1
-DEFC SYS_read    =  2
-DEFC SYS_write   =  3
-DEFC SYS_seek    =  4
-DEFC SYS_lseek   =  5
-DEFC SYS_stat    =  6
-DEFC SYS_fstat   =  7
-DEFC SYS_readdir =  8
-DEFC SYS_dup     =  9
-DEFC SYS_mount   = 10
-DEFC SYS_unmount = 11
-DEFC SYS_unlink  = 12
-DEFC SYS_bsel    = 13
-DEFC SYS_execv   = 14
-DEFC SYS_exit    = 15
-DEFC SYS_chdir   = 16
-DEFC SYS_getcwd  = 17
+#define SYS_open     0
+#define SYS_close    1
+#define SYS_read     2
+#define SYS_write    3
+#define SYS_seek     4
+#define SYS_lseek    5
+#define SYS_stat     6
+#define SYS_fstat    7
+#define SYS_readdir  8
+#define SYS_dup      9
+#define SYS_mount   10
+#define SYS_unmount 11
+#define SYS_unlink  12
+#define SYS_bsel    13
+#define SYS_execv   14
+#define SYS_exit    15
+#define SYS_chdir   16
+#define SYS_getcwd  17
 
 ; file system types
-DEFC FS_DEV = 0
-DEFC FS_FAT = 1
+#define FS_DEV 0
+#define FS_FAT 1
 
 ; file mode definition
-DEFC M_READ   = 0x01
-DEFC M_WRITE  = 0x02
-DEFC M_REG    = 0x04
-DEFC M_DIR    = 0x08
-DEFC M_CHAR   = 0x10
-DEFC M_BLOCK  = 0x20
-DEFC M_APPEND = 0x40
+#define M_READ   0x01
+#define M_WRITE  0x02
+#define M_REG    0x04
+#define M_DIR    0x08
+#define M_CHAR   0x10
+#define M_BLOCK  0x20
+#define M_APPEND 0x40
 
-DEFC M_READ_BIT   = 0
-DEFC M_WRITE_BIT  = 1
-DEFC M_REG_BIT    = 2
-DEFC M_DIR_BIT    = 3
-DEFC M_CHAR_BIT   = 4
-DEFC M_BLOCK_BIT  = 5
-DEFC M_APPEND_BIT = 6
+#define M_READ_BIT   0
+#define M_WRITE_BIT  1
+#define M_REG_BIT    2
+#define M_DIR_BIT    3
+#define M_CHAR_BIT   4
+#define M_BLOCK_BIT  5
+#define M_APPEND_BIT 6
 
 ; stat
 ;TODO z80asm struct
-DEFC STAT_NAME    =    0 ;13 bytes
-DEFC STAT_ATTRIB  =   13 ;1 byte
-DEFC STAT_SIZE    =   14 ;4 bytes
-DEFC STAT_LEN     =   18
+#define STAT_NAME       0 ;13 bytes
+#define STAT_ATTRIB    13 ;1 byte
+#define STAT_SIZE      14 ;4 bytes
+#define STAT_LEN       18
 
-DEFC SP_READ      = 0x01 ;read permission
-DEFC SP_WRITE     = 0x02 ;write permission
-DEFC ST_REG       = 0x04 ;regular file
-DEFC ST_DIR       = 0x08 ;directory
-DEFC ST_CHAR      = 0x10 ;character device
-DEFC ST_BLOCK     = 0x20 ;block device
+#define SP_READ      0x01 ;read permission
+#define SP_WRITE     0x02 ;write permission
+#define ST_REG       0x04 ;regular file
+#define ST_DIR       0x08 ;directory
+#define ST_CHAR      0x10 ;character device
+#define ST_BLOCK     0x20 ;block device
 
-DEFC SP_READ_BIT  =    0 ;read permission
-DEFC SP_WRITE_BIT =    1 ;write permission
-DEFC ST_REG_BIT   =    2 ;regular file
-DEFC ST_DIR_BIT   =    3 ;directory
-DEFC ST_CHAR_BIT  =    4 ;character device
-DEFC ST_BLOCK_BIT =    5 ;block device
+#define SP_READ_BIT     0 ;read permission
+#define SP_WRITE_BIT    1 ;write permission
+#define ST_REG_BIT      2 ;regular file
+#define ST_DIR_BIT      3 ;directory
+#define ST_CHAR_BIT     4 ;character device
+#define ST_BLOCK_BIT    5 ;block device
 
 
-DEFC PATH_MAX = 64
+#define PATH_MAX 64
 
-DEFC SEEK_SET = 0
-DEFC SEEK_CUR = 1
-DEFC SEEK_END = 2
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
 
-DEFC STDIN_FILENO  = 0
-DEFC STDOUT_FILENO = 1
-DEFC STDERR_FILENO = 2
+#define STDIN_FILENO  0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
 
 ;open flags
-DEFC O_RDONLY        = 0x01
-DEFC O_WRONLY        = 0x02
-DEFC O_RDWR          = 0x04
-DEFC O_APPEND        = 0x08
-DEFC O_DIRECTORY     = 0x10
-DEFC O_TRUNC         = 0x20 ;unused
-DEFC O_CREAT         = 0x40
-DEFC O_EXCL          = 0x80
+#define O_RDONLY        0x01
+#define O_WRONLY        0x02
+#define O_RDWR          0x04
+#define O_APPEND        0x08
+#define O_DIRECTORY     0x10
+#define O_TRUNC         0x20 ;unused
+#define O_CREAT         0x40
+#define O_EXCL          0x80
 
-DEFC O_RDONLY_BIT    =    0
-DEFC O_WRONLY_BIT    =    1
-DEFC O_RDWR_BIT      =    2
-DEFC O_APPEND_BIT    =    3
-DEFC O_DIRECTORY_BIT =    4
-DEFC O_TRUNC_BIT     =    5 ;unused
-DEFC O_CREAT_BIT     =    6
-DEFC O_EXCL_BIT      =    7
-
-ENDIF
+#define O_RDONLY_BIT       0
+#define O_WRONLY_BIT       1
+#define O_RDWR_BIT         2
+#define O_APPEND_BIT       3
+#define O_DIRECTORY_BIT    4
+#define O_TRUNC_BIT        5 ;unused
+#define O_CREAT_BIT        6
+#define O_EXCL_BIT         7

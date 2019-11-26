@@ -1,15 +1,4 @@
-MODULE devfs_open
-
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "string.h"
-INCLUDE "math.h"
-INCLUDE "vfs.h"
-INCLUDE "devfs.h"
-
-PUBLIC devfs_open
-
-EXTERN devfs_fileDriver
+#code ROM
 
 devfs_open:
 ;; Open a device file
@@ -24,6 +13,7 @@ devfs_open:
 ; Errors: 0=no error
 ;         4=no matching file found
 
+#local
 	ld a, (de)
 	cp 0x00
 	jr nz, notRootDir
@@ -120,3 +110,4 @@ fileFound:
 invalidFile:
 	ld a, 4
 	ret
+#endlocal

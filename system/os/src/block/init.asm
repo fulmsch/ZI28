@@ -1,11 +1,4 @@
-MODULE block_init
-
-SECTION rom_code
-INCLUDE "math.h"
-INCLUDE "vfs.h"
-INCLUDE "block.h"
-
-PUBLIC block_init
+#code ROM
 
 block_init:
 ;; Calculate the current and final block, and the relative offset
@@ -14,6 +7,7 @@ block_init:
 ;; : carry - start with a partial block
 ;; : no carry - start with a full block
 
+#local
 	;get address of file offset
 	ld de, fileTableOffset
 	push ix
@@ -68,3 +62,4 @@ block_init:
 partial:
 	scf
 	ret
+#endlocal

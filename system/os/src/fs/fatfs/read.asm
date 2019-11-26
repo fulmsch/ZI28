@@ -1,15 +1,5 @@
-MODULE fatfs_read
+#code ROM
 
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "vfs.h"
-INCLUDE "fatfs.h"
-INCLUDE "math.h"
-INCLUDE "errno.h"
-
-EXTERN k_read, k_lseek, fat_clusterToAddr, fat_nextCluster
-
-PUBLIC fat_read
 fat_read:
 ;; Copy data from a file to memory
 ;;
@@ -31,6 +21,7 @@ fat_read:
 	;                                          ;
 	;******************************************;
 
+#local
 	ld (fat_rw_remCount), bc
 	ld (fat_rw_dest), de
 	ld de, 0
@@ -91,8 +82,8 @@ fat_read:
 	ld l, c
 	call sub32 ;regA = size - offset
 
-DEFC ZERO_FLAG_BIT     = 0
-DEFC OVERFLOW_FLAG_BIT = 1
+#define ZERO_FLAG_BIT     0
+#define OVERFLOW_FLAG_BIT 1
 
 	ld b, 1 << ZERO_FLAG_BIT
 	ld a, (de)
@@ -347,3 +338,4 @@ rootDir:
 error:
 	;TODO replace calls to this with direct ret
 	ret
+#endlocal

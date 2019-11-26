@@ -1,6 +1,4 @@
-SECTION rom_code
-
-PUBLIC u_unmount, k_unmount
+#code ROM
 
 u_unmount:
 k_unmount:

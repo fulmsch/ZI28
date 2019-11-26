@@ -1,17 +1,4 @@
-SECTION rom_code
-
-INCLUDE "os.h"
-INCLUDE "vfs.h"
-INCLUDE "process.h"
-INCLUDE "iomap.h"
-INCLUDE "memmap.h"
-INCLUDE "math.h"
-
-PUBLIC u_exit
-
-EXTERN kernel_stackSave
-EXTERN k_read, k_lseek
-
+#code ROM
 
 u_exit:
 ;; Terminate the current process and return control to the parent.
@@ -44,6 +31,6 @@ u_exit:
 	xor a
 	ret
 
-SECTION ram_os
+#data RAM
 exit_returnCode:
 	DEFB 0

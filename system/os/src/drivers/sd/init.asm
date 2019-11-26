@@ -1,18 +1,10 @@
-MODULE sd_init
-
-SECTION rom_code
-INCLUDE "math.h"
-INCLUDE "devfs.h"
-INCLUDE "drivers/sd.h"
-
-EXTERN sd_partitionDriver, devfs_addDev
-
-PUBLIC sd_init
+#code ROM
 
 sd_init:
 ;; Initialises the SD-card
 ;;
 
+#local
 	;TODO read mbr, find partitions
 
 	ld c, 0x80 ;TODO proper addressing
@@ -113,3 +105,4 @@ error:
 
 sda1Name:
 	DEFM "SDA1", 0x00
+#endlocal

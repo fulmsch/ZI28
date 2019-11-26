@@ -1,9 +1,4 @@
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "string.h"
-INCLUDE "cli.h"
-
-PUBLIC realpath
+#code ROM
 
 realpath:
 ;; Convert any path to an absolute path.
@@ -19,6 +14,7 @@ realpath:
 ; Remove './'
 ; '../' -> remove previous directory, unless that is the root
 
+#local
 	ld de, realpath_outputProt
 	xor a
 	ld (de), a
@@ -139,9 +135,10 @@ return:
 	call strtup
 	pop hl
 	ret
+#endlocal
 
 
-SECTION ram_os
+#data RAM
 
 realpath_outputProt: defs 1
 realpath_output:     defs PATH_MAX

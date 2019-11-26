@@ -19,7 +19,7 @@
 ; Adapted for the freeware Zilog Macro Assembler 2.10 to produce
 ; the original ROM code (checksum A934H). PA
 
-INCLUDE "asm/os.h"
+INCLUDE "z80asm/os.h"
 
 ; GENERAL EQUATES
 

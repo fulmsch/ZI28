@@ -1,12 +1,4 @@
-MODULE devfs_readdir
-
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "devfs.h"
-
-PUBLIC devfs_readdir
-
-EXTERN k_seek, devfs_statFromEntry
+#code ROM
 
 devfs_readdir:
 ;; Get information about the next file in a directory.
@@ -18,6 +10,7 @@ devfs_readdir:
 ;; Output:
 ;; : a - errno
 
+#local
 	push af
 
 	;check if root dir
@@ -55,3 +48,4 @@ error:
 	pop af
 	ld a, 1
 	ret
+#endlocal

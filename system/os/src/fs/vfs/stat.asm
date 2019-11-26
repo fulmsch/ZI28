@@ -1,11 +1,4 @@
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "vfs.h"
-INCLUDE "drive.h"
-
-PUBLIC u_stat, k_stat, u_fstat, k_fstat
-
-EXTERN k_open, k_close, fdToFileEntry
+#code ROM
 
 u_stat:
 k_stat:
@@ -45,7 +38,7 @@ k_fstat:
 ;; Output:
 ;; : a - errno
 
-
+#local
 	push af
 	push de
 
@@ -94,3 +87,4 @@ error:
 	pop de
 	ld a, 1
 	ret
+#endlocal

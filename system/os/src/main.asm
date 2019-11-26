@@ -4,11 +4,19 @@
 
 ;TODO:
 
+#target rom
+
+#data RAM,0x4000,0x4000
+
+#code ROM,0,0x4000
+
+#include "../../../include/asm/os.h"
+#include "../../../include/asm/iomap.h"
+#include "../../../include/asm/errno.h"
+
+#define sysStack 0x8000
+
 ; Jump Table -------------------------------------------------
-
-org 0x0000
-
-EXTERN _coldStart, _putc, _getc, _strerror, _syscall, _monitor
 
 	jp      _coldStart   ;RST 0x00
 	DEFB    0x00
@@ -41,59 +49,55 @@ EXTERN _coldStart, _putc, _getc, _strerror, _syscall, _monitor
 	jp      _monitor     ;RST 0x38
 
 
-;SECTION rom_nmi
-DEFS 0x66 - ASMPC
-EXTERN ISR_keyboard
+	org 0x66
 	DEFW ISR_keyboard
 
-;SECTION rom_syscallTable
-DEFS 0x0100 - ASMPC
-PUBLIC syscallTable, syscallTableEnd
-EXTERN u_open, u_close, u_read, u_write, u_seek, u_lseek, u_stat, u_fstat
-EXTERN u_readdir, u_dup, u_mount, u_unmount, u_unlink
-EXTERN u_bsel, u_execv, u_exit
-EXTERN u_chdir, u_getcwd
-syscallTable:
-	DEFW u_open
-	DEFW u_close
-	DEFW u_read
-	DEFW u_write
-	DEFW u_seek
-	DEFW u_lseek
-	DEFW u_stat
-	DEFW u_fstat
-	DEFW u_readdir
-	DEFW u_dup
-	DEFW u_mount
-	DEFW u_unmount
-	DEFW u_unlink
-	DEFW u_bsel
-	DEFW u_execv
-	DEFW u_exit
-	DEFW u_chdir
-	DEFW u_getcwd
-syscallTableEnd:
-DEFB 0
+	org 0x100
+#include "syscall.asm"
 
-SECTION rom_code
-SECTION rom_data
+#include "math.asm"
+#include "string.asm"
+
+#include "coldstart.asm"
+#include "chdir.asm"
+#include "error.asm"
+#include "font.asm"
+#include "get_drive_and_path.asm"
+#include "getcwd.asm"
+#include "interrupt.asm"
+#include "kalloc.asm"
+#include "monitor.asm"
+#include "realpath.asm"
+
+#include "process/process.asm"
+#include "fs/vfs/vfs.asm"
+#include "fs/fatfs/fatfs.asm"
+#include "fs/devfs/devfs.asm"
+
+#include "shell/cli.asm"
+#include "version.asm"
+
+#include "bank/bsel.asm"
+#include "block/block.asm"
+
+#include "drivers/ft240/ft240.asm"
+#include "drivers/sd/sd.asm"
+#include "drive/drive.asm"
 
 
-SECTION RAM ;0x4000 - 0x7fff, 16kB
-	org 0x4000
 
-SECTION ram_driveTable
-SECTION ram_fileTable
-SECTION ram_fdTable
+#data RAM
+;; SECTION RAM ;0x4000 - 0x7fff, 16kB
+	;; org 0x4000
 
-SECTION ram_os
+;; SECTION ram_driveTable
+;; SECTION ram_fileTable
+;; SECTION ram_fdTable
 
-;32bit registers
-PUBLIC regA, regB, regC
-regA: defs 4
-regB: defs 4
-regC: defs 4
+;; SECTION ram_os
 
-PUBLIC kheap
-SECTION ram_kheap
+;; PUBLIC kheap
+;; SECTION ram_kheap
 kheap:
+
+#end

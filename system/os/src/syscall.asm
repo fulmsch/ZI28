@@ -1,10 +1,30 @@
-SECTION rom_code
+#code ROM
 
-DEFC nSyscalls = (syscallTableEnd - syscallTable) / 2
+	;; TODO make everything except _syscall local
+#define nSyscalls ((syscallTableEnd - syscallTable) / 2)
 
-PUBLIC _syscall
-
-EXTERN syscallTable, syscallTableEnd
+syscallTable:
+	DEFW u_open
+	DEFW u_close
+	DEFW u_read
+	DEFW u_write
+	DEFW u_seek
+	DEFW u_lseek
+	DEFW u_stat
+	DEFW u_fstat
+	DEFW u_readdir
+	DEFW u_dup
+	DEFW u_mount
+	DEFW u_unmount
+	DEFW u_unlink
+	DEFW u_bsel
+	DEFW u_execv
+	DEFW u_exit
+	DEFW u_chdir
+	DEFW u_getcwd
+syscallTableEnd:
+	;; TODO can this be removed?
+	DEFB 0
 
 _syscall:
 ;; Access a system function from a running program.
@@ -13,6 +33,7 @@ _syscall:
 ;; : c - Syscall number (defined in sys/os.h)
 ;; : a, de, hl - Arguments passed to syscall
 
+#local
 ;check for valid syscall number
 	push af
 	ld a, nSyscalls
@@ -40,3 +61,4 @@ error:
 	pop af
 	ld a, 0xff
 	ret
+#endlocal

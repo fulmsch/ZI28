@@ -1,13 +1,4 @@
-MODULE vfs_readdir
-
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "vfs.h"
-INCLUDE "drive.h"
-
-PUBLIC u_readdir, k_readdir
-
-EXTERN fdToFileEntry
+#code ROM
 
 u_readdir:
 	add a, fdTableEntries
@@ -22,6 +13,7 @@ k_readdir:
 ;; Output:
 ;; : a - errno
 
+#local
 	push af
 	push de
 
@@ -75,4 +67,4 @@ error:
 	pop de
 	ld a, 1
 	ret
-
+#endlocal

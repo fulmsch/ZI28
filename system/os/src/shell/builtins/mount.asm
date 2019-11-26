@@ -1,13 +1,7 @@
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "string.h"
-INCLUDE "cli.h"
+#code ROM
 
-EXTERN fat_fsDriver
-EXTERN sd_init, k_open, k_mount
-
-PUBLIC b_mount
 b_mount:
+#local
 	ld a, (argc)
 	cp 3
 	jr nz, invalidCall
@@ -51,3 +45,4 @@ invalidCall:
 	ret
 invalidCallstr:
 	DEFM "Usage: MOUNT <DEVICE> <LABEL>\n", 0x00
+#endlocal

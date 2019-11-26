@@ -1,13 +1,4 @@
-MODULE fatfs_fstat
-
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "fatfs.h"
-INCLUDE "vfs.h"
-
-PUBLIC fat_fstat
-
-EXTERN k_read, k_lseek, fat_statFromEntry
+#code ROM
 
 fat_fstat:
 ;; Get information about a file.
@@ -19,7 +10,7 @@ fat_fstat:
 ;; Output:
 ;; : a - errno
 
-
+#local
 	push de
 
 	;check if root dir (filetype == dir && startCluster == 0)
@@ -78,3 +69,4 @@ error:
 	pop de
 	ld a, 1
 	ret
+#endlocal

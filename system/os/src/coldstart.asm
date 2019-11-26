@@ -1,15 +1,6 @@
-SECTION rom_code
+#code ROM
 ; Cold start -------------------------------------------------
 
-INCLUDE "os.h"
-INCLUDE "memmap.h"
-INCLUDE "vfs.h"
-INCLUDE "process.h"
-
-EXTERN dummyRoot, k_mount, k_open, k_dup, mountRoot, k_chdir, b_cls, k_execv, cli, k_bsel
-EXTERN kalloc_nextBlock, kheap
-
-PUBLIC _coldStart
 _coldStart:
 	ld sp, sysStack
 

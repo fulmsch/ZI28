@@ -1,4 +1,3 @@
 os/src/version.asm
-!os/src/os.lst
 os/doc
 bootloader/src/gitversion.asm

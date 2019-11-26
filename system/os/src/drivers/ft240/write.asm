@@ -1,9 +1,4 @@
-MODULE ft240_write
-
-SECTION rom_code
-INCLUDE "drivers/ft240.h"
-
-PUBLIC ft240_write
+#code ROM
 
 ft240_write:
 ;; Write to the USB-connection on the mainboard
@@ -18,6 +13,7 @@ ft240_write:
 ;; : a - errno
 ; Errors: 0=no error
 
+#local
 	;calculate loop value in bc
 	ld a, c
 	dec bc
@@ -32,7 +28,7 @@ poll:
 	bit 0, a
 	jr nz, poll
 	ld a, (de)
-	cp '\n'
+	cp 0x0a ;'\n'
 	call z, newline
 	out (FT240_DATA_PORT), a
 	inc de
@@ -44,8 +40,8 @@ poll:
 	ret
 
 newline:
-	ld a, '\r'
+	ld a, 0x0d ;'\r'
 	out (FT240_DATA_PORT), a
-	ld a, '\n'
+	ld a, 0x0a ;'\n'
 	ret
-	
+#endlocal

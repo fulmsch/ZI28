@@ -1,13 +1,4 @@
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "process.h"
-INCLUDE "errno.h"
-INCLUDE "string.h"
-
-PUBLIC u_execv, k_execv
-
-EXTERN k_open, k_read, k_close, udup, u_exit
-EXTERN kernel_stackSave
+#code ROM
 
 u_execv:
 ;; Execute a program.
@@ -25,6 +16,7 @@ u_execv:
 
 k_execv:
 
+#local
 	ld (execv_argv), hl
 	ld (execv_path), de
 
@@ -180,8 +172,9 @@ argLengthError:
 argCountError:
 	ld a, E2BIG
 	ret
+#endlocal
 
-SECTION ram_os
+#data RAM
 execv_path: defs 2
 execv_argv: defs 2
 execv_argc: defs 1

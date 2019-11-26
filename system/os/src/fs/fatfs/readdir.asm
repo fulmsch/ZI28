@@ -1,11 +1,4 @@
-MODULE fatfs_readdir
-
-SECTION rom_code
-INCLUDE "fatfs.h"
-
-PUBLIC fat_readdir
-
-EXTERN k_read, fat_statFromEntry
+#code ROM
 
 fat_readdir:
 ;; Get information about the next file in a directory.
@@ -17,6 +10,7 @@ fat_readdir:
 ;; Output:
 ;; : a - errno
 
+#local
 	push de
 	push af
 
@@ -50,3 +44,4 @@ error:
 	pop de
 	ld a, 1
 	ret
+#endlocal

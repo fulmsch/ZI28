@@ -1,12 +1,4 @@
-SECTION rom_code
-
-INCLUDE "drive.h"
-INCLUDE "vfs.h"
-INCLUDE "string.h"
-
-PUBLIC u_mount, k_mount
-
-EXTERN k_open, get_drive_and_path, storeAndCallFsInit
+#code ROM
 
 u_mount:
 ;; Mount filesystem.
@@ -45,6 +37,7 @@ k_mount:
 ; Errors: 0=no error
 ;         2=invalid drive number
 
+#local
 	;find free drive entry
 	;get parent and path of dest
 	;store path in drive entry
@@ -156,3 +149,4 @@ pathError:
 	pop hl
 	ld a, 1 ;path error
 	ret
+#endlocal

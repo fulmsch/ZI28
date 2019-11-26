@@ -1,12 +1,4 @@
-MODULE vfs_read
-
-SECTION rom_code
-INCLUDE "math.h"
-INCLUDE "vfs.h"
-
-PUBLIC u_read, k_read
-
-EXTERN fdToFileEntry
+#code ROM
 
 u_read:
 	add a, fdTableEntries
@@ -32,6 +24,7 @@ k_read:
 ;Errors: 0=no error
 ;        1=invalid file descriptor
 
+#local
 	;TODO limit count to size-offset
 	;TODO check permission
 
@@ -116,3 +109,4 @@ zeroCount:
 	xor a
 	ld de, 0
 	ret
+#endlocal

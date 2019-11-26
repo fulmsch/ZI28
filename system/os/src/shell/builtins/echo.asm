@@ -1,11 +1,7 @@
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "string.h"
-INCLUDE "cli.h"
-
-PUBLIC b_echo
+#code ROM
 
 b_echo:
+#local
 	;print all arguments
 	ld a, (argc)
 	dec a
@@ -37,3 +33,4 @@ newline:
 	ld a, 0ah
 	rst RST_putc
 	ret
+#endlocal

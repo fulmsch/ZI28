@@ -31,3 +31,5 @@ clean:
 
 distclean:
 	-$(RM) rom.bin rom.hex
+	$(MAKE) -C os/ distclean
+	$(MAKE) -C bank0/ distclean

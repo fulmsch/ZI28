@@ -1,0 +1,379 @@
+;; String manipulation routines similar to those in the C library.
+;;
+;; Calling convention:
+;; : de - destination / str1
+;; : hl - source / str2
+;; : a  - char / len
+
+#code ROM
+
+memcmp:
+;; Compares b bytes of hl and de
+;;
+;; Input:
+;; : de, hl - pointers
+;;
+;; Output:
+;; : z if equal
+;;
+;; Destroyed:
+;; : a, bc, de, hl
+
+	ld a, (de)
+	ld c, a
+	ld a, (hl)
+	cp c
+	ret nz
+	inc de
+	inc hl
+	djnz memcmp
+	ret
+
+
+memset:
+;; Fills b bytes with a, starting at hl
+;;
+;; Input:
+;; : a - value
+;; : hl - pointer
+;; : b - count
+
+	ld (hl), a
+	inc hl
+	djnz memset
+	ret
+
+
+strcat:
+;; Appends hl to the end of de
+;;
+;; Input:
+;; : de, hl - string pointers
+;;
+;; Destroyed:
+;; : a, de, hl
+
+	;Find the end of (de)
+	ld a, (de)
+	cp 0
+	inc de
+	jr nz, strcat
+	dec de
+
+	;Copy hl to de
+	jp strcpy
+
+
+strncat:
+;; Appends up to b characters from hl to the end of de
+;;
+;; Input:
+;; : de, hl - string pointers
+;;
+;; Destroyed:
+;; : a, b, de, hl
+
+	;Find the end of (de)
+	ld a, (de)
+	cp 0
+	inc de
+	jr nz, strncat
+	dec de
+
+	jp strncpy
+
+
+strcmp:
+;; Compares hl and de
+;;
+;; Input:
+;; : de, hl - string pointers
+;;
+;; Output:
+;; : z if equal strings
+;;
+;; Destroyed: a, b, de, hl
+
+	ld a, (de)
+	ld b, a
+	ld a, (hl)
+	cp b
+	ret nz
+	cp 0x00
+	ret z
+	inc de
+	inc hl
+	jr strcmp
+
+
+strncmp:
+;; Compares at most the first b characters of hl and de
+;;
+;; Input:
+;; : de, hl - string pointers
+;; : b - length
+;;
+;; Output:
+;; : z if equal strings
+;;
+;; Destroyed:
+;; : a, bc, de, hl
+
+	ld a, (de)
+	ld c, a
+	ld a, (hl)
+	cp c
+	ret nz
+	cp 0
+	ret z
+	inc de
+	inc hl
+	djnz strncmp
+	ret
+
+
+strbegins:
+;; Check if hl begins with de.
+;;
+;; Input:
+;; : de, hl - string pointers
+;;
+;; Output:
+;; : z if hl begins with de
+;;
+;; Destroyed: a, de, hl
+
+	ld a, (de)
+	cp 0x00
+	ret z
+	cp (hl)
+	ret nz
+	inc de
+	inc hl
+	jr strbegins
+
+
+strcpy:
+;; Copy a string from hl to de
+;;
+;; Input:
+;; : de, hl - string pointers
+;;
+;; Destroyed:
+;; : a, de, hl
+
+	ld a, (hl)
+	ld (de), a
+	cp 0x00
+	ret z
+	inc hl
+	inc de
+	jr strcpy
+
+
+strncpy:
+;; Copy up to b characters from hl to de
+;;
+;; Input:
+;; : de, hl - string pointers
+;; : b - length
+;;
+;; Destroyed:
+;; : a, b, de, hl
+
+	ld a, (hl)
+	ld (de), a
+	cp 0
+	ret z
+	inc hl
+	inc de
+	djnz strncpy
+	ret
+
+
+strlen:
+;; Returns the length of the string pointed to by hl
+;;
+;; Input:
+;; : hl - string pointer
+;;
+;; Output:
+;; : bc - length not including the null terminator
+;;
+;; Destroyed:
+;; : hl
+
+#local
+	ld bc, 0
+loop:
+	ld a, (hl)
+	cp 0
+	ret z
+	inc bc
+	inc hl
+	jr loop
+#endlocal
+
+
+toupper:
+;; Converts a character to uppercase
+;;
+;; Input:
+;; : a - char
+
+	cp 0x61
+	ret c
+	cp 0x7b
+	ret nc
+	sub 0x20
+	ret
+
+
+strtup:
+;; Converts a string to uppercase
+;;
+;; Input:
+;; : hl - string pointer
+;;
+;; Destroyed:
+;; : a, hl
+
+	ld a, (hl)
+	cp 0
+	ret z
+
+	call toupper
+	ld (hl), a
+	inc hl
+	jr strtup
+
+
+print:
+;; Print a zero-terminated string to stdout.
+;;
+;; Input:
+;; : (hl) - string
+
+	push hl
+	call strlen
+	ld h, b
+	ld l, c
+	pop de
+	ld a, STDOUT_FILENO
+	jp k_write
+
+	;; ld a, (hl)
+	;; cp 0x00
+	;; ret z
+	;; rst RST_putc
+	;; inc hl
+	;; jr print
+
+
+;TODO suppress leading zeros
+printDec8:
+;; Print an unsigned 8-bit integer to stdout.
+;;
+;; Input:
+;; : a - number
+
+	ld l, a
+	ld h, 0
+
+printDec16:
+;; Print an unsigned 16-bit integer to stdout.
+;;
+;; Input:
+;; : hl - number
+
+	ld bc, -10000
+	call Num1
+	ld bc, -1000
+	call Num1
+	ld bc, -100
+	call Num1
+	ld c, -10
+	call Num1
+	ld c, -1
+Num1: ld a, '0'-1
+Num2: inc a
+	add hl,bc
+	jr c,Num2
+	sbc hl,bc
+	rst RST_putc
+	ret
+
+
+_putc:
+;; Print a single character to stdout.
+;;
+;; Input:
+;; : a - character
+
+	push af
+	push bc
+	push de
+	push hl
+
+	ld de, putc_buffer
+	ld (de), a
+	ld hl, 1
+	ld a, STDOUT_FILENO
+	call k_write
+
+	pop hl
+	pop de
+	pop bc
+	pop af
+	ret
+
+;; #local
+;; 	push af
+;; poll:
+;; 	in a, (1)
+;; 	bit 0, a
+;; 	jr nz, poll
+;; 	pop af
+;; 	out (0), a
+;; 	ret
+;; 	#endlocal
+
+#data RAM
+putc_buffer:
+	DEFB 0
+
+
+#code ROM
+_getc:
+;; Read a single character from stdin.
+;;
+;; Output:
+;; : a - character
+
+	push bc
+	push de
+	push hl
+
+	ld a, STDIN_FILENO
+	ld de, getc_buffer
+	ld hl, 1
+	call k_read
+	ld a, (getc_buffer)
+
+	pop hl
+	pop de
+	pop bc
+	ret
+
+;; #local
+;; poll:
+;; 	in a, (1)
+;; 	bit 1, a
+;; 	jr nz, poll
+;; 	in a, (0)
+;; 	ret
+;; 	#endlocal
+
+#data RAM
+getc_buffer:
+	DEFB 0

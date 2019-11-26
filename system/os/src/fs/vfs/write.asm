@@ -1,14 +1,4 @@
-MODULE vfs_write
-
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "math.h"
-INCLUDE "vfs.h"
-INCLUDE "errno.h"
-
-PUBLIC u_write, k_write
-
-EXTERN fdToFileEntry
+#code ROM
 
 u_write:
 	add a, fdTableEntries
@@ -30,6 +20,7 @@ k_write:
 ;         1=invalid file descriptor
 ;         2=invalid file driver
 
+#local
 	push de ;buffer
 	push hl ;count
 
@@ -99,3 +90,4 @@ zeroCount:
 	xor a
 	ld de, 0
 	ret
+#endlocal

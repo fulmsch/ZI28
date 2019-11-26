@@ -1,15 +1,8 @@
-MODULE devfs_init
-
-SECTION rom_code
-INCLUDE "math.h"
-
-PUBLIC devfs_init
-
-EXTERN ft240_deviceDriver, devfs_addDev, sd_deviceDriver, vt100_deviceDriver
+#code ROM
 
 devfs_init:
 ;; Adds all permanently attached devices
-
+#local
 	;ft240
 	ld hl, tty0name
 	ld de, ft240_deviceDriver
@@ -22,10 +15,10 @@ devfs_init:
 	ld a, 0x80
 	call devfs_addDev
 
-	ld hl, vgattyName
-	ld de, vt100_deviceDriver
-	ld a, 0x90
-	call devfs_addDev
+	;; ld hl, vgattyName
+	;; ld de, vt100_deviceDriver
+	;; ld a, 0x90
+	;; call devfs_addDev
 
 
 	xor a
@@ -38,3 +31,4 @@ sdaName:
 	DEFM "SDA", 0x00
 vgattyName:
 	DEFM "VGATTY", 0x00
+#endlocal

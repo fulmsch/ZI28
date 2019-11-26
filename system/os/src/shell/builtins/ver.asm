@@ -1,12 +1,7 @@
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "string.h"
-INCLUDE "cli.h"
+#code ROM
 
-EXTERN version
-
-PUBLIC b_ver
 b_ver:
+#local
 	ld a, (argc)
 	cp 1
 	jr nz, invalidCall
@@ -18,3 +13,4 @@ b_ver:
 
 invalidCall:
 	ret
+#endlocal

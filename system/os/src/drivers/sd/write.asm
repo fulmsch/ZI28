@@ -1,12 +1,4 @@
-MODULE sd_write
-
-SECTION rom_code
-INCLUDE "math.h"
-INCLUDE "drivers/sd.h"
-
-PUBLIC sd_write
-
-EXTERN block_write
+#code ROM
 
 sd_write:
 ;; Write to a SD-card
@@ -37,6 +29,7 @@ sd_writeBlock:
 ;; : de = count
 ;; : a - errno
 
+#local
 	push de ;buffer
 
 	;calculate start address from sector number
@@ -122,3 +115,4 @@ error:
 	call sd_disable
 	ld a, 1
 	ret
+#endlocal

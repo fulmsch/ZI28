@@ -1,11 +1,7 @@
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "string.h"
+#code ROM
 
-EXTERN dispatchTable
-
-PUBLIC b_help
 b_help:
+#local
 	ld hl, helpMsg
 	call print
 	;print commands from dispatch table
@@ -53,3 +49,4 @@ helpMsg:
 	DEFM "The following commands are available:\n", 0x00
 pathMsg:
 	DEFM "\nAdditional programs will be searched in:\n ", 0x00
+#endlocal

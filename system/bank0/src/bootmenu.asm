@@ -1,10 +1,4 @@
-SECTION rom_code
-
-INCLUDE "bank0.h"
-
-EXTERN romUtil, romUtilEnd, basic
-
-PUBLIC _coldStart, _getc, _putc, _warmStart
+#code ROM
 
 _coldStart:
 	cp 0
@@ -63,7 +57,7 @@ bootMenuLoop:
 	cp '2'
 	;jp z, monitor
 	cp '3'
-	jp z, basic
+	;jp z, basic
 	cp '4'
 	jr z, loadRomUtil
 	jr bootMenuLoop
@@ -108,8 +102,8 @@ bootAbortStr:
 	DEFM "\nAutomatic boot aborted\n", 0x00
 
 
-DEFC FT240_DATA_PORT   = 0
-DEFC FT240_STATUS_PORT = 1
+#define FT240_DATA_PORT   0
+#define FT240_STATUS_PORT 1
 
 _putc:
 	push af
@@ -118,14 +112,14 @@ _putc_poll:
 	bit 0, a
 	jr nz, _putc_poll
 	pop af
-	cp '\n'
+	cp 0x0a ;'\n'
 	call z, _putc_newline
 	out (FT240_DATA_PORT), a
 	ret
 _putc_newline:
-	ld a, '\r'
+	ld a, 0x0d ;'\r'
 	out (FT240_DATA_PORT), a
-	ld a, '\n'
+	ld a, 0x0a ;'\n'
 	ret
 
 
@@ -146,7 +140,7 @@ _getc_blocking:
 	bit 1, a
 	jr nz, _getc_blocking
 	in a, (FT240_DATA_PORT)
-	cp '\r'
+	cp 0x0d ;'\r'
 	jr z, _getc_blocking
 	ret
 
@@ -167,5 +161,5 @@ bankSwitch:
 bankSwitchEnd:
 
 romUtil:
-BINARY "romutil.bin"
+	incbin "../romutil.bin"
 romUtilEnd:

@@ -1,15 +1,4 @@
-MODULE fatfs_write
-
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "vfs.h"
-INCLUDE "fatfs.h"
-INCLUDE "math.h"
-INCLUDE "errno.h"
-
-EXTERN k_read, k_lseek, fat_clusterToAddr, fat_nextCluster, k_write, fat_addCluster
-
-PUBLIC fat_write
+#code ROM
 
 fat_write:
 ;; Copy data from memory to a file
@@ -29,6 +18,7 @@ fat_write:
 	;                                           ;
 	;*******************************************;
 
+#local
 	ld (fat_rw_remCount), bc
 	ld (fat_rw_dest), de
 	ld de, 0
@@ -380,3 +370,4 @@ rootDir:
 error:
 	;TODO replace calls to this with direct ret
 	ret
+#endlocal

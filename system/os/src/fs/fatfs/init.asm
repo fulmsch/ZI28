@@ -1,13 +1,5 @@
-MODULE fatfs_init
+#code ROM
 
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "fatfs.h"
-INCLUDE "math.h"
-
-EXTERN k_seek, k_read
-
-PUBLIC fat_init
 fat_init:
 ;; Calculate and store filesystem offsets
 ;;
@@ -16,7 +8,7 @@ fat_init:
 
 	;TODO fix this crap
 
-
+#local
 	ld de, 0x0002
 	ld (ix + fat_firstFreeCluster), e
 	ld (ix + fat_firstFreeCluster + 1), d
@@ -166,3 +158,4 @@ rootDirSizeLoop:
 ;	xor a
 
 	ret
+#endlocal

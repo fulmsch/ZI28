@@ -1,13 +1,4 @@
-MODULE sd_read
-
-SECTION rom_code
-INCLUDE "math.h"
-INCLUDE "devfs.h"
-INCLUDE "drivers/sd.h"
-
-PUBLIC sd_read
-
-EXTERN block_read
+#code ROM
 
 sd_read:
 ;; Read from a SD-card
@@ -38,6 +29,7 @@ sd_readBlock:
 ;; : de = count
 ;; : a - errno
 
+#local
 	push de ;buffer
 
 	;calculate start address from sector number
@@ -105,3 +97,4 @@ error:
 	call sd_disable
 	ld a, 1
 	ret
+#endlocal

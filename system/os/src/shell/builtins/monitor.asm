@@ -1,9 +1,5 @@
-MODULE builtin_monitor
+#code ROM
 
-SECTION rom_code
-INCLUDE "os.h"
-
-PUBLIC b_monitor
 b_monitor:
 	rst RST_monitor
 	ret

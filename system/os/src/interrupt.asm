@@ -1,5 +1,4 @@
-SECTION rom_code
-PUBLIC ISR_keyboard
+#code ROM
 
 ISR_keyboard:
 	retn

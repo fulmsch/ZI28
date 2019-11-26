@@ -1,12 +1,4 @@
-MODULE block_write
-
-SECTION rom_code
-INCLUDE "math.h"
-INCLUDE "block.h"
-
-PUBLIC block_write
-
-EXTERN block_init, block_nextBlock, block_calcCopyPointers
+#code ROM
 
 block_write:
 ;; Translate random access into block based write.
@@ -20,6 +12,7 @@ block_write:
 ;; : de - count
 ;; : a - errno
 
+#local
 	ld (block_memPtr), de
 	ld e, (hl)
 	inc hl
@@ -154,3 +147,4 @@ partialWriteReturn:
 error:
 	ld de, (block_totalCount)
 	ret
+#endlocal

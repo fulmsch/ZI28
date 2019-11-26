@@ -1,13 +1,4 @@
-MODULE chdir
-
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "string.h"
-INCLUDE "cli.h"
-
-PUBLIC u_chdir, k_chdir
-
-EXTERN k_open, k_close, realpath
+#code ROM
 
 u_chdir:
 k_chdir:
@@ -19,6 +10,7 @@ k_chdir:
 ;; Output:
 ;; : a - errno
 
+#local
 	push hl
 
 	ex de, hl
@@ -54,3 +46,4 @@ error:
 	pop hl
 	ld a, 1
 	ret
+#endlocal

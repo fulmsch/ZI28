@@ -1,9 +1,4 @@
-SECTION rom_code
-INCLUDE "vfs.h"
-
-PUBLIC u_dup, k_dup
-
-EXTERN k_close, getFdAddr, getFileAddr
+#code ROM
 
 u_dup:
 	ld hl, u_fdTable
@@ -44,6 +39,7 @@ dup:
 ;; : a - errno
 ;; : e - new fd
 
+#local
 	push af
 	ld a, b
 	ld (dup_oldFd), a
@@ -104,7 +100,8 @@ copyFd:
 error:
 	ld a, 1
 	ret
+#endlocal
 
-SECTION ram_os
+#data RAM
 dup_oldFd: defs 1
 dup_newFd: defs 1

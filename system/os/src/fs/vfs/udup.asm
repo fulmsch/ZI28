@@ -1,9 +1,4 @@
-SECTION rom_code
-INCLUDE "vfs.h"
-
-PUBLIC udup
-
-EXTERN getFdAddr, getFileAddr
+#code ROM
 
 udup:
 ;; Copy a kernel file descriptor to the user fd-table.
@@ -17,6 +12,7 @@ udup:
 ;; Output:
 ;; : a - errno
 
+#local
 	push af
 	ld a, b
 	call getFdAddr
@@ -52,4 +48,4 @@ error:
 	pop af
 	ld a, 1
 	ret
-
+#endlocal

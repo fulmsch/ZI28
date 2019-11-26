@@ -1,12 +1,4 @@
-MODULE fatfs_unlink
-
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "fatfs.h"
-
-PUBLIC fat_unlink
-
-EXTERN fat_clearClusterChain, k_lseek, k_write
+#code ROM
 
 fat_unlink:
 ;; Mark the directory entry as deleted and clear the cluster chain.
@@ -17,6 +9,7 @@ fat_unlink:
 ;; Output:
 ;; : a - errno
 
+#local
 	;get the drive table entry of the filesystem
 	ld a, (ix + fileTableDriveNumber)
 	ld h, 0 + (driveTable >> 8)
@@ -60,3 +53,4 @@ emptyFile:
 error:
 	ld a, 1
 	ret
+#endlocal

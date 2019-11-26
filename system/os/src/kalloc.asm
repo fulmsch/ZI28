@@ -1,9 +1,4 @@
-SECTION rom_code
-
-INCLUDE "errno.h"
-INCLUDE "os.h"
-
-PUBLIC kalloc, kalloc_nextBlock
+#code ROM
 
 kalloc:
 ;; Allocates memory on the kernel heap. This memory cannot be freed.
@@ -18,6 +13,8 @@ kalloc:
 ;; Errors:
 ;; : EINVAL - Zero bytes were requested
 ;; : ENOMEM - Kernel heap is out of memory
+
+#local
 
 ;check that hl is not 0
 	xor a
@@ -56,7 +53,8 @@ notZero:
 memError:
 	ld a, ENOMEM
 	ret
+#endlocal
 
-SECTION ram_os
+#data RAM
 kalloc_nextBlock:
 	DEFW 0

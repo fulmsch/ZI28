@@ -1,12 +1,4 @@
-MODULE devfs_fstat
-
-SECTION rom_code
-INCLUDE "os.h"
-INCLUDE "devfs.h"
-
-PUBLIC devfs_fstat
-
-EXTERN devfs_statFromEntry
+#code ROM
 
 devfs_fstat:
 ;; Get information about a file.
@@ -18,7 +10,7 @@ devfs_fstat:
 ;; Output:
 ;; : a - errno
 
-
+#local
 	;check if root dir
 	ld a, (ix + dev_fileTableDirEntry)
 	cp 0x00
@@ -45,3 +37,4 @@ rootDir:
 	;file size is unspecified
 	;a = 0
 	ret
+#endlocal

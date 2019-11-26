@@ -1,8 +1,4 @@
-SECTION rom_code
-INCLUDE "string.h"
-INCLUDE "drive.h"
-
-PUBLIC get_drive_and_path
+#code ROM
 
 get_drive_and_path:
 ;; Get the drive number and relative path from an absolute path.
@@ -15,6 +11,7 @@ get_drive_and_path:
 ;; : (de) - drive entry
 ;; : carry - error
 
+#local
 	ld a, (hl)
 	cp '/'
 	scf
@@ -82,3 +79,4 @@ end:
 	ret c
 	dec e
 	ret
+#endlocal

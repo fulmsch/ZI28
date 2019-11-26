@@ -1,7 +1,13 @@
-ORG 0x0000
+#target rom
 
-EXTERN _coldStart, _putc, _getc, _warmStart
+#data RAM,0x4000,0x4000
 
+#code ROM,0x0000,0x4000
+
+#define RST_coldStart 0x0000
+#define RST_putc      0x0008
+#define RST_getc      0x0010
+#define RST_warmStart 0x0018
 
 ; Jump Table -------------------------------------------------
 	jp      _coldStart   ;RST 0x00
@@ -34,9 +40,4 @@ EXTERN _coldStart, _putc, _getc, _warmStart
 	DEFB    0x00
 	jp      0x00         ;RST 0x38
 
-SECTION rom_code
-SECTION rom_data
-
-
-SECTION RAM
-	org 0x4000
+#include "bootmenu.asm"

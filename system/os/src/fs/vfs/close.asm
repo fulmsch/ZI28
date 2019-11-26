@@ -1,9 +1,4 @@
-SECTION rom_code
-INCLUDE "vfs.h"
-
-PUBLIC u_close, k_close
-
-EXTERN getFileAddr, getFdAddr
+#code ROM
 
 u_close:
 	add a, fdTableEntries
@@ -21,6 +16,7 @@ k_close:
 ;Errors: 0=no error
 ;        1=invalid file descriptor
 
+#local
 	call getFdAddr
 	jr c, invalidFd
 	ld a, (hl)
@@ -48,3 +44,4 @@ clearEntry:
 invalidFd:
 	ld a, 1
 	ret
+#endlocal
