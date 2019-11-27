@@ -59,6 +59,6 @@ _syscall:
 
 error:
 	pop af
-	ld a, 0xff
+	ld a, ENOSYS
 	ret
 #endlocal

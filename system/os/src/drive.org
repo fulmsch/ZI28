@@ -1,0 +1,374 @@
+#+TITLE: Drive
+#+PROPERTY: header-args :tangle yes
+
+Contains routines for accessing drives
+
+* Drive table
+The drive table stores all the mounted drives. It is implemented as a [[https://en.wikipedia.org/wiki/Left-child_right-sibling_binary_tree][left-child
+right-sibling binary tree]] in a fixed size array.
+
+Fields:
+| Name          | Bytes | Description                                       |
+|---------------+-------+---------------------------------------------------|
+| ~dt_child~    |     1 |                                                   |
+| ~dt_sibling~  |     1 |                                                   |
+| ~dt_devfd~    |     1 | The file descriptor of the underlying device file |
+| ~dt_fsDriver~ |     2 | Pointer to the filesystem driver jump table       |
+| ~dt_fsData~   |    27 | Area for the filesystem to store data in          |
+|---------------+-------+---------------------------------------------------|
+
+The drive table needs to be aligned to a 256 byte boundary. Directly after that
+is a second array of identical size which stores the paths that the drives are
+mounted to.
+
+#+BEGIN_SRC asm
+; Do not change these constants carelessly, as multiple pieces of code rely on
+; them being the way they are now.
+#define driveTableEntries   8
+#define driveTableEntrySize 32
+
+#define driveTableChild    0                          ;1 byte
+#define driveTableSibling  driveTableChild + 1        ;1 byte
+#define driveTableDevfd    driveTableSibling + 1      ;1 byte
+#define driveTableFsdriver driveTableDevfd + 1        ;2 bytes
+                                                      ;-------
+                                                ;Total 5 bytes
+#define driveTableFsData   driveTableFsdriver + 2 ;Max 27 bytes
+
+
+#data RAM
+    ;; TODO optimize the placement of the tables?
+    .align 256
+driveTable:
+    defs driveTableEntries * driveTableEntrySize
+driveTablePaths:
+    defs driveTableEntries * driveTableEntrySize
+#+END_SRC
+
+* File system drivers
+
+#+BEGIN_SRC asm
+#code ROM
+
+addFsDriver:
+;TODO implement
+
+;TODO these might make more sense in another file
+#define fs_init     0
+#define fs_open     2
+#define fs_close    4 ;not used yet
+#define fs_readdir  6
+#define fs_fstat    8
+#define fs_unlink  10
+
+;TODO move to ram
+;.align_bytes 16
+; Indexes defined in sys/os.h
+fsDriverTable:
+    DEFW devfs_fsDriver
+    DEFW fat_fsDriver
+    DEFW 0x0000
+    DEFW 0x0000
+    DEFW 0x0000
+    DEFW 0x0000
+    DEFW 0x0000
+    DEFW 0x0000
+
+#+END_SRC
+
+* Helper routines
+** getTableAddr
+
+#+BEGIN_SRC asm
+;TODO this seems to only be used in vfs.asm, move/integrate it there?
+getTableAddr:
+;; Finds the file entry of a given fd
+;;
+;; Input:
+;; : hl - table start address
+;; : de - entry size
+;; : b - maximum number of entries
+;; : a - index
+;;
+;; Output:
+;; : hl - table entry address
+;; : carry - out of bounds
+;; : nc - no error
+
+#local
+    cp 0x00
+    ret z
+    cp b
+    jr nc, getTableAddr_invalid
+getTableAddr_loop:
+    add hl, de
+    dec a
+    jr nz, getTableAddr_loop
+    ;this should return c (error) if the loop wraps around (unconfirmed)
+    ret
+
+getTableAddr_invalid:
+    scf
+    ret
+#endlocal
+#+END_SRC
+
+** dummyRoot
+Create the root node of the filesystem. This gets called in coldstart to be able
+to mount ~/dev~.
+
+#+BEGIN_SRC asm
+dummyRoot:
+    ld hl, driveTablePaths
+    ld (hl), '/'
+    inc l
+    ld (hl), 0x00
+    dec l
+    dec h
+    ld (hl), 0xff
+    inc l
+    ld (hl), 0xff
+    inc l
+    ld (hl), 0xff
+    inc l
+    ld (hl), 0x00
+    inc l
+    ld (hl), 0x00
+    ret
+#+END_SRC
+
+** mountRoot
+Replace the dummy root node by mounting a drive to ~/~.
+
+#+BEGIN_SRC asm
+mountRoot:
+;; Populate the root node of the filesystem.
+;;
+;; Input:
+;; : de - device name
+;; : a - fs type
+
+    push af
+    ld a, O_RDWR
+    call k_open
+    pop hl ;h = fs type
+    cp 0
+    ret nz
+    ld a, e ;fd
+    ld d, h ;fs type
+    ld ix, driveTable
+    ld (ix + driveTableDevfd), a
+    jp storeAndCallFsInit
+#+END_SRC
+
+** storeAndCallFsInit
+
+#+BEGIN_SRC asm
+storeAndCallFsInit:
+;; Store and call the fs init routine
+;;
+;; Input:
+;; : d - fs type
+;; : ix - drive entry
+
+#local
+    ld a, 0x07
+    and d
+    add a, a ;a = offset in fs driver table
+    ld de, fsDriverTable
+    add a, e
+    ld e, a ;(de) = fsDriver
+    ex de, hl ;(hl) = fsDriver
+
+    ld e, (hl)
+    inc hl
+    ld d, (hl)
+    ;de = fsDriver
+
+    and a ;clear carry
+    ld hl, 0
+    adc hl, de
+    jr z, error ;fsdriver null pointer
+    ld (ix + driveTableFsdriver), e
+    ld (ix + driveTableFsdriver + 1), d
+
+    ld hl, fs_init
+    add hl, de
+    ld e, (hl)
+    inc hl
+    ld d, (hl)
+    ex de, hl
+
+    jp (hl)
+
+
+error:
+    ld a, EINVAL ;invalid fs type
+    ret
+#endlocal
+#+END_SRC
+
+* Mount
+
+#+BEGIN_SRC asm
+#code ROM
+
+u_mount:
+;; Mount filesystem.
+;;
+;; Input:
+;; : (de) - source
+;; : (hl) - dest (max. 32 bytes incl. terminator)
+;; : a - filesystem type (+mountflags?)
+;;
+;; Output:
+;; : a - errno
+
+    push hl ;dest
+    push af ;a = fs type
+
+    call k_open ;open source
+    ;e = fd, a = errno
+    pop bc ;b = fs type
+    pop hl ;dest
+    cp 0
+    ret nz
+    ld d, b ;fs type
+k_mount:
+;; Mount a drive file
+;;
+;; Creates a new entry in the drive table
+;; and initialises the filesystem
+;;
+;; Input:
+;; : d - filesystem type
+;; : e - device fd
+;; : (hl) - dest (max. 32 bytes incl. terminator)
+;;
+;; Output:
+;; : a - errno
+; Errors: 0=no error
+;         2=invalid drive number
+
+#local
+    ;find free drive entry
+    ;get parent and path of dest
+    ;store path in drive entry
+    ;store fd in drive entry
+    ;find fs driver, store in drive entry
+    ;if parent->child == 0xff link parent->child
+    ;else follow sibling list and link last sibling
+
+    push hl ;dest
+
+    ld hl, driveTablePaths
+    ld bc, driveTableEntrySize
+    xor a
+tableSearchLoop:
+    cp (hl)
+    jr z, tableEntryFound
+    add hl, bc
+    jr nc, tableSearchLoop ;no entry found
+
+    pop hl
+    ld a, 1 ;no free spot found
+    ret
+
+tableEntryFound:
+    ;hl = path table entry
+    ;de = fs type / devfd
+    ex (sp), hl
+    ;hl = dest
+    push de ;type/fd
+
+    call get_drive_and_path
+    jr c, pathError
+    ;hl = rel path
+    ;e = parent drive
+    ld a, e
+    pop bc ;type/fd
+    pop de ;path entry
+
+    push bc ;type/fd
+    ld b, a ;parent drive
+    ld c, e ;new drive
+    push bc
+
+    ;copy hl to de
+    ld b, fileTableEntrySize
+    call strncpy
+    cp 0
+    jr nz, pathError ;dest too long TODO clean up drive entry
+    ;de points to null terminator of string copy
+    dec de
+    ld a, (de)
+    cp '/'
+    jr z, destTerminated
+    ;try to append a '/'
+    inc e
+    ld a, 0x1f
+    and e
+    xor 0x1f
+    jr z, pathError
+    ld a, '/'
+    ld (de), a
+    inc e
+    xor a
+    ld (de), a
+
+destTerminated:
+    pop bc ;parent/new drive
+    pop de ;type/fd
+
+    ld a, 0xff
+    ld ixh, 0 + (driveTable >> 8)
+    ld ixl, c
+    ld (ix + driveTableChild), a ;child
+    ld (ix + driveTableSibling), a ;sibling
+    ld (ix + driveTableDevfd), e ;devfd
+
+    ;link new table entry
+    ;b = parent, c = new drive
+    ld h, 0 + (driveTable >> 8)
+    ld l, b
+    ld a, (hl)
+    cp 0xff
+    jr z, appendEnd
+
+appendToSiblingList:
+    ld l, a ;hl = first child of parent
+appendLoop:
+    inc l
+    ld a, (hl)
+    cp 0xff
+    jr z, appendEnd
+    ld l, a
+    jr appendLoop
+
+appendEnd:
+    ld (hl), c
+
+    jp storeAndCallFsInit
+
+
+invalidFsDriver:
+    ld a, 1 ;invalid driver
+    ret
+
+pathError:
+    pop hl
+    pop hl
+    ld a, 1 ;path error
+    ret
+#endlocal
+#+END_SRC
+
+* Unmount
+Just a placeholder for now.
+
+#+BEGIN_SRC asm
+#code ROM
+u_unmount:
+k_unmount:
+    ret
+#+END_SRC

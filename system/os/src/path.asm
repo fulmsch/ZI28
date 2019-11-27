@@ -142,3 +142,157 @@ return:
 
 realpath_outputProt: defs 1
 realpath_output:     defs PATH_MAX
+
+
+#code ROM
+
+get_drive_and_path:
+;; Get the drive number and relative path from an absolute path.
+;;
+;; Input:
+;; : (hl) - absolute path
+;;
+;; Output:
+;; : (hl) - relative path to fs root
+;; : (de) - drive entry
+;; : carry - error
+
+#local
+	ld a, (hl)
+	cp '/'
+	scf
+	ret nz ;path must begin with '/'
+
+	ld de, driveTable
+	ld b, 0xff ;parent
+
+traverseTree:
+	ld a, (hl)
+	cp 0
+	jr z, parentEnd
+	push de ;drive entry
+	push hl ;path
+	inc d ;mount table
+	call strbegins ;does the path begin with the current mount point?
+	jr z, nextChild
+	ld a, (hl)
+	cp 0
+	jr nz, nextSibling
+	pop de ;path
+	pop hl ;drive entry
+	push hl
+	push de
+	inc h ;mount table
+	call strbegins ;does the current mount point begin with the path?
+	jr nz, nextSibling
+	ld a, (hl)
+	cp '/'
+	jr nz, nextSibling
+	inc hl
+	ld a, (hl)
+	cp 0x00
+	jr nz, nextSibling
+	ex de, hl
+
+nextChild:
+	pop de ;old path, discard
+	pop de ;drive entry
+
+	ld a, (de) ;child
+	cp 0xff
+	jr z, end
+	ld b, e ;save e as parent
+	ld e, a
+	jr traverseTree
+
+
+nextSibling:
+	pop hl ;path
+	pop de ;drive entry
+
+	inc de ;point to sibling
+	ld a, (de)
+	cp 0xff
+	jr z, parentEnd
+	ld e, a ;sibling
+	jr traverseTree
+
+parentEnd:
+	ld e, b
+end:
+	;error if e == 0xff
+	inc e
+	ret c
+	dec e
+	ret
+#endlocal
+
+
+#code ROM
+
+u_getcwd:
+k_getcwd:
+;; Return the current working directory
+;;
+;; Input:
+;; : (hl) - buffer
+;;
+;; Output:
+;; : a - errno
+
+	ex de, hl
+	ld hl, env_workingPath
+	call strcpy
+	xor a
+	ret
+
+
+#code ROM
+
+u_chdir:
+k_chdir:
+;; Change the current working directory
+;;
+;; Input:
+;; : (hl) - path
+;;
+;; Output:
+;; : a - errno
+
+#local
+	push hl
+
+	ex de, hl
+	ld a, O_RDONLY | O_DIRECTORY
+	call k_open
+	cp 0
+	jr nz, error
+
+	ld a, e
+	call k_close
+
+	pop hl
+	call realpath
+	ld de, env_workingPath
+	call strcpy
+	;de points to dest null terminator
+	dec de
+	ld a, (de)
+	cp '/'
+	jr z, removeSlash
+	xor a
+	ret
+
+removeSlash:
+	xor a
+	ld hl, env_workingPath
+	sbc hl, de
+	ret z
+	ld (de), a
+	ret
+
+error:
+	pop hl
+	ld a, 1
+	ret
+#endlocal
