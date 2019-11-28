@@ -2,6 +2,8 @@ TARGET := zi28emu
 SRCDIR := src
 INCDIR := include
 
+MAKEDIRS = $(dir $(shell find modules/ -iname "Makefile"))
+
 INSTALLDIR := /usr/local/bin
 
 #compiler
@@ -24,9 +26,9 @@ LIBS = -lutil -lreadline `pkg-config --libs lua53`
 
 OBJS = main.o config.o ui.o interpreter.o emulator.o luainterface.o libz80/libz80.o
 
-.PHONY: all clean distclean install
+.PHONY: all clean distclean install modules
 
-all: $(TARGET)
+all: $(TARGET) modules
 
 $(TARGET): $(OBJS)
 	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)
@@ -37,13 +39,24 @@ install: $(TARGET)
 %.o: $(SRCDIR)/%.c
 	$(CC) -c $(CCFLAGS) $(GTKLIB) $< -o $@
 
+modules:
+	@for DIR in $(MAKEDIRS); do \
+		$(MAKE) -C $$DIR --no-print-directory; \
+	done
+
 clean:
 	@$(RM) -f *.o libz80/libz80.o \
 	          libz80/codegen/mktables libz80/codegen/opcodes_decl.h \
 	          libz80/codegen/opcodes_table.h libz80/codegen/opcodes_impl.c
+	-@for DIR in $(MAKEDIRS); do \
+		$(MAKE) -C $$DIR clean --no-print-directory; \
+	done
 
 distclean: clean
 	@$(RM) -f $(TARGET)
+	-@for DIR in $(MAKEDIRS); do \
+		$(MAKE) -C $$DIR distclean --no-print-directory; \
+	done
 
 
 # --- libz80 ---
