@@ -65,45 +65,228 @@ these do not generate any machine code.
 #+BEGIN_SRC asm
     org 0x66
     DEFW ISR_keyboard
+
+ISR_keyboard:
+    retn
 #+END_SRC
 
 * System call table
 
 #+BEGIN_SRC asm
     org 0x100
-#include "syscall.asm"
+
+    ;; TODO make everything except _syscall local
+#define nSyscalls ((syscallTableEnd - syscallTable) / 2)
+
+syscallTable:
+    DEFW u_open
+    DEFW u_close
+    DEFW u_read
+    DEFW u_write
+    DEFW u_seek
+    DEFW u_lseek
+    DEFW u_stat
+    DEFW u_fstat
+    DEFW u_readdir
+    DEFW u_dup
+    DEFW u_mount
+    DEFW u_unmount
+    DEFW u_unlink
+    DEFW u_bsel
+    DEFW u_execv
+    DEFW u_exit
+    DEFW u_chdir
+    DEFW u_getcwd
+syscallTableEnd:
+    ;; TODO can this be removed?
+    DEFB 0
+
+_syscall:
+;; Access a system function from a running program.
+;;
+;; Input:
+;; : c - Syscall number (defined in sys/os.h)
+;; : a, de, hl - Arguments passed to syscall
+
+#local
+;check for valid syscall number
+    push af
+    ld a, nSyscalls
+    cp c
+    jr c, error
+    pop af
+
+;calculate the vector
+    push hl
+    sla c
+    ld l, c
+    ld h, syscallTable >> 8
+
+;load the jump address into bc
+    ld c, (hl)
+    inc hl
+    ld b, (hl)
+    pop hl
+
+;jump to bc
+    push bc
+    ret
+
+error:
+    pop af
+    ld a, ENOSYS
+    ret
+#endlocal
+#+END_SRC
+
+* Start up routine
+#+BEGIN_SRC asm
+#code ROM
+; Cold start -------------------------------------------------
+
+_coldStart:
+    ld sp, sysStack
+
+    ;clear ram TODO other banks
+    ld hl, 0x4000
+    ld de, 0x4001
+    ld bc, 0xbfff
+    ld (hl), 0x00
+    ldir
+
+    ld hl, kheap
+    ld (kalloc_nextBlock), hl
+
+    ;clear the fd tables (set everything to 0xff)
+    ld hl, k_fdTable
+    ld de, k_fdTable + 1
+    ld bc, fdTableEntries * 2 - 1
+    ld (hl), 0xff
+    ldir
+
+    call dummyRoot
+    ld hl, devfsMountPoint
+    ld d, FS_DEV
+    ld e, 0xff
+    call k_mount
+
+    ;stdin
+    ld de, ttyName
+    ld a, O_RDONLY
+    call k_open
+
+    ;stdout
+    ld de, ttyName
+    ld a, O_WRONLY
+    call k_open
+
+    ;stderr
+    ld a, STDERR_FILENO
+    ld b, STDOUT_FILENO
+    call k_dup
+
+
+    ;mount main drive
+    ld de, osDevName ;TODO configurable name in eeprom
+    ld a, FS_FAT
+    call mountRoot
+
+    ld a, 1
+    ld (process_pid), a
+
+    xor a
+    call k_bsel
+
+    ld hl, homeDir
+    call k_chdir
+
+;    call b_cls
+
+;    ld de, shellName
+;    ld hl, 0
+;    call k_execv
+    jp cli
+
+ttyName:
+    DEFM "/DEV/TTY0", 0x00
+osDevName:
+    DEFM "/DEV/SDA1", 0x00
+devfsMountPoint:
+    DEFM "/DEV", 0x00
+homeDir:
+    DEFM "/HOME", 0x00
+shellName:
+    DEFM "/BIN/ZISH.EX8", 0x00
+#+END_SRC
+
+* Bank selection
+#+BEGIN_SRC asm
+#code ROM
+
+u_bsel:
+k_bsel:
+;; Switch to a different bank.
+;;
+;; On failure, the current bank stays selected.
+;; This system call can also be used to determine the currently selected bank
+;; by calling it with an invalid bank index.
+;;
+;; Input:
+;; : a - bank index
+;;
+;; Output:
+;; : a - errno
+;; : e - selected bank
+;;
+;; Errors:
+;; : EINVAL - invalid bank index
+
+#local
+    cp 6
+    jr c, error
+
+    or a, 0x08 ;make sure OS rom bank stays selected
+    out (BANKSEL_PORT), a
+    ld (process_bank), a
+    ld e, a
+    xor a
+    ret
+
+error:
+    ld a, (process_bank)
+    ld e, a
+    ld a, EINVAL
+    ret
+#endlocal
 #+END_SRC
 
 * Includes
 
 #+BEGIN_SRC asm
-
+; Libraries
 #include "math.asm"
 #include "string.asm"
 
-#include "coldstart.asm"
-#include "error.asm"
-#include "font.asm"
-#include "interrupt.asm"
-#include "kalloc.asm"
-#include "monitor.asm"
-
-#include "process/process.asm"
-#include "fs/vfs/vfs.asm"
-#include "fs/fatfs/fatfs.asm"
-#include "fs/devfs/devfs.asm"
-
-#include "shell/cli.asm"
-#include "version.asm"
-
-#include "bank/bsel.asm"
-#include "block/block.asm"
-
-#include "drivers/ft240/ft240.asm"
-#include "drivers/sd/sd.asm"
 #include "drive.asm"
+#include "font.asm"
+#include "monitor.asm"
+#include "process.asm"
+#include "cli.asm"
+#include "block.asm"
 #include "path.asm"
- 
+#include "error.asm"
+
+; File systems
+#include "fs/vfs.asm"
+#include "fs/fatfs.asm"
+#include "fs/devfs.asm"
+
+; Drivers
+#include "drivers/ft240.asm"
+#include "drivers/sd.asm"
+
+; Gets generated when assembling the OS
+#include "version.asm"
 
 ;; SECTION RAM ;0x4000 - 0x7fff, 16kB
 	;; org 0x4000
@@ -120,6 +303,69 @@ these do not generate any machine code.
 
 * Kernel memory allocator
 The heap has to be at the end of the OS RAM area, since it grows upward.
+
+#+BEGIN_SRC asm
+#code ROM
+
+kalloc:
+;; Allocates memory on the kernel heap. This memory cannot be freed.
+;;
+;; Input:
+;; : hl - number of bytes to be allocated
+;;
+;; Output:
+;; : hl - pointer to the allocated memory
+;; : a - errno
+;;
+;; Errors:
+;; : EINVAL - Zero bytes were requested
+;; : ENOMEM - Kernel heap is out of memory
+
+#local
+
+;check that hl is not 0
+    xor a
+    cp h
+    jr nz, notZero
+    cp l
+    jr nz, notZero
+
+    ld a, EINVAL
+    ret
+
+notZero:
+    ; if (MEM_user - *kalloc_nextBlock < size) return ENOMEM;
+    push hl ;size
+    ld hl, MEM_user
+    ld de, (kalloc_nextBlock)
+    or a
+    sbc hl, de
+    ; hl = maximum size
+    pop de
+
+    or a
+    sbc hl, de
+    jr c, memError
+
+    ; de = size
+    ld hl, (kalloc_nextBlock)
+    push hl
+    ; carry is not set
+    adc hl, de
+    ld (kalloc_nextBlock), hl
+    pop hl
+    ret
+
+
+memError:
+    ld a, ENOMEM
+    ret
+#endlocal
+
+#data RAM
+kalloc_nextBlock:
+    DEFW 0
+#+END_SRC
 
 #+BEGIN_SRC asm
 #data RAM

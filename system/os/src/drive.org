@@ -10,8 +10,8 @@ right-sibling binary tree]] in a fixed size array.
 Fields:
 | Name          | Bytes | Description                                       |
 |---------------+-------+---------------------------------------------------|
-| ~dt_child~    |     1 |                                                   |
-| ~dt_sibling~  |     1 |                                                   |
+| ~dt_child~    |     1 | Index of the child node or ~0xff~                 |
+| ~dt_sibling~  |     1 | Index of the sibling node or ~0xff~               |
 | ~dt_devfd~    |     1 | The file descriptor of the underlying device file |
 | ~dt_fsDriver~ |     2 | Pointer to the filesystem driver jump table       |
 | ~dt_fsData~   |    27 | Area for the filesystem to store data in          |
@@ -19,7 +19,8 @@ Fields:
 
 The drive table needs to be aligned to a 256 byte boundary. Directly after that
 is a second array of identical size which stores the paths that the drives are
-mounted to.
+mounted to. An empty entry is defined has a string starting with ~0x00~ in the
+path table.
 
 #+BEGIN_SRC asm
 ; Do not change these constants carelessly, as multiple pieces of code rely on

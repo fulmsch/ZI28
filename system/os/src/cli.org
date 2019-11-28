@@ -1,0 +1,741 @@
+#+TITLE: Command line interface
+#+PROPERTY: header-args :tangle yes
+
+#+BEGIN_SRC asm
+;; Command line interface of the OS
+;TODO change putc and getc to OS equivalents
+
+#code ROM
+
+#define inputBufferSize 128
+#define maxArgc          32
+
+
+cli:
+#local
+prompt:
+    ld hl, promptStartStr
+    call print
+
+    ld hl, pathBuffer
+    push hl
+    call k_getcwd
+    pop hl
+    call print
+
+    ld hl, promptEndStr
+    call print
+
+
+    ld hl, inputBuffer
+    ld c, 0
+handleChar:
+    ;TODO navigation with arrow keys
+    xor a
+    rst RST_getc
+    cp 0x08
+    jr z, backspace
+    cp 0x0a ;'\n'
+    jr z, handleLine
+    ;Check if printable
+    cp 0x20
+    jr c, handleChar
+    cp 0x7f
+    jr nc, handleChar
+    ld (hl), a
+    rst RST_putc
+    ;Check for buffer overflow
+    inc c
+    ld a, c
+    cp inputBufferSize
+    jr nc, inputBufferOverflow
+    inc hl
+    jr handleChar
+
+backspace:
+    ld a, c
+    cp 0
+    jr z, handleChar
+    ld a, 0x08
+    rst RST_putc
+    ld a, 0x20
+    rst RST_putc
+    ld a, 0x08
+    rst RST_putc
+    dec hl
+    dec c
+    jr handleChar
+
+inputBufferOverflow:
+    ld hl, inputBufferOverflowStr
+    call print
+    jr prompt
+
+inputBufferOverflowStr:
+    DEFM "\nThe entered command is too long\n", 0x00
+
+handleLine:
+;    ld a, 0x0d
+;    rst RST_putc
+    ld a, 0x0a
+    rst RST_putc
+    ;TODO store history in file
+
+    ld (hl), 0x00
+    ld hl, inputBuffer
+    ld de, argv
+    ld a, 0x00
+    ld (argc), a
+
+    ;break the input into individual strings
+findArg:
+    ld a, (hl)
+    cp 0x00
+    jr z, commandDispatch ;finished the input string
+    cp '"'
+    jr z, quotedArg
+    cp ' '
+    jr nz, foundArg
+    inc hl
+    jr findArg
+
+
+foundArg:
+    call addArg
+
+insideOfArgLoop:
+    inc hl
+    ld a, (hl)
+    cp 0x00
+    jr z, commandDispatch ;finished the input string
+    cp ' '
+    jr nz, insideOfArgLoop
+
+    xor a
+    ld (hl), a
+    inc hl
+    jr findArg
+
+
+quotedArg:
+    inc hl
+    call addArg
+
+insideOfQuotedArgLoop:
+    inc hl
+    ld a, (hl)
+    cp 0x00
+    jr z, commandDispatch ;finished the input string
+    cp '"'
+    jr nz, insideOfQuotedArgLoop
+
+    xor a
+    ld (hl), a
+    inc hl
+    jr findArg
+
+addArg:
+    ;increment argc
+    ld a, (argc)
+    inc a
+    cp maxArgc + 1
+    jr nc, argOverflow;too many arguments
+    ld (argc), a
+
+    ld a, l
+    ld (de), a
+    inc de
+    ld a, h
+    ld (de), a
+    inc de
+    ret
+
+
+argOverflow:
+    ld hl, argOverflowStr
+    call print
+    pop hl
+    jp prompt
+
+argOverflowStr:
+    DEFM "\nToo many arguments\n", 0x00
+
+commandDispatch:
+    ;terminate argv
+    xor a
+    ld (de), a
+    inc de
+    ld (de), a
+
+    ld a, (argc)
+    cp 0x00
+    jp z, prompt
+    ld b, a
+    ld de, argv
+
+    ;convert first command to uppercase
+    ld a, (de)
+    ld l, a
+    inc de
+    ld a, (de)
+    ld h, a
+    push hl
+    call strtup
+    dec de
+
+    ;test: print out all arguments
+;argLoop:
+;    ld a, (de)
+;    ld l, a
+;    inc de
+;    ld a, (de)
+;    ld h, a
+;    inc de
+;    call print
+;    ld a, 0x0d
+;    rst RST_putc
+;    ld a, 0x0a
+;    rst RST_putc
+;    djnz argLoop
+
+    pop hl ;contains pointer to first string
+    push hl
+
+checkIfFullpath:
+    ;check if there is a / in the filename
+    ld a, (hl)
+    inc hl
+
+    cp '/'
+    jr z, checkExtension
+
+    cp 0x00
+    jr nz, checkIfFullpath
+
+
+    ld bc, dispatchTable
+    pop hl ;contains pointer to first string
+
+dispatchLoop:
+    ld a, (bc)
+    ld e, a
+    inc bc
+    ld a, (bc)
+    ld d, a
+    inc bc
+    inc bc
+    inc bc
+    ld a, (de)
+    cp 0x00
+    jr z, programInPath
+    push bc
+    push hl
+    call strcmp
+    pop hl
+    pop bc
+    jr nz, dispatchLoop;no match
+
+    ;match, jump to builtin function
+    dec bc
+    ld a, (bc)
+    ld h, a
+    dec bc
+    ld a, (bc)
+    ld l, a
+    ld de, prompt
+    push de
+    jp (hl)
+
+
+programInPath:
+    ;check path for programs
+    ;(hl) = command
+    push hl
+
+    ld hl, execPath
+    ld de, cli_programName
+    call strcpy
+
+    pop hl
+    ;de points to null terminator
+    call strcpy
+
+    ;TODO optimize
+    ld de, cli_programName
+    push de ;gets popped at checkExtension
+
+checkExtension:
+    ;check if the filename has an extension, else add '.EX8'
+    pop hl ;contains pointer to first string
+    push hl
+    call strlen
+    ; hl points to the null terminator
+    ld d, h
+    ld e, l
+
+    ;check the last 3 characters or the string length
+    ld a, 3
+    cp b
+    jr nc, checkExtensionLoop
+    ld b, a
+checkExtensionLoop:
+    dec hl
+    ld a, (hl)
+    cp '.'
+    jr z, fullPath
+    cp '/'
+    jr z, addExtension
+    djnz checkExtensionLoop
+
+addExtension:
+    ;de points to the null terminator
+    ld hl, execExtension
+    call strcpy
+
+fullPath:
+    ;try to open file named &argv[0]
+    pop de ;contains pointer to first string
+    push de
+    ld hl, execStat
+    call k_stat
+    pop de ;contains pointer to first string
+    cp 0
+    jr nz, noMatch
+
+    ld hl, argv
+    call k_execv
+    cp 0
+    jp z, prompt
+
+    call _strerror
+    call print
+    ld a, 0x0a ;'\n'
+    rst RST_putc
+    jp prompt
+
+noMatch:
+    ld hl, noMatchString
+    call print
+    jp prompt
+
+;TODO customisable prompt
+promptStartStr:
+    DEFM 0x1b, "[36m", 0x00
+promptEndStr:
+    DEFM 0x1b, "[m$ ", 0x00
+
+
+noMatchString:
+    DEFM "Command not found\n", 0x00
+
+execPath:
+    DEFM "/BIN/", 0x00
+execExtension:
+    DEFM ".EX8", 0x00
+
+#endlocal
+;Command strings
+chdirStr:   DEFM "CD", 0x00
+clsStr:     DEFM "CLS", 0x00
+echoStr:    DEFM "ECHO", 0x00
+exitStr:    DEFM "EXIT", 0x00
+;; forthStr:   DEFM "FORTH", 0x00
+helpStr:    DEFM "HELP", 0x00
+monStr:     DEFM "MONITOR", 0x00
+mountStr:   DEFM "MOUNT", 0x00
+pwdStr:     DEFM "PWD", 0x00
+testStr:    DEFM "TEST", 0x00
+verStr:     DEFM "VER", 0x00
+nullStr:    DEFM 0x00
+
+dispatchTable:
+    ;; Needs to be global for the 'help' builtin
+    DEFW chdirStr,  b_chdir
+    DEFW clsStr,    b_cls
+    DEFW echoStr,   b_echo
+    DEFW exitStr,   b_exit
+    ;; DEFW forthStr,  b_forth
+    DEFW helpStr,   b_help
+    DEFW monStr,    b_monitor
+    DEFW mountStr,  b_mount
+    DEFW pwdStr,    b_pwd
+    DEFW testStr,   b_test
+    DEFW verStr,    b_ver
+    DEFW nullStr
+
+#data RAM
+argc: defb 0
+argv: defs maxArgc * 2
+inputBuffer: defs inputBufferSize
+
+pathBuffer: defs PATH_MAX
+
+env_workingPath: defs PATH_MAX
+
+cli_programName: defs PATH_MAX
+execStat:        defs STAT_LEN
+#+END_SRC
+
+* Builtin commands
+** Chdir
+#+BEGIN_SRC asm
+#code ROM
+
+b_chdir:
+#local
+    ld a, (argc)
+    cp 2
+    jr nz, invalidCall
+
+    ld hl, argv
+    inc hl
+    inc hl
+
+    ld e, (hl)
+    inc hl
+    ld d, (hl)
+    ex de, hl
+    ;(hl) = path name
+
+    jp k_chdir
+
+invalidCall:
+    ret
+#endlocal
+#+END_SRC
+
+** Cls
+#+BEGIN_SRC asm
+#code ROM
+
+b_cls:
+#local
+    ld hl, clearSequence
+    jp print
+
+clearSequence:
+    DEFM 0x1b, "[2J"
+    DEFM 0x1b, "[H", 0x00
+#endlocal
+#+END_SRC
+
+** Echo
+#+BEGIN_SRC asm
+#code ROM
+
+b_echo:
+#local
+    ;print all arguments
+    ld a, (argc)
+    dec a
+    jr z, newline
+    ld b, a
+    ld de, argv
+    inc de
+    inc de
+
+loop:
+    ld a, (de)
+    ld l, a
+    inc de
+    ld a, (de)
+    ld h, a
+    inc de
+    push de
+    push bc
+    call print
+    pop bc
+    pop de
+    ld a, ' '
+    rst RST_putc
+    djnz loop
+
+newline:
+    ld a, 0dh
+    rst RST_putc
+    ld a, 0ah
+    rst RST_putc
+    ret
+#endlocal
+#+END_SRC
+
+** Exit
+#+BEGIN_SRC asm
+#code ROM
+
+b_exit:
+#local
+    ld a, (argc)
+    cp 1
+    jr nz, invalidCall
+
+    ld hl, bankSwitch
+    ld de, 0x8000
+    ld bc, bankSwitchEnd - bankSwitch
+    ldir
+    jp 0x8000
+
+bankSwitch:
+    xor a
+    out (BANKSEL_PORT), a
+    dec a
+    rst 0
+bankSwitchEnd:
+
+invalidCall:
+    ret
+#endlocal
+#+END_SRC
+
+** Help
+#+BEGIN_SRC asm
+#code ROM
+
+b_help:
+#local
+    ld hl, helpMsg
+    call print
+    ;print commands from dispatch table
+    ld bc, dispatchTable
+tableLoop:
+    ld a, (bc)
+    ld l, a
+    inc bc
+    ld a, (bc)
+    ld h, a
+    inc bc
+    inc bc
+    inc bc
+    ld a, (hl)
+    cp 00h
+    jr z, path
+    ld a, ' '
+    rst RST_putc
+    push bc
+    call print
+    pop bc
+    ld a, 0dh
+    rst RST_putc
+    ld a, 0ah
+    rst RST_putc
+    jr tableLoop
+
+path:
+;    ld hl, pathMsg
+;    call print
+;    ;print the path
+;    xor a
+;    ld (cliProgramName), a
+;    ld hl, programPath
+;    call print
+
+;    ld a, 0dh
+;    rst RST_putc
+;    ld a, 0ah
+;    rst RST_putc
+
+    ret
+
+helpMsg:
+    DEFM "The following commands are available:\n", 0x00
+pathMsg:
+    DEFM "\nAdditional programs will be searched in:\n ", 0x00
+#endlocal
+#+END_SRC
+
+** Monitor
+#+BEGIN_SRC asm
+#code ROM
+
+b_monitor:
+    rst RST_monitor
+    ret
+#+END_SRC
+
+** Mount
+#+BEGIN_SRC asm
+#code ROM
+
+b_mount:
+#local
+    ld a, (argc)
+    cp 3
+    jr nz, invalidCall
+
+    call sd_init
+
+    ld hl, argv
+    inc hl
+    inc hl
+
+    ld e, (hl)
+    inc hl
+    ld d, (hl)
+    inc hl
+    ;(de) = device name
+
+    ld c, (hl)
+    inc hl
+    ld b, (hl)
+    ld h, b
+    ld l, c
+    ;(hl) = label
+    push hl
+    call strtup
+
+    ld a, O_RDWR
+    call k_open
+    cp 0
+    pop hl ;(hl) = label
+    jr nz, invalidCall
+    ;e = fd
+    ;TODO check if device
+    ld a, e
+
+    ld de, fat_fsDriver
+    jp k_mount
+
+invalidCall:
+    ld hl, invalidCallstr
+    call print
+    ret
+invalidCallstr:
+    DEFM "Usage: MOUNT <DEVICE> <LABEL>\n", 0x00
+#endlocal
+#+END_SRC
+
+** Pwd
+#+BEGIN_SRC asm
+#code ROM
+
+b_pwd:
+#local
+    ld a, (argc)
+    cp 1
+    jr nz, invalidCall
+
+    ld hl, pathBuffer
+    push hl
+    call k_getcwd
+    pop hl
+    call print
+    ld a, 0x0a
+    jp RST_putc
+
+
+invalidCall:
+    ret
+#endlocal
+#+END_SRC
+
+** Test
+#+BEGIN_SRC asm
+#code ROM
+
+b_test:
+#local
+    ld a, (argc)
+    cp 2
+    ret nz
+
+    ld hl, argv
+    inc hl
+    inc hl
+
+    ld e, (hl)
+    inc hl
+    ld d, (hl)
+    ;(de) = string
+
+    xor a
+    ld (xOffs), a
+    ld (yOffs), a
+    out (0x93), a
+
+loop:
+    ld a, (de)
+    cp 0
+    ret z
+
+    push de
+
+    ld hl, fontTable
+    ld c, a
+    ld b, 0
+
+    sla c
+    rl b
+    sla c
+    rl b
+    sla c
+    rl b
+
+    adc hl, bc
+    ;(hl): font table entry
+    ld b, 8
+
+vLoop:
+    ld a, 8
+    sub a, b
+    out (0x92), a ;yreg
+    ld a, (xOffs)
+    out (0x91), a ;xreg
+
+    ld d, (hl)
+    inc hl
+
+    ld c, 3
+hloop:
+    ld a, 0 ;set both pixels to black
+    rlc d
+    jr nc, blank0
+    or 0x0f
+blank0:
+    rlc d
+    jr nc, blank1
+    or 0xf0
+blank1:
+    out (0x97), a ;data inc
+
+    dec c
+    jr nz, hloop
+
+
+
+    djnz vLoop
+
+
+    pop de
+    inc de
+    ld hl, xOffs
+    ld a, 3
+    add a, (hl)
+    ld (hl), a
+    jr loop
+    ret
+#endlocal
+
+#data RAM
+xOffs: defb 0
+yOffs: defb 0
+#+END_SRC
+
+** Ver
+#+BEGIN_SRC asm
+#code ROM
+
+b_ver:
+#local
+    ld a, (argc)
+    cp 1
+    jr nz, invalidCall
+
+    ld hl, version
+    call print
+    ld a, 0x0a
+    jp RST_putc
+
+invalidCall:
+    ret
+#endlocal
+#+END_SRC

@@ -1,0 +1,101 @@
+#+TITLE: VT100 terminal driver
+#+PROPERTY: header-args :tangle yes
+
+This is a work in progress and currently not included in the OS.
+
+I think it is intended to emulate a VT100 terminal on the VGA display, but some
+of it seems to be copied from the FT240 driver and still contains some of those descriptions.
+
+#+BEGIN_SRC asm
+#code ROM
+vt100_deviceDriver:
+    DEFW vt100_init
+    DEFW vt100_read
+    DEFW vt100_write
+#+END_SRC
+
+* Init
+#+BEGIN_SRC asm
+#code ROM
+vt100_init:
+;; Input:
+;; : (de) - custom data start (screenBuffer)
+    ld hl, 2016 ; 42 x 24 characters, 2 bytes / character
+    call kalloc
+    cp 0
+    ret nz
+
+    ex de, hl
+    ld (hl), e
+    inc de
+    ld (hl), d
+
+    ;clear screen buffer
+    ld h, d
+    ld l, e
+    inc de
+    ld bc, 2015
+    ld (hl), 0x00
+    ldir
+
+    ret
+#+END_SRC
+* Read
+#+BEGIN_SRC asm
+#code ROM
+vt100_read:
+;; Read from the USB-connection on the mainboard
+;;
+;; Input:
+;; : ix - file entry addr
+;; : (de) - buffer
+;; : bc - count
+;;
+;; Output:
+;; : de - count
+;; : a - errno
+; Errors: 0=no error
+
+    xor a
+    ld d, a
+    ld e, a
+    ret
+#+END_SRC
+* Write
+#+BEGIN_SRC asm
+#code ROM
+vt100_write:
+;; Write to the USB-connection on the mainboard
+;;
+;; Input:
+;; : ix - file entry addr
+;; : (de) - buffer
+;; : bc - count
+;;
+;; Output:
+;; : de - count
+;; : a - errno
+; Errors: 0=no error
+
+#local
+    ;calculate loop value in bc
+    ld a, c
+    dec bc
+    inc b
+    ld c, b
+    ld b, a
+
+    ld hl, 0
+
+poll:
+    ld a, (de)
+    ;print a
+    inc de
+    inc hl
+    djnz poll
+    dec c
+    jr nz, poll
+    ex de, hl
+    ret
+#endlocal
+#+END_SRC

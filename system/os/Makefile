@@ -18,7 +18,7 @@ $(SRCDIR)/version.asm:
 	@echo '.ascii "Commit: $(shell git describe --always --abbrev=10)",0x0a,"Build: $(shell date -Iminutes)",0x00' >> $@
 
 %.asm: %.org
-	emacs --batch -l org --eval="(setq org-src-preserve-indentation t)" $< -f org-babel-tangle
+	@emacs --batch -l org --eval="(setq org-src-preserve-indentation t)" $< -f org-babel-tangle
 
 os.bin: $(ASMFILES)
 	zasm -uw -i src/main.asm -o os.bin -l os.lst
@@ -28,12 +28,7 @@ os.hex: os.bin
 
 
 clean:
-	@$(RM) $(SRCDIR)/version.asm
-	@find $(SRCDIR) -iname "*.o" -delete
-	@find $(SRCDIR) -iname "*.err" -delete
-	@#These are temporary until everything is converted to org files
-	@$(RM) $(SRCDIR)/main.asm
-	@$(RM) $(SRCDIR)/drive.asm
+	@find $(SRCDIR) -iname "*.asm" -delete
 
 distclean: clean
 	@$(RM) os.bin os.hex os.lst

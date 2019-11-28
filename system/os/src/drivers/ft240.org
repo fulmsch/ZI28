@@ -1,0 +1,123 @@
+#+TITLE: FT240 USB interface driver
+#+PROPERTY: header-args :tangle yes
+
+#+BEGIN_SRC asm
+
+; FT240x driver
+
+#code ROM
+
+#define FT240_DATA_PORT   0
+#define FT240_STATUS_PORT 1
+
+ft240_deviceDriver:
+    DEFW 0x0000 ;init
+    DEFW ft240_read
+    DEFW ft240_write
+
+#+END_SRC
+
+
+* Read
+#+BEGIN_SRC asm
+#code ROM
+
+ft240_read:
+;; Read from the USB-connection on the mainboard
+;;
+;; Input:
+;; : ix - file entry addr
+;; : (de) - buffer
+;; : bc - count
+;;
+;; Output:
+;; : de - count
+;; : a - errno
+; Errors: 0=no error
+
+#local
+    ;calculate loop value in bc
+    ld a, c
+    dec bc
+    inc b
+    ld c, b
+    ld b, a
+    ld hl, 0
+
+poll:
+    in a, (FT240_STATUS_PORT)
+    bit 1, a
+    jr nz, poll
+    in a, (FT240_DATA_PORT)
+    cp 0x04 ;end of text
+    jr z, eof
+    cp 0x0d ;'\r'
+    jr z, poll
+    ld (de), a
+    inc de
+    inc hl
+    djnz poll
+    dec c
+    jr nz, poll
+    ex de, hl
+    xor a
+    ret
+
+eof:
+    xor a
+    ld (de), a
+    ex de, hl
+    ret
+#endlocal
+#+END_SRC
+
+* Write
+#+BEGIN_SRC asm
+#code ROM
+
+ft240_write:
+;; Write to the USB-connection on the mainboard
+;;
+;; Input:
+;; : ix - file entry addr
+;; : (de) - buffer
+;; : bc - count
+;;
+;; Output:
+;; : de - count
+;; : a - errno
+; Errors: 0=no error
+
+#local
+    ;calculate loop value in bc
+    ld a, c
+    dec bc
+    inc b
+    ld c, b
+    ld b, a
+
+    ld hl, 0
+
+poll:
+    in a, (FT240_STATUS_PORT)
+    bit 0, a
+    jr nz, poll
+    ld a, (de)
+    cp 0x0a ;'\n'
+    call z, newline
+    out (FT240_DATA_PORT), a
+    inc de
+    inc hl
+    djnz poll
+    dec c
+    jr nz, poll
+    ex de, hl
+    ret
+
+newline:
+    ld a, 0x0d ;'\r'
+    out (FT240_DATA_PORT), a
+    ld a, 0x0a ;'\n'
+    ret
+#endlocal
+#+END_SRC
