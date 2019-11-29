@@ -5,16 +5,21 @@ Advanced math routines
 
 Based on: <http://www.ticalc.org/pub/83/asm/source/routines/math32.inc>
 
+* 32-bit registers
+Define three variables to be used as temporary registers for 32-bit operations.
+
 #+BEGIN_SRC asm
 #data RAM
-;32bit registers
 regA: defs 4
 regB: defs 4
 regC: defs 4
 
-
 #code ROM
+#+END_SRC
 
+* Addition
+
+#+BEGIN_SRC asm
 add32:
 ;; Add two 32-bit numbers
 ;;
@@ -64,8 +69,11 @@ loop:
 
     ret
 #endlocal
+#+END_SRC
 
+* Subtraction
 
+#+BEGIN_SRC asm
 sub32:
 ;; Subtract two 32-bit numbers
 ;;
@@ -115,8 +123,11 @@ loop:
 
     ret
 #endlocal
+#+END_SRC
 
+* Inc32
 
+#+BEGIN_SRC asm
 inc32:
 ;; Increment a 32-bit number by 1
 ;;
@@ -150,8 +161,11 @@ exit:
     pop hl
     ret
 #endlocal
+#+END_SRC
 
+* Dec32
 
+#+BEGIN_SRC asm
 dec32:
 ;; Decrement a 32-bit number by 1
 ;;
@@ -185,8 +199,17 @@ exit:
     pop hl
     ret
 #endlocal
+#+END_SRC
 
+* Shifts
+There are currently three shift instructions for each direction:
+ - Shift one bit (multiplication by 2)
+ - Shift 8 bits (multiplication by 256)
+ - Shift 9 bits (multiplication by 512)
 
+** Left shift
+
+#+BEGIN_SRC asm
 lshiftbyte32:
 ;; Shift a 32-bit number left by 1 byte
 ;;
@@ -268,8 +291,11 @@ lshift32:
 
     pop hl
     ret
+#+END_SRC
 
+** Right shift
 
+#+BEGIN_SRC asm
 rshiftbyte32:
 ;; Shift a 32-bit number right by 1 byte
 ;;
@@ -350,8 +376,11 @@ rshift32:
     dec hl
     rr (hl)
     ret
+#+END_SRC
 
+* Load
 
+#+BEGIN_SRC asm
 ld8:
 ;; Load an 8-bit number into a 32-bit pointer
 ;;
@@ -420,8 +449,11 @@ ld32:
     pop bc
 
     ret
+#+END_SRC
 
+* Compare
 
+#+BEGIN_SRC asm
 cp32:
 ;; Compares two 32-bit numbers
 ;;
@@ -455,8 +487,11 @@ loop:
     djnz loop
     ret
 #endlocal
+#+END_SRC
 
+* Clear
 
+#+BEGIN_SRC asm
 clear32:
 ;; Sets a 32-bit number to 0
 ;;

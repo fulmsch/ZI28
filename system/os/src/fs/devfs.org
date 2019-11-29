@@ -1,19 +1,57 @@
 #+TITLE: Device file system
 #+PROPERTY: header-args :tangle yes
 
+The device file system (DevFs) is a way to expose various devices to the user
+through the virtual file system (VFS). It consists of a table in RAM with an
+entry for each device file. There is only a file system driver, as each device
+has its own file driver.
+
+* Directory table
+
+The DevFs can currently only have one level without directories.
+
+It might be interesting to implement subdevices as like directories, for
+example:
+ - ~/dev/sda~ :: SD card block device
+ - ~/dev/sda/1~ :: Partition 1 of ~/dev/sda~
+How would it get stored in the filesystem? If it is only part of the device
+driver, how would it get listed?
+
+#+BEGIN_SRC asm
+#define devfsEntrySize 16
+#define devfsEntries   32
+
+#data RAM
+devfsRoot:           defs devfsEntrySize * devfsEntries
+devfsRootTerminator: defs 1
+#code ROM
+#+END_SRC
+
+* Device file entry fields
+
+An empty entry is defined as starting with ~0x00~.
+
+| Name                | Bytes | Description                                                                       |
+|---------------------+-------+-----------------------------------------------------------------------------------|
+| ~devfs_name~        |     8 | The name as it appears to the user (null terminated if shorter than 8 characters) |
+| ~devfs_entryDriver~ |     2 | File driver of the device                                                         |
+| ~devfs_number~      |     1 | This can probably be replaced with device driver specific data                    |
+| ~devfs_data~        |     5 |                                                                                   |
+|---------------------+-------+-----------------------------------------------------------------------------------|
 
 #+BEGIN_SRC asm
 #define devfs_name         0
 #define devfs_entryDriver  8
 #define devfs_number      10
 #define devfs_data        11
+#+END_SRC
 
+* Filetable fields
+#+BEGIN_SRC asm
 #define dev_fileTableDirEntry fileTableData ;Pointer to entry in devfs
 #define dev_fileTableNumber   dev_fileTableDirEntry + 2
 #define dev_fileTableData     dev_fileTableNumber + 1
 
-#define devfsEntrySize 16
-#define devfsEntries   32
 
 ;; Device filesystem
 #code ROM
@@ -31,12 +69,6 @@ devfs_fileDriver:
     DEFW 0x0000 ;devfs_write
 #+END_SRC
 
-#+BEGIN_SRC asm
-#data RAM
-devfsRoot:           defs devfsEntrySize * devfsEntries
-devfsRootTerminator: defs 1
-#code ROM
-#+END_SRC
 
 * Helper routines
 ** addDev
