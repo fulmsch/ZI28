@@ -80,26 +80,26 @@ bootOS:
 	jp 0x8000
 
 bootOSstr:
-	DEFM "\n\nBooting OS...\n", 0x00
+	DEFM 0x0a, 0x0a, "Booting OS...", 0x0a, 0x00
 
 nameStr:
-	DEFM "\n##############   ZI-28 Boot Menu V0.0   ##############\n"
-	DEFM "\n", 0x00
+	DEFM 0x0a, "##############   ZI-28 Boot Menu V0.0   ##############", 0x0a
+	DEFM 0x0a, 0x00
 
 coldStartStr:
-	DEFM "Press any key to stop automatic boot or select option:\n", 0x00
+	DEFM "Press any key to stop automatic boot or select option:", 0x0a, 0x00
 
 warmStartStr:
-	DEFM "Select option:\n", 0x00
+	DEFM "Select option:", 0x0a, 0x00
 
 bootMenuStr:
-	DEFM "  [1] Boot ZI-OS\n"
-	DEFM "  [2] Monitor\n"
-	DEFM "  [3] Launch BASIC\n"
-	DEFM "  [4] Burn EEPROM\n", 0x00
+	DEFM "  [1] Boot ZI-OS", 0x0a
+	DEFM "  [2] Monitor", 0x0a
+	DEFM "  [3] Launch BASIC", 0x0a
+	DEFM "  [4] Burn EEPROM", 0x0a, 0x00
 
 bootAbortStr:
-	DEFM "\nAutomatic boot aborted\n", 0x00
+	DEFM 0x0a, "Automatic boot aborted", 0x0a, 0x00
 
 
 #define FT240_DATA_PORT   0

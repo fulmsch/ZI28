@@ -1,11 +1,15 @@
 #+TITLE: SD-Card driver
 #+PROPERTY: header-args :tangle yes
 
-Based on this design: <http://www.ecstaticlyrics.com/electronics/SPI/fast_z80_interface.html>
+Based on this design: https://www.ecstaticlyrics.com/electronics/SPI/fast_z80_interface.html
 
-Port 0 is the transfer buffer.
-A write to port 1 transfers a byte between the buffer and the SD-card.
-Writing to port 2 enables the SD-card, writing to port 3 disabled it.
+| Port | Read            | Write           |
+|------+-----------------+-----------------|
+|    0 | Transfer buffer | Transfer buffer |
+|    1 |                 | Start transfer  |
+|    2 |                 | Enable SD card  |
+|    3 |                 | Disable SD card |
+|------+-----------------+-----------------|
 
 #+BEGIN_SRC asm
 #define sd_fileTableStartSector dev_fileTableData

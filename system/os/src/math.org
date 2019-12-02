@@ -504,6 +504,7 @@ clear32:
 ;; Destroyed:
 ;; : none
 
+#local
     push hl
     push bc
     ld b, 4
@@ -515,4 +516,5 @@ loop:
     pop bc
     pop hl
     ret
+#endlocal
 #+END_SRC

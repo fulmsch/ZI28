@@ -72,7 +72,7 @@ inputBufferOverflow:
     jr prompt
 
 inputBufferOverflowStr:
-    DEFM "\nThe entered command is too long\n", 0x00
+    DEFM 0x0a, "The entered command is too long", 0x0a, 0x00
 
 handleLine:
 ;    ld a, 0x0d
@@ -158,7 +158,7 @@ argOverflow:
     jp prompt
 
 argOverflowStr:
-    DEFM "\nToo many arguments\n", 0x00
+    DEFM 0x0a, "Too many arguments", 0x0a, 0x00
 
 commandDispatch:
     ;terminate argv
@@ -326,7 +326,7 @@ promptEndStr:
 
 
 noMatchString:
-    DEFM "Command not found\n", 0x00
+    DEFM "Command not found", 0x0a, 0x00
 
 execPath:
     DEFM "/BIN/", 0x00
@@ -537,9 +537,9 @@ path:
     ret
 
 helpMsg:
-    DEFM "The following commands are available:\n", 0x00
+    DEFM "The following commands are available:", 0x0a, 0x00
 pathMsg:
-    DEFM "\nAdditional programs will be searched in:\n ", 0x00
+    DEFM 0x0a, "Additional programs will be searched in:", 0x0a, 0x00
 #endlocal
 #+END_SRC
 
@@ -600,7 +600,7 @@ invalidCall:
     call print
     ret
 invalidCallstr:
-    DEFM "Usage: MOUNT <DEVICE> <LABEL>\n", 0x00
+    DEFM "Usage: MOUNT <DEVICE> <LABEL>", 0x0a, 0x00
 #endlocal
 #+END_SRC
 
