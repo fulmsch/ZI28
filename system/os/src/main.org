@@ -191,6 +191,7 @@ _coldStart:
     ld a, FS_FAT
     call mountRoot
 
+
     ld a, 1
     ld (process_pid), a
 
@@ -217,6 +218,9 @@ homeDir:
     DEFM "/HOME", 0x00
 shellName:
     DEFM "/BIN/ZISH.EX8", 0x00
+
+
+#include "drivers/vt100.asm"
 #+END_SRC
 
 * Bank selection

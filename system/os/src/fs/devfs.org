@@ -139,6 +139,8 @@ freeEntryFound:
     inc hl
 
     push hl ;custom data start
+    ld d, h
+    ld e, l
 
     ;call init function if it exists
     ld a, (bc)
@@ -258,10 +260,10 @@ devfs_init:
     ld a, 0x80
     call devfs_addDev
 
-    ;; ld hl, vgattyName
-    ;; ld de, vt100_deviceDriver
-    ;; ld a, 0x90
-    ;; call devfs_addDev
+    ld hl, vgattyName
+    ld de, vt100_deviceDriver
+    ld a, 0x90
+    call devfs_addDev
 
 
     xor a

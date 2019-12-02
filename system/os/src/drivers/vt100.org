@@ -7,29 +7,41 @@ I think it is intended to emulate a VT100 terminal on the VGA display, but some
 of it seems to be copied from the FT240 driver and still contains some of those descriptions.
 
 #+BEGIN_SRC asm
+#define vt100_fileTablePosx dev_fileTableData + 5 ; TODO devfs_open copies the custom data of the devfs entry. This needs to be documented / defined somewhere
+#define vt100_fileTablePosy vt100_fileTablePosx + 1
+
+#define vt100_devfsScreenBuffer devfs_data
+
 #code ROM
 vt100_deviceDriver:
     DEFW vt100_init
-    DEFW vt100_read
+    DEFW 0 ;vt100_read
     DEFW vt100_write
 #+END_SRC
 
 * Init
+The screen buffer contains two bytes per character. First byte: ascii character;
+Second byte: foreground and background color
+
 #+BEGIN_SRC asm
 #code ROM
 vt100_init:
 ;; Input:
 ;; : (de) - custom data start (screenBuffer)
+    push de
     ld hl, 2016 ; 42 x 24 characters, 2 bytes / character
     call kalloc
+    pop de
     cp 0
     ret nz
 
     ex de, hl
+    ; store de (address of screenBuffer) in (hl)
     ld (hl), e
-    inc de
+    inc hl
     ld (hl), d
 
+    push de ;screen buffer
     ;clear screen buffer
     ld h, d
     ld l, e
@@ -37,36 +49,158 @@ vt100_init:
     ld bc, 2015
     ld (hl), 0x00
     ldir
+    pop de ;screen buffer
+
+    ld h, d
+    ld l, e
+    ld (hl), 'H'
+    inc hl
+    inc hl
+    ld (hl), 'e'
+    inc hl
+    inc hl
+    ld (hl), 'l'
+    inc hl
+    inc hl
+    ld (hl), 'l'
+    inc hl
+    inc hl
+    ld (hl), 'o'
+    inc hl
+    inc hl
+    ld (hl), ' '
+    inc hl
+    inc hl
+    ld (hl), 'W'
+    inc hl
+    inc hl
+    ld (hl), 'o'
+    inc hl
+    inc hl
+    ld (hl), 'r'
+    inc hl
+    inc hl
+    ld (hl), 'l'
+    inc hl
+    inc hl
+    ld (hl), 'd'
+    inc hl
+    inc hl
+    ld (hl), '!'
+    inc hl
+    inc hl
+
+    call vt100_drawScreen
 
     ret
 #+END_SRC
-* Read
+
 #+BEGIN_SRC asm
-#code ROM
-vt100_read:
-;; Read from the USB-connection on the mainboard
-;;
-;; Input:
-;; : ix - file entry addr
-;; : (de) - buffer
-;; : bc - count
-;;
-;; Output:
-;; : de - count
-;; : a - errno
-; Errors: 0=no error
+; Inputs:
+; : de - screen buffer
+vt100_drawScreen:
+#local
+    ;de = screen buffer
+
+    ; Go to screen location 0,0
+    xor a
+    ld (xOffs), a
+    ld (yOffs), a
+    out (0x93), a
+
+    ld hl, 2016
+    add hl, de
+    ld (endPointer), hl
+
+loop:
+    ld a, (de)
+
+    push de
+
+    ld hl, fontTable
+    ld c, a
+    ld b, 0
+
+    ; Each font character is 8 bytes long, so left shift the offset by 3
+    sla c
+    rl b
+    sla c
+    rl b
+    sla c
+    rl b
+
+    adc hl, bc
+    ;(hl): font table entry
+    ld b, 8 ;vertical counter
+
+; draw a complete character
+vLoop:
+    ld a, (yOffs)
+    add a, 8
+    sub a, b
+    out (0x92), a ;yreg
+    ld a, (xOffs)
+    out (0x91), a ;xreg
+
+    ld d, (hl) ; font row
+    inc hl
+
+    ld c, 3 ; each char is 6 pixels wide = 3 bytes
+hloop:
+    ld a, 0 ;set both pixels to black
+    rlc d
+    jr nc, blank0
+    or 0x0f
+blank0:
+    rlc d
+    jr nc, blank1
+    or 0xf0
+blank1:
+    out (0x97), a ;data inc
+
+    dec c
+    jr nz, hloop
+
+    djnz vLoop
+
+
+    pop de
+    inc de
+    inc de
+    ld hl, (endPointer)
+    or a
+    sbc hl, de
+    ret z
+
+    ld hl, xOffs
+    ld a, 3
+    add a, (hl)
+    ld (hl), a
+    cp 126
+    jr nz, loop
 
     xor a
-    ld d, a
-    ld e, a
+    ld (hl), a
+
+    ld hl, yOffs
+    ld a, 8
+    add a, (hl)
+    ld(hl), a
+    jr loop
     ret
+
+#data RAM
+xOffs: defb 0
+yOffs: defb 0
+endPointer: defw 0
+#code ROM
+#endlocal
 #+END_SRC
+
 * Write
 #+BEGIN_SRC asm
 #code ROM
 vt100_write:
-;; Write to the USB-connection on the mainboard
-;;
 ;; Input:
 ;; : ix - file entry addr
 ;; : (de) - buffer
@@ -78,6 +212,22 @@ vt100_write:
 ; Errors: 0=no error
 
 #local
+
+    push de
+    ld e, (ix + dev_fileTableDirEntry)
+    ld d, (ix + dev_fileTableDirEntry + 1)
+    ld hl, vt100_devfsScreenBuffer
+    add hl, de
+    ; (hl) = &screenBuffer
+    ld e, (hl)
+    inc hl
+    ld d, (hl)
+    ; (de) = screenBuffer
+    ex de, hl
+    ld (screenBuffer), hl
+    pop de
+
+
     ;calculate loop value in bc
     ld a, c
     dec bc
@@ -89,13 +239,42 @@ vt100_write:
 
 poll:
     ld a, (de)
-    ;print a
+    push bc ; count down
+    push de ; string index
+    push hl ; count up
+    call handleChar
+    pop hl
+    pop de
+    pop bc
     inc de
     inc hl
     djnz poll
     dec c
     jr nz, poll
+
     ex de, hl
+    push de
+    ld hl, (screenBuffer)
+    ex de, hl
+    call vt100_drawScreen
+    pop de
     ret
+
+handleChar:
+    ld c, (ix + vt100_fileTablePosx)
+    sla c
+    ld b, 0
+
+    ld hl, (screenBuffer)
+
+    add hl, bc
+    ld (hl), a
+    ret
+
+#data RAM
+screenBuffer:
+    defs 2
+#code ROM
+
 #endlocal
 #+END_SRC
