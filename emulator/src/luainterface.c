@@ -344,9 +344,19 @@ static struct breakpoint *createBreakpoint(lua_State *L, BREAK_TYPE type)
 	lua_settop(L, 2);
 	if(((lua_type(L, 2) != LUA_TNIL || type == TYPE_TRACE) &&
 	    lua_type(L, 2) != LUA_TSTRING &&
-	    lua_type(L, 2) != LUA_TFUNCTION)
-	    || getMemPointer(L, 1, &pointer)) {
+	    lua_type(L, 2) != LUA_TFUNCTION)) {
+
 		luaL_error(L, "invalid arguments(s)");
+	}
+
+	if (getMemPointer(L, 1, &pointer)) {
+		// Not a pointer
+		int isnum;
+		pointer.size = 1;
+		pointer.address = lua_tointegerx(L, 1, &isnum);
+		if (!isnum || pointer.address < 0 || pointer.address > 0xFFFF) {
+			luaL_error(L, "invalid arguments(s)");
+		}
 	}
 
 	//Allocate and set up a new breakpoint structure
