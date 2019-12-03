@@ -220,7 +220,6 @@ shellName:
     DEFM "/BIN/ZISH.EX8", 0x00
 
 
-#include "drivers/vt100.asm"
 #+END_SRC
 
 * Bank selection
@@ -286,6 +285,7 @@ error:
 #include "fs/devfs.asm"
 
 ; Drivers
+#include "drivers/vt100.asm"
 #include "drivers/ft240.asm"
 #include "drivers/sd.asm"
 

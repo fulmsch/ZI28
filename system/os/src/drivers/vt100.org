@@ -51,44 +51,44 @@ vt100_init:
     ldir
     pop de ;screen buffer
 
-    ld h, d
-    ld l, e
-    ld (hl), 'H'
-    inc hl
-    inc hl
-    ld (hl), 'e'
-    inc hl
-    inc hl
-    ld (hl), 'l'
-    inc hl
-    inc hl
-    ld (hl), 'l'
-    inc hl
-    inc hl
-    ld (hl), 'o'
-    inc hl
-    inc hl
-    ld (hl), ' '
-    inc hl
-    inc hl
-    ld (hl), 'W'
-    inc hl
-    inc hl
-    ld (hl), 'o'
-    inc hl
-    inc hl
-    ld (hl), 'r'
-    inc hl
-    inc hl
-    ld (hl), 'l'
-    inc hl
-    inc hl
-    ld (hl), 'd'
-    inc hl
-    inc hl
-    ld (hl), '!'
-    inc hl
-    inc hl
+;    ld h, d
+;    ld l, e
+;    ld (hl), 'H'
+;    inc hl
+;    inc hl
+;    ld (hl), 'e'
+;    inc hl
+;    inc hl
+;    ld (hl), 'l'
+;    inc hl
+;    inc hl
+;    ld (hl), 'l'
+;    inc hl
+;    inc hl
+;    ld (hl), 'o'
+;    inc hl
+;    inc hl
+;    ld (hl), ' '
+;    inc hl
+;    inc hl
+;    ld (hl), 'W'
+;    inc hl
+;    inc hl
+;    ld (hl), 'o'
+;    inc hl
+;    inc hl
+;    ld (hl), 'r'
+;    inc hl
+;    inc hl
+;    ld (hl), 'l'
+;    inc hl
+;    inc hl
+;    ld (hl), 'd'
+;    inc hl
+;    inc hl
+;    ld (hl), '!'
+;    inc hl
+;    inc hl
 
     call vt100_drawScreen
 
@@ -260,15 +260,85 @@ poll:
     pop de
     ret
 
+
 handleChar:
+    cp 0x0a ;'\n'
+    jr z, newline
+    cp 0x08 ; backspace
+    jr z, backspace
+
+
+    push af
+    ld a, (ix + vt100_fileTablePosy)
+    ld hl, 0
+    ld de, 42 * 2
+loop:
+    srl a
+    jr nc, skip
+    add hl, de
+skip:
+    sla e
+    rl d
+    or a
+    jr nz, loop
+    pop af
+
     ld c, (ix + vt100_fileTablePosx)
     sla c
     ld b, 0
 
+    add hl, bc
+    ;hl = offset
+    ex de, hl
+
     ld hl, (screenBuffer)
 
-    add hl, bc
+    add hl, de
     ld (hl), a
+
+    ; TODO optimize
+    inc (ix + vt100_fileTablePosx)
+    ld a, (ix + vt100_fileTablePosx)
+    cp 42
+    ret c
+    ; Fall through to newline if new cursor position is past end of line
+
+newline:
+    ld (ix + vt100_fileTablePosx), 0
+
+    ld a, (ix + vt100_fileTablePosy)
+    inc a
+    cp 24
+    jr nc, scroll
+    ld (ix + vt100_fileTablePosy), a
+    ret
+
+scroll:
+    ld hl, (screenBuffer)
+    ld d, h
+    ld e, l
+    ld bc, 42 * 2
+    add hl, bc ; hl = screenBuffer + 42 chars, de = screenBuffer
+    ld bc, 42 * 2 * 23
+    ldir
+
+    ld h, d
+    ld l, e
+    ld (hl), 0
+    inc de
+    ld bc, 42 * 2 - 1
+    ldir
+
+    ld (ix + vt100_fileTablePosy), 23
+    ret
+
+backspace:
+    ld a, (ix + vt100_fileTablePosx)
+    dec a
+    jp p, positive
+    xor a
+positive:
+    ld (ix + vt100_fileTablePosx), a
     ret
 
 #data RAM

@@ -636,31 +636,32 @@ b_test:
 #local
     ; Check that there is a single argument
     ld a, (argc)
-    cp 2
+    cp 1
     ret nz
-
-    ld hl, argv
-    inc hl
-    inc hl
-
-    ld e, (hl)
-    inc hl
-    ld d, (hl)
-    ;(de) = string to print
-    ld a, (de) ;a = char
-    ld (buffer), a
-
 
     ld a, O_RDWR
     ld de, vgattyName
     call k_open
-
     ld a, e
+    push af
+
+loop:
+    xor a
+    rst RST_getc
+    cp 'x' ;0x04; Ctrl-D
+    ld (buffer), a
+    jr z, return
+
+    pop af
+    push af
     ld de, buffer
     ld hl, 1
     call k_write
+    jr loop
 
-    ret
+return:
+    pop af
+    jp k_close
 
 vgattyName:
     DEFM "/DEV/VGATTY", 0x00
