@@ -4321,9 +4321,9 @@ JJUMP1:
         JP      CSTART          ; Go and initialise
 
 MONOUT:
-        ;JP      0x0008          ; output a char
-        OUT     (0x00),A
-        RET
+        JP      RST_putc          ; output a char
+        ; OUT     (0x00),A
+        ; RET
 
 
 EXIT:
