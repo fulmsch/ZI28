@@ -253,22 +253,22 @@ poll:
     jr nz, poll
 
     ex de, hl
-    push de
-    ld hl, (screenBuffer)
-    ex de, hl
-    call vt100_drawScreen
-    pop de
+    ; push de
+    ; ld hl, (screenBuffer)
+    ; ex de, hl
+    ; call vt100_drawScreen
+    ; pop de
     ret
 
 
 handleChar:
-    cp 0x0a ;'\n'
-    jr z, newline
-    cp 0x08 ; backspace
-    jr z, backspace
-
-
+    push af
     ld h, (ix + vt100_fileTablePosy)
+    ld a, h
+    add a, a
+    add a, a
+    add a, a
+    ld (yOffs), a
     ld l, 0
     srl h
     rr l
@@ -276,23 +276,34 @@ handleChar:
     rr l
 
     ld c, (ix + vt100_fileTablePosx)
+    ld a, c
+    add a, a
+    add a, a
+    ld (xOffs), a
     sla c
     ld b, 0
+    pop af
 
     add hl, bc
     ;hl = offset
     ex de, hl
 
     ld hl, (screenBuffer)
-
     add hl, de
+
+    cp 0x0a ;'\n'
+    jr z, newline
+    cp 0x08 ; backspace
+    jr z, backspace
+
+
     ld (hl), a
 
     ; TODO optimize
     inc (ix + vt100_fileTablePosx)
     ld a, (ix + vt100_fileTablePosx)
     cp 32
-    ret c
+    jr c, drawChar
     ; Fall through to newline if new cursor position is past end of line
 
 newline:
@@ -303,7 +314,7 @@ newline:
     cp 24
     jr nc, scroll
     ld (ix + vt100_fileTablePosy), a
-    ret
+    jr drawChar
 
 scroll:
     ld hl, (screenBuffer)
@@ -322,6 +333,10 @@ scroll:
     ldir
 
     ld (ix + vt100_fileTablePosy), 23
+
+    ld hl, (screenBuffer)
+    ex de, hl
+    call vt100_drawScreen
     ret
 
 backspace:
@@ -338,5 +353,61 @@ screenBuffer:
     defs 2
 #code ROM
 
+
+drawChar:
+    ld a, (hl)
+
+    ld hl, fontTable
+
+    ; Each font character is 8 bytes long, so left shift the offset by 3
+    ld b, 0
+    add a, a
+    ; Discard MSB by not shifting it into b
+    add a, a
+    rl b
+    add a, a
+    rl b
+    ld c, a
+
+    adc hl, bc
+    ;(hl): font table entry
+    ld b, 8 ;vertical counter
+
+; draw a complete character
+vLoop:
+    ld a, (yOffs)
+    add a, 8
+    sub a, b
+    out (0x92), a ;yreg
+    ld a, (xOffs)
+    out (0x91), a ;xreg
+
+    ld d, (hl) ; font row
+    inc hl
+
+    ld c, 4 ; each char is 8 pixels wide = 4 bytes
+hloop:
+    ld a, 0 ;set both pixels to black
+    rlc d
+    jr nc, blank0
+    or 0x0f
+blank0:
+    rlc d
+    jr nc, blank1
+    or 0xf0
+blank1:
+    out (0x97), a ;data inc
+
+    dec c
+    jr nz, hloop
+
+    djnz vLoop
+    ret
+#data RAM
+xOffs:
+    defs 1
+yOffs:
+    defs 1
+#code ROM
 #endlocal
 #+END_SRC
