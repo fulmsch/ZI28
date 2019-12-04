@@ -29,7 +29,7 @@ vt100_init:
 ;; Input:
 ;; : (de) - custom data start (screenBuffer)
     push de
-    ld hl, 2016 ; 42 x 24 characters, 2 bytes / character
+    ld hl, 1536 ; 32 x 24 characters, 2 bytes / character
     call kalloc
     pop de
     cp 0
@@ -46,7 +46,7 @@ vt100_init:
     ld h, d
     ld l, e
     inc de
-    ld bc, 2015
+    ld bc, 1535
     ld (hl), 0x00
     ldir
     pop de ;screen buffer
@@ -108,7 +108,7 @@ vt100_drawScreen:
     ld (yOffs), a
     out (0x93), a
 
-    ld hl, 2016
+    ld hl, 1536
     add hl, de
     ld (endPointer), hl
 
@@ -118,16 +118,16 @@ loop:
     push de
 
     ld hl, fontTable
-    ld c, a
-    ld b, 0
 
     ; Each font character is 8 bytes long, so left shift the offset by 3
-    sla c
+    ld b, 0
+    add a, a
+    ; Discard MSB by not shifting it into b
+    add a, a
     rl b
-    sla c
+    add a, a
     rl b
-    sla c
-    rl b
+    ld c, a
 
     adc hl, bc
     ;(hl): font table entry
@@ -145,7 +145,7 @@ vLoop:
     ld d, (hl) ; font row
     inc hl
 
-    ld c, 3 ; each char is 6 pixels wide = 3 bytes
+    ld c, 4 ; each char is 8 pixels wide = 4 bytes
 hloop:
     ld a, 0 ;set both pixels to black
     rlc d
@@ -173,10 +173,10 @@ blank1:
     ret z
 
     ld hl, xOffs
-    ld a, 3
+    ld a, 4
     add a, (hl)
     ld (hl), a
-    cp 126
+    cp 128
     jr nz, loop
 
     xor a
@@ -268,20 +268,12 @@ handleChar:
     jr z, backspace
 
 
-    push af
-    ld a, (ix + vt100_fileTablePosy)
-    ld hl, 0
-    ld de, 42 * 2
-loop:
-    srl a
-    jr nc, skip
-    add hl, de
-skip:
-    sla e
-    rl d
-    or a
-    jr nz, loop
-    pop af
+    ld h, (ix + vt100_fileTablePosy)
+    ld l, 0
+    srl h
+    rr l
+    srl h
+    rr l
 
     ld c, (ix + vt100_fileTablePosx)
     sla c
@@ -299,7 +291,7 @@ skip:
     ; TODO optimize
     inc (ix + vt100_fileTablePosx)
     ld a, (ix + vt100_fileTablePosx)
-    cp 42
+    cp 32
     ret c
     ; Fall through to newline if new cursor position is past end of line
 
@@ -317,16 +309,16 @@ scroll:
     ld hl, (screenBuffer)
     ld d, h
     ld e, l
-    ld bc, 42 * 2
-    add hl, bc ; hl = screenBuffer + 42 chars, de = screenBuffer
-    ld bc, 42 * 2 * 23
+    ld bc, 32 * 2
+    add hl, bc ; hl = screenBuffer + 32 chars, de = screenBuffer
+    ld bc, 32 * 2 * 23
     ldir
 
     ld h, d
     ld l, e
     ld (hl), 0
     inc de
-    ld bc, 42 * 2 - 1
+    ld bc, 32 * 2 - 1
     ldir
 
     ld (ix + vt100_fileTablePosy), 23
