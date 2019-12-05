@@ -193,6 +193,7 @@ sd_getResponse:
 
 timeout:
     scf
+    ret
 #endlocal
 #+END_SRC
 
