@@ -1921,25 +1921,6 @@ F 3 "" H 6550 3650 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L zi28:SW_Push SW?
-U 1 1 5E590B46
-P 6600 3050
-AR Path="/5E590B46" Ref="SW?"  Part="1" 
-AR Path="/5E4BD7CF/5E590B46" Ref="SW301"  Part="1" 
-F 0 "SW301" V 6554 3198 50  0000 L CNN
-F 1 "SW_Push" V 6645 3198 50  0001 L CNN
-F 2 "Button_Switch_THT:SW_TH_Tactile_Omron_B3F-10xx" H 6600 3250 50  0001 C CNN
-F 3 "~" H 6600 3250 50  0001 C CNN
-	1    6600 3050
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	6600 2850 6550 2850
-Connection ~ 6550 2850
-Wire Wire Line
-	6600 3250 6550 3250
-Connection ~ 6550 3250
-$Comp
 L Device:C C?
 U 1 1 5E590B50
 P 7100 3050
@@ -2137,4 +2118,15 @@ Wire Bus Line
 	5450 4150 5450 5700
 Wire Bus Line
 	3000 4150 3000 7100
+$Comp
+L Switch:SW_Push SW301
+U 1 1 5DF8EDA7
+P 6550 3050
+F 0 "SW301" V 6550 3198 50  0000 L CNN
+F 1 "SW_Push" V 6595 3198 50  0001 L CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm_H5mm" H 6550 3250 50  0001 C CNN
+F 3 "~" H 6550 3250 50  0001 C CNN
+	1    6550 3050
+	0    1    1    0   
+$EndComp
 $EndSCHEMATC

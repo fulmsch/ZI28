@@ -14,10 +14,4 @@ K SRAM MEMORY
 F https://www.mouser.ch/datasheet/2/198/63LV1024_L-258513.pdf
 $ENDCMP
 #
-$CMP SW_Push
-D Push button switch, generic, two pins
-K switch normally-open pushbutton push-button
-F ~
-$ENDCMP
-#
 #End Doc Library
