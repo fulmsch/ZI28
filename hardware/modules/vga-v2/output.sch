@@ -423,7 +423,7 @@ AR Path="/5DF06544/5E0A6C3E" Ref="J?"  Part="1"
 AR Path="/5E03F935/5E0A6C3E" Ref="J401"  Part="1" 
 F 0 "J401" H 7950 4817 50  0000 C CNN
 F 1 "DB15_Female_HighDensity_MountingHoles" H 7950 4726 50  0000 C CNN
-F 2 "Connector_Dsub:DSUB-15-HD_Female_Horizontal_P2.29x1.98mm_EdgePinOffset8.35mm_Housed_MountingHolesOffset10.89mm" H 7000 4350 50  0001 C CNN
+F 2 "Connector_Dsub:DSUB-15-HD_Female_Horizontal_P2.29x1.98mm_EdgePinOffset3.03mm_Housed_MountingHolesOffset4.94mm" H 7000 4350 50  0001 C CNN
 F 3 " ~" H 7000 4350 50  0001 C CNN
 	1    7950 3950
 	1    0    0    -1  
