@@ -4,4 +4,20 @@ $CMP 74HC645
 F https://www.ti.com/lit/ds/symlink/sn74hc645.pdf
 $ENDCMP
 #
+$CMP ICE40HX1K-VQ100
+D (CC-by-SA) https://github.com/Agilack/contrib-kicad_parts
+$ENDCMP
+#
+$CMP IS63LV1024L
+D 128K x 8 HIGH-SPEED CMOS STATIC RAM, 10ns, TSOP II-32
+K SRAM MEMORY
+F https://www.mouser.ch/datasheet/2/198/63LV1024_L-258513.pdf
+$ENDCMP
+#
+$CMP SW_Push
+D Push button switch, generic, two pins
+K switch normally-open pushbutton push-button
+F ~
+$ENDCMP
+#
 #End Doc Library
